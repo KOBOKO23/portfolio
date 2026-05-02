@@ -1,0 +1,43 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Python (if backend uses it)
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.db
+
+# Virtual environments
+venv/
+.env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+build/
+
+# Misc
+*.local
+
+# Mac
+.AppleDouble
+.LSOverride
