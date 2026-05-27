@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Projects } from './pages/Projects';
 import { Blog } from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
 import { FashionGallery } from './pages/FashionGallery';
 import { Music } from './pages/Music';
 import { Book } from './pages/Book';
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/fashion" element={<FashionGallery />} />
           <Route path="/music" element={<Music />} />
           <Route path="/book" element={<Book />} />

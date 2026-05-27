@@ -1,0 +1,32 @@
+# ── Secrets & environment ─────────────────────────────────────────────────────
+backend/.env
+.env
+.env.*
+!.env.example
+!backend/.env.example
+
+# ── Python / Django ───────────────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.pytest_cache/
+*.egg-info/
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+src/node_modules/
+src/dist/
+src/.env
+src/.env.*
+!src/.env.example
+
+# ── Docker / deploy ───────────────────────────────────────────────────────────
+nginx/ssl/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('subscribe/', views.NewsletterSubscribeView.as_view(), name='newsletter-subscribe'),
+    path('issues/', views.NewsletterIssueListView.as_view(), name='newsletter-issues'),
+]

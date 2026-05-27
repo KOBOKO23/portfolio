@@ -1,0 +1,14 @@
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+backend/.env
+node_modules/
+src/node_modules/
+.git/
+*.md
+docker-compose*.yml
+nginx/ssl/
+scripts/

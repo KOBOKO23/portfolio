@@ -1,6 +1,22 @@
 /**
- * Validation Utilities
- * Input validation and sanitization for security
+ * app/utils/validation.ts
+ * ────────────────────────
+ * Pure validation and sanitisation helpers used by form components.
+ *
+ * All functions are side-effect-free — safe to call in any context (browser or test).
+ *
+ * Exported validators: isValidEmail, isValidURL, isValidPhone, isValidLength,
+ *   validateRequired, isInRange, hasValidationErrors, safeJSONParse, escapeRegex
+ *
+ * Exported sanitisers: sanitizeHTML, sanitizeInput
+ *
+ * Exported form validators:
+ *   validateContactForm   — name, email, subject, message
+ *   validateNewsletterForm — name, email
+ *   validateFeedbackForm  — rating (1-5), message, optional email
+ *
+ * Form validators return a ValidationErrors object (empty = no errors).
+ * Use hasValidationErrors(errors) to gate form submission.
  */
 
 /**

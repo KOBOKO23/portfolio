@@ -1,6 +1,23 @@
 /**
- * API Utilities
- * Centralized API communication with error handling and retry logic
+ * app/utils/api.ts
+ * ────────────────
+ * Typed HTTP client for the Django REST backend.
+ *
+ * All responses follow the backend's standard envelope:
+ *   { success: boolean, data: T | null, error: APIError | null }
+ *
+ * Usage:
+ *   import { get, post, API_ENDPOINTS } from '@/app/utils/api';
+ *
+ *   const result = await get<Article[]>(API_ENDPOINTS.BLOG_ARTICLES);
+ *   if (result.success) { ... result.data ... }
+ *
+ * Features:
+ *   - 30-second AbortController timeout on every request
+ *   - apiRequestWithRetry() with exponential backoff (skips retries on 4xx)
+ *   - getCached() — 5-minute in-memory cache keyed by endpoint URL
+ *   - clearCache() — invalidate one endpoint or the entire cache
+ *   - uploadFile() — XHR-based file upload with progress callback
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';

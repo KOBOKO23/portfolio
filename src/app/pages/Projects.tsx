@@ -1,63 +1,149 @@
+import { useState, useEffect, type ElementType } from 'react';
 import { motion } from 'motion/react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { ExternalLink, Github, Cloud, Code, Database, Gauge } from 'lucide-react';
+import { ExternalLink, Github, Cloud, Code, Database, Gauge, Terminal, Globe } from 'lucide-react';
+import { SEO } from '../components/SEO';
+
+interface ProjectCategory {
+  id: number;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+interface Project {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  category: ProjectCategory | null;
+  technologies: string[];
+  technologies_list?: string[];
+  github_url?: string;
+  live_url?: string;
+  is_featured?: boolean;
+}
+
+const CATEGORY_ICONS: Record<string, ElementType> = {
+  Meteorology: Cloud,
+  'Backend Development': Code,
+  'Database Management': Database,
+  'Data Science': Gauge,
+  'Full Stack': Terminal,
+  'Web Development': Globe,
+};
+
+const FALLBACK_PROJECTS: Project[] = [
+  {
+    id: 1,
+    title: 'Numerical Weather Prediction System',
+    slug: 'nwp-system',
+    description: 'Advanced weather forecasting system using numerical models to predict atmospheric conditions for Kenya and East Africa.',
+    category: { id: 1, name: 'Meteorology', color: '#1a4a6e', icon: 'cloud' },
+    technologies: ['Python', 'Atmospheric Science', 'Data Visualization', 'Meteorological Models'],
+  },
+  {
+    id: 2,
+    title: 'Django REST API Framework',
+    slug: 'django-api',
+    description: 'Scalable REST API built with Django and PostgreSQL for enterprise-level applications, featuring authentication and comprehensive documentation.',
+    category: { id: 2, name: 'Backend Development', color: '#2d5a2d', icon: 'code' },
+    technologies: ['Python', 'Django', 'PostgreSQL', 'REST APIs', 'JWT Auth'],
+    github_url: '#',
+  },
+  {
+    id: 3,
+    title: 'Database Architecture Design',
+    slug: 'db-architecture',
+    description: 'Comprehensive database solutions implementing both SQL and NoSQL architectures for optimal data storage and retrieval performance.',
+    category: { id: 3, name: 'Database Management', color: '#4a2d6e', icon: 'database' },
+    technologies: ['PostgreSQL', 'MongoDB', 'Redis', 'Query Optimization'],
+    github_url: '#',
+  },
+  {
+    id: 4,
+    title: 'Real-Time Data Processing Pipeline',
+    slug: 'data-pipeline',
+    description: 'High-performance data pipeline for processing and analyzing meteorological data in real-time, supporting decision-making processes.',
+    category: { id: 4, name: 'Data Science', color: '#6e3a1a', icon: 'gauge' },
+    technologies: ['Python', 'Pandas', 'NumPy', 'Data Analysis', 'Visualization'],
+  },
+];
+
+const TECH_STACK = [
+  { name: 'Python', category: 'Language' },
+  { name: 'Django', category: 'Framework' },
+  { name: 'PostgreSQL', category: 'Database' },
+  { name: 'MongoDB', category: 'Database' },
+  { name: 'Git', category: 'Version Control' },
+  { name: 'Linux', category: 'OS' },
+  { name: 'REST APIs', category: 'Architecture' },
+  { name: 'Docker', category: 'DevOps' },
+];
+
+function ProjectVisual({ project }: { project: Project }) {
+  const categoryName = project.category?.name ?? '';
+  const color = project.category?.color ?? '#1a1a1a';
+  const Icon: ElementType = CATEGORY_ICONS[categoryName] ?? Terminal;
+
+  return (
+    <div
+      className="relative aspect-[4/3] overflow-hidden"
+      style={{ background: `linear-gradient(145deg, ${color}99 0%, ${color}22 60%, #0a0a0a 100%)` }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{ background: `radial-gradient(ellipse 60% 60% at 30% 40%, ${color}44 0%, transparent 70%)` }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+        <div
+          className="w-20 h-20 flex items-center justify-center border border-white/20"
+          style={{ background: `${color}55` }}
+        >
+          <Icon className="w-10 h-10 text-white/70" />
+        </div>
+        <p className="text-white/30 text-xs uppercase tracking-[0.3em]">{categoryName}</p>
+      </div>
+      {/* Gold corner accent */}
+      <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none">
+        <div className="absolute top-0 left-0 w-16 h-[2px]" style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }} />
+        <div className="absolute top-0 left-0 h-16 w-[2px]" style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }} />
+      </div>
+    </div>
+  );
+}
 
 export function Projects() {
-  const projects = [
-    {
-      id: 1,
-      title: 'Numerical Weather Prediction System',
-      category: 'Meteorology',
-      description: 'Advanced weather forecasting system using numerical models to predict atmospheric conditions for Kenya and East Africa region.',
-      image: 'https://images.unsplash.com/photo-1771974301591-af40b9b996d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWF0aGVyJTIwZm9yZWNhc3RpbmclMjB0ZWNobm9sb2d5fGVufDF8fHx8MTc3MjI3MjU1Mnww&ixlib=rb-4.1.0&q=80&w=1080',
-      technologies: ['Python', 'Atmospheric Science', 'Data Visualization', 'Meteorological Models'],
-      icon: Cloud,
-    },
-    {
-      id: 2,
-      title: 'Django REST API Framework',
-      category: 'Backend Development',
-      description: 'Scalable REST API built with Django and PostgreSQL for enterprise-level applications, featuring authentication, data validation, and comprehensive documentation.',
-      image: 'https://images.unsplash.com/photo-1679278966309-080c6533d90e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxQeXRob24lMjBEamFuZ28lMjBkZXZlbG9wbWVudHxlbnwxfHx8fDE3NzIyNzI1NTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      technologies: ['Python', 'Django', 'PostgreSQL', 'REST APIs', 'JWT Auth'],
-      icon: Code,
-      github: '#',
-    },
-    {
-      id: 3,
-      title: 'Database Architecture Design',
-      category: 'Database Management',
-      description: 'Comprehensive database solutions implementing both SQL and NoSQL architectures for optimal data storage and retrieval performance.',
-      image: 'https://images.unsplash.com/photo-1636347172071-6d17b1139816?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhYmFzZSUyMGFyY2hpdGVjdHVyZSUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzcyMjcyNTUxfDA&ixlib=rb-4.1.0&q=80&w=1080',
-      technologies: ['PostgreSQL', 'MongoDB', 'Redis', 'Database Design', 'Query Optimization'],
-      icon: Database,
-      github: '#',
-    },
-    {
-      id: 4,
-      title: 'Real-Time Data Processing Pipeline',
-      category: 'Data Science',
-      description: 'High-performance data pipeline for processing and analyzing meteorological data in real-time, supporting decision-making processes.',
-      image: 'https://images.unsplash.com/photo-1760548425425-e42e77fa38f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWIlMjBkZXZlbG9wbWVudCUyMGNvZGV8ZW58MXx8fHwxNzcyMjcwNzg2fDA&ixlib=rb-4.1.0&q=80&w=1080',
-      technologies: ['Python', 'Pandas', 'NumPy', 'Data Analysis', 'Visualization'],
-      icon: Gauge,
-    },
-  ];
+  const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
+  const [loading, setLoading] = useState(true);
 
-  const technologies = [
-    { name: 'Python', category: 'Language' },
-    { name: 'Django', category: 'Framework' },
-    { name: 'PostgreSQL', category: 'Database' },
-    { name: 'MongoDB', category: 'Database' },
-    { name: 'Git', category: 'Version Control' },
-    { name: 'Linux', category: 'OS' },
-    { name: 'REST APIs', category: 'Architecture' },
-    { name: 'Docker', category: 'DevOps' },
-  ];
+  useEffect(() => {
+    const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
+    fetch(`${apiBase}/projects/`)
+      .then((r) => r.json())
+      .then((body) => {
+        const items: Project[] = body?.data?.results ?? body?.data ?? [];
+        if (items.length > 0) setProjects(items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="min-h-screen pt-20">
-      {/* Hero Section */}
+      <SEO
+        title="Projects"
+        description="Technical projects spanning meteorology, backend development, and data science — built with Python, Django, PostgreSQL, and more."
+        url="/projects"
+      />
+      {/* Hero */}
       <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1800px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -65,109 +151,101 @@ export function Projects() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-4xl mx-auto"
         >
+          <div className="w-12 h-[2px] bg-[#d4a574] mb-8 mx-auto" />
           <h1 className="text-5xl md:text-7xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
             Projects
           </h1>
           <p className="text-xl text-black/60 leading-relaxed">
-            A selection of technical projects spanning meteorology, backend development, and data science
+            Technical work spanning meteorology, backend development, and data science
           </p>
         </motion.div>
       </section>
 
-      {/* Projects Grid */}
+      {/* Projects */}
       <section className="px-6 lg:px-12 max-w-[1800px] mx-auto pb-24">
-        <div className="space-y-24">
-          {projects.map((project, index) => (
-            <motion.article
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center ${
-                index % 2 === 1 ? 'lg:grid-flow-dense' : ''
-              }`}
-            >
-              <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                <div className="relative group overflow-hidden aspect-[4/3]">
-                  <ImageWithFallback
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
-                  <div className="absolute top-6 left-6">
-                    <div className="w-12 h-12 bg-[#d4a574] flex items-center justify-center">
-                      <project.icon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
+        {loading ? (
+          <div className="space-y-24">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div className="aspect-[4/3] bg-black/5 animate-pulse" />
+                <div className="space-y-4">
+                  <div className="h-4 bg-black/5 w-24 animate-pulse" />
+                  <div className="h-10 bg-black/5 w-3/4 animate-pulse" />
+                  <div className="h-20 bg-black/5 animate-pulse" />
                 </div>
               </div>
-
-              <div className={index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}>
-                <p className="text-[#d4a574] uppercase text-sm tracking-wider mb-4">{project.category}</p>
-                <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
-                  {project.title}
-                </h2>
-                <p className="text-lg text-black/70 leading-relaxed mb-6">
-                  {project.description}
-                </p>
-
-                <div className="mb-6">
-                  <h3 className="text-sm uppercase tracking-wide mb-3 text-black/60">Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-3 py-1 bg-[#f5f5f0] text-sm border border-black/10"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-24">
+            {projects.map((project, index) => (
+              <motion.article
+                key={project.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className={`grid grid-cols-1 lg:grid-cols-2 gap-12 items-center group ${
+                  index % 2 === 1 ? 'lg:grid-flow-dense' : ''
+                }`}
+              >
+                <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
+                  <ProjectVisual project={project} />
                 </div>
 
-                {project.github && (
+                <div className={index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}>
+                  {project.category && (
+                    <p className="text-[#d4a574] uppercase text-sm tracking-wider mb-4">
+                      {project.category.name}
+                    </p>
+                  )}
+                  <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+                    {project.title}
+                  </h2>
+                  <p className="text-lg text-black/70 leading-relaxed mb-6">{project.description}</p>
+
+                  <div className="mb-6">
+                    <h3 className="text-sm uppercase tracking-wide mb-3 text-black/60">Technologies</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(project.technologies_list ?? project.technologies).map((tech) => (
+                        <span key={tech} className="px-3 py-1 bg-[#f5f5f0] text-sm border border-black/10">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex gap-4">
-                    <a
-                      href={project.github}
-                      className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors"
-                    >
-                      <Github size={18} />
-                      <span>View Code</span>
-                    </a>
-                    {project.id > 1 && (
-                      <a
-                        href="#"
-                        className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors"
-                      >
-                        <ExternalLink size={18} />
-                        <span>Live Demo</span>
+                    {project.github_url && project.github_url !== '#' && (
+                      <a href={project.github_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors">
+                        <Github size={18} /><span>View Code</span>
+                      </a>
+                    )}
+                    {project.live_url && project.live_url !== '#' && (
+                      <a href={project.live_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors">
+                        <ExternalLink size={18} /><span>Live Demo</span>
                       </a>
                     )}
                   </div>
-                )}
-              </div>
-            </motion.article>
-          ))}
-        </div>
+                </div>
+              </motion.article>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Technologies Section */}
+      {/* Tech Stack */}
       <section className="py-24 lg:py-32 bg-black text-white">
         <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
             <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>
               Technical Stack
             </h2>
-
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {technologies.map((tech, index) => (
+              {TECH_STACK.map((tech, index) => (
                 <motion.div
                   key={tech.name}
                   initial={{ opacity: 0, y: 20 }}
@@ -185,25 +263,14 @@ export function Projects() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center"
-        >
-          <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
-            Let's Build Something
-          </h2>
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center">
+          <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>Let's Build Something</h2>
           <p className="text-lg text-black/60 max-w-2xl mx-auto mb-8">
-            I'm always interested in new opportunities and collaborations. Let's discuss your next project.
+            Interested in collaboration or new opportunities? Let's talk.
           </p>
-          <a
-            href="/contact"
-            className="inline-block px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300"
-          >
+          <a href="/contact" className="inline-block px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300">
             Get In Touch
           </a>
         </motion.div>

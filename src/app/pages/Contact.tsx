@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Mail, MapPin, Phone, Send, Linkedin, Twitter, Github, Instagram } from 'lucide-react';
+import { SEO } from '../components/SEO';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -63,6 +64,11 @@ export function Contact() {
 
   return (
     <div className="min-h-screen pt-20">
+      <SEO
+        title="Contact"
+        description="Get in touch for collaborations, speaking engagements, mentorship, or new opportunities. Based in Nairobi, Kenya."
+        url="/contact"
+      />
       {/* Hero Section */}
       <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1800px] mx-auto">
         <motion.div

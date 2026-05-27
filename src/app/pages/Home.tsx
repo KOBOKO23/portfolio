@@ -1,519 +1,372 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRight, Cloud, Code, Users, BookOpen, Music, Shirt } from 'lucide-react';
 import { motion } from 'motion/react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { SEO } from '../components/SEO';
+
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+interface Article { id: number; title: string; slug: string; excerpt: string; category: { name: string; color: string } | null; read_time: number; published_date: string; }
+interface Project { id: number; title: string; description: string; technologies: string[]; github_url: string; live_url: string; }
+
+const fadeUp = { initial: { opacity: 0, y: 28 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } };
+
+const PILLARS = [
+  { icon: Cloud, label: 'Meteorology', sub: 'Kenya Met Department', href: '/weather-forecast', color: '#0ea5e9' },
+  { icon: Code, label: 'Software', sub: 'Django · React · APIs', href: '/projects', color: '#d4a574' },
+  { icon: Users, label: 'Great Men Moves', sub: '500+ men mentored', href: '/great-men-moves', color: '#10b981' },
+  { icon: BookOpen, label: 'Broken Souls', sub: 'Book — coming soon', href: '/book', color: '#8b5cf6' },
+  { icon: Music, label: 'Gospel Music', sub: 'Worship ministry', href: '/music', color: '#ec4899' },
+  { icon: Shirt, label: 'Fashion', sub: 'Intentional style', href: '/fashion', color: '#f59e0b' },
+];
 
 export function Home() {
+  const [latestArticles, setLatestArticles] = useState<Article[]>([]);
+  const [featuredProject, setFeaturedProject] = useState<Project | null>(null);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterName, setNewsletterName] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+
+  useEffect(() => {
+    fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
+      .then(r => r.json())
+      .then(res => { if (res.success) setLatestArticles((res.data?.results ?? res.data).slice(0, 3)); });
+
+    fetch(`${API}/projects/?is_featured=true&page_size=1`)
+      .then(r => r.json())
+      .then(res => {
+        if (res.success) {
+          const p = (res.data?.results ?? res.data)[0];
+          if (p) setFeaturedProject(p);
+        }
+      });
+  }, []);
+
+  const subscribeNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail || !newsletterName) return;
+    setNewsletterStatus('sending');
+    try {
+      const res = await fetch(`${API}/newsletter/subscribe/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newsletterName, email: newsletterEmail }),
+      });
+      const data = await res.json();
+      setNewsletterStatus(data.success ? 'done' : 'error');
+    } catch { setNewsletterStatus('error'); }
+  };
+
   return (
     <div className="min-h-screen">
-      {/* Hero Section - Full Screen Editorial */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black z-10" />
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1761001311816-b2a0481e3577?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwcHJvZmVzc2lvbmFsJTIwcG9ydHJhaXQlMjBzaWxob3VldHRlfGVufDF8fHx8MTc3MjI3MzE4NXww&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Koboko"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        />
-        
-        <div className="relative z-20 px-6 lg:px-12 max-w-[1800px] mx-auto w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-6xl"
-          >
-            <div className="mb-8">
-              <div className="w-16 h-[2px] bg-[#d4a574] mb-8" />
-              <h1 
-                className="text-[clamp(3rem,10vw,8rem)] leading-[0.95] tracking-tight text-white mb-8"
-                style={{ fontFamily: 'var(--font-serif)' }}
-              >
-                Where Science<br />
-                Meets Purpose.
-              </h1>
-            </div>
-            
-            <p className="text-[clamp(1.25rem,2.5vw,2rem)] text-white/90 mb-6 max-w-4xl tracking-wide">
-              Meteorology. Software. Data. Faith. Creativity.
+      <SEO type="profile" />
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex items-center overflow-hidden bg-black">
+        {/* Radial atmospheric glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] h-[70vh] rounded-full opacity-20"
+            style={{ background: 'radial-gradient(ellipse, #d4a574 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 right-0 w-[40vw] h-[40vw] rounded-full opacity-8"
+            style={{ background: 'radial-gradient(circle, #0ea5e9 0%, transparent 70%)' }} />
+        </div>
+        {/* Grid lines */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'linear-gradient(0deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%), linear-gradient(90deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%)', backgroundSize: '80px 80px' }} />
+
+        <div className="relative z-10 px-6 lg:px-16 max-w-[1600px] mx-auto w-full">
+          <motion.div initial={{ opacity: 0, y: 48 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}>
+            <div className="w-16 h-[2px] bg-[#d4a574] mb-10" />
+            <h1 className="font-serif leading-[0.92] tracking-tight text-white mb-8"
+              style={{ fontSize: 'clamp(3.5rem,11vw,10rem)' }}>
+              Where Science<br />
+              <span className="text-[#d4a574]">Meets</span> Purpose.
+            </h1>
+            <p className="text-white/60 text-[clamp(1.1rem,2vw,1.5rem)] mb-4 max-w-2xl leading-relaxed">
+              Meteorologist · Backend Developer · Mentor · Author · Gospel Artist
             </p>
-            
-            <div className="flex flex-wrap gap-6 mt-12">
-              <Link
-                to="/projects"
-                className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-black hover:bg-[#d4a574] hover:text-white transition-all duration-500"
-              >
-                <span className="text-lg">View Work</span>
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <p className="text-white/35 text-sm uppercase tracking-[0.25em] mb-14">
+              Nairobi, Kenya
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link to="/projects" className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-black hover:bg-[#d4a574] hover:text-white transition-all duration-500 text-sm font-semibold uppercase tracking-wide">
+                View Work <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link
-                to="/contact"
-                className="inline-flex items-center gap-3 px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-black transition-all duration-500"
-              >
-                <span className="text-lg">Get In Touch</span>
+              <Link to="/contact" className="inline-flex items-center gap-3 px-8 py-4 border border-white/30 text-white/80 hover:border-white hover:text-white transition-all duration-500 text-sm font-semibold uppercase tracking-wide">
+                Get In Touch
               </Link>
             </div>
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 0.8 }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20"
-        >
-          <div className="flex flex-col items-center gap-2 text-white/60">
-            <span className="text-xs uppercase tracking-widest">Scroll</span>
-            <div className="w-[1px] h-16 bg-white/40" />
-          </div>
+        {/* Scroll */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.8 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/30">
+          <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
+          <div className="w-px h-14 bg-gradient-to-b from-white/30 to-transparent" />
         </motion.div>
       </section>
 
-      {/* Introduction Section */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-white">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-16"
-          >
-            <div className="lg:col-span-4">
-              <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-              <h2 className="text-sm uppercase tracking-[0.3em] text-black/60">Introduction</h2>
+      {/* ── Pillars / Disciplines ─────────────────────────────────────────── */}
+      <section className="py-28 px-6 lg:px-16 bg-white border-b border-black/6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div {...fadeUp} className="mb-12">
+            <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
+            <h2 className="text-xs uppercase tracking-[0.3em] text-black/40">Six Disciplines, One Calling</h2>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-black/6">
+            {PILLARS.map((p, i) => (
+              <motion.div key={p.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.6 }}>
+                <Link to={p.href}
+                  className="group flex flex-col items-center text-center p-8 bg-white hover:bg-black transition-colors duration-500 h-full">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors duration-500"
+                    style={{ background: p.color + '18' }}>
+                    <p.icon className="w-5 h-5 transition-colors duration-500" style={{ color: p.color }} />
+                  </div>
+                  <span className="font-semibold text-sm text-black group-hover:text-white transition-colors duration-500 mb-1">{p.label}</span>
+                  <span className="text-[11px] text-black/40 group-hover:text-white/40 transition-colors duration-500">{p.sub}</span>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Introduction ─────────────────────────────────────────────────── */}
+      <section className="py-36 lg:py-48 px-6 lg:px-16 bg-[#fafafa]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div {...fadeUp} className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-16">
+            <div className="pt-3">
+              <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
+              <p className="text-xs uppercase tracking-[0.3em] text-black/40">Introduction</p>
             </div>
-            
-            <div className="lg:col-span-8">
-              <p 
-                className="text-[clamp(1.75rem,3.5vw,3.5rem)] leading-[1.2] mb-8"
-                style={{ fontFamily: 'var(--font-serif)' }}
-              >
-                I am a modern African polymath—combining meteorological science, software engineering, 
-                and data-driven innovation with unwavering faith and creative expression.
+            <div>
+              <p className="font-serif text-[clamp(1.8rem,3.5vw,3.5rem)] leading-[1.18] text-black mb-8">
+                I am a modern African polymath — combining meteorological science, software engineering, and data-driven innovation with unwavering faith and creative expression.
               </p>
-              <p className="text-xl text-black/70 leading-relaxed max-w-3xl">
-                At Kenya's Meteorological Department, I predict weather patterns that shape lives. As a backend developer, 
-                I architect scalable systems. As a data scientist in training, I transform information into insight. 
-                Through Great Men Moves, I mentor the next generation. Through gospel music, I worship. 
-                Through my upcoming book "Broken Souls," I tell stories of redemption. This is where purpose transcends profession.
+              <p className="text-[17px] text-black/60 leading-[1.85] max-w-3xl">
+                At Kenya's Meteorological Department I work in the Numerical Weather Prediction section, forecasting atmospheric patterns that shape lives across East Africa. As a backend developer, I architect scalable systems with Python and Django. As a data scientist, I transform information into insight. Through Great Men Moves I mentor the next generation of purpose-driven men. Through gospel music I worship. Through my upcoming book "Broken Souls" I tell stories of redemption. This is where purpose transcends profession.
               </p>
+              <Link to="/about" className="inline-flex items-center gap-2 mt-8 text-[#d4a574] text-sm font-medium hover:gap-4 transition-all">
+                Read my full story <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Software Project */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-black text-white">
-        <div className="max-w-[1800px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div className="order-2 lg:order-1">
-                <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <p className="text-sm uppercase tracking-[0.3em] text-white/60 mb-6">Featured / Software</p>
-                <h2 
-                  className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] mb-8"
-                  style={{ fontFamily: 'var(--font-serif)' }}
-                >
-                  Django REST API Framework
+      {/* ── Featured Project ─────────────────────────────────────────────── */}
+      {featuredProject && (
+        <section className="py-36 lg:py-48 px-6 lg:px-16 bg-black text-white overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <motion.div {...fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              <div>
+                <div className="w-10 h-[2px] bg-[#d4a574] mb-6" />
+                <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-6">Featured Project</p>
+                <h2 className="font-serif text-[clamp(2.5rem,5vw,5rem)] leading-[1.08] mb-8">
+                  {featuredProject.title}
                 </h2>
-                <p className="text-xl text-white/80 leading-relaxed mb-8">
-                  Enterprise-grade backend architecture powering scalable applications. Built with Python, Django, 
-                  and PostgreSQL, featuring comprehensive authentication, real-time data processing, and optimized 
-                  query performance for high-traffic environments.
+                <p className="text-white/60 text-[17px] leading-[1.85] mb-10">
+                  {featuredProject.description}
                 </p>
-                
-                <div className="flex flex-wrap gap-3 mb-10">
-                  {['Python', 'Django', 'PostgreSQL', 'REST APIs', 'Docker'].map((tech) => (
-                    <span key={tech} className="px-4 py-2 border border-white/20 text-sm">
-                      {tech}
-                    </span>
+                <div className="flex flex-wrap gap-2 mb-10">
+                  {featuredProject.technologies?.map(t => (
+                    <span key={t} className="px-3 py-1 border border-white/15 text-white/60 text-xs rounded-full">{t}</span>
                   ))}
                 </div>
-
-                <Link 
-                  to="/projects"
-                  className="inline-flex items-center gap-2 text-[#d4a574] hover:gap-4 transition-all group"
-                >
-                  <span className="text-lg">View Project</span>
-                  <ArrowRight className="w-5 h-5" />
+                <Link to="/projects" className="inline-flex items-center gap-2 text-[#d4a574] text-sm font-medium hover:gap-4 transition-all">
+                  View All Projects <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
-              <div className="order-1 lg:order-2 relative">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1753998941488-fc3064ab6094?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxQeXRob24lMjBjb2RlJTIwZGV2ZWxvcG1lbnQlMjBzY3JlZW58ZW58MXx8fHwxNzcyMjczMTg1fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Django REST API"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Featured Meteorology Project */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-[#f5f5f0]">
-        <div className="max-w-[1800px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              {/* Code card placeholder */}
               <div className="relative">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1737912133578-159cdde20086?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYXRlbGxpdGUlMjB3ZWF0aGVyJTIwZGF0YSUyMHNjcmVlbnxlbnwxfHx8fDE3NzIyNzMxODZ8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Numerical Weather Prediction"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <p className="text-sm uppercase tracking-[0.3em] text-black/60 mb-6">Featured / Meteorology</p>
-                <h2 
-                  className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] mb-8"
-                  style={{ fontFamily: 'var(--font-serif)' }}
-                >
-                  Numerical Weather Prediction
-                </h2>
-                <p className="text-xl text-black/70 leading-relaxed mb-8">
-                  Advanced atmospheric modeling and forecasting systems serving East Africa. Combining computational 
-                  science with meteorological expertise to predict weather patterns that impact agriculture, aviation, 
-                  and disaster preparedness across the region.
-                </p>
-                
-                <div className="mb-10 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-[#d4a574] mt-2 flex-shrink-0" />
-                    <p className="text-black/70">
-                      <strong className="text-black">Kenya Meteorological Department</strong> — Numerical Weather Prediction Section
-                    </p>
+                <div className="bg-[#111] rounded-2xl p-8 border border-white/8 font-mono text-sm">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                    <span className="ml-3 text-white/20 text-xs">portfolio_api.py</span>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 bg-[#d4a574] mt-2 flex-shrink-0" />
-                    <p className="text-black/70">
-                      <strong className="text-black">1 Year of Service</strong> — Contributing to national weather forecasting
-                    </p>
+                  <div className="space-y-1.5 text-[13px]">
+                    <p><span className="text-[#7c9edb]">from</span> <span className="text-[#d4a574]">rest_framework</span> <span className="text-[#7c9edb]">import</span> generics</p>
+                    <p className="text-white/20">—</p>
+                    <p><span className="text-[#7c9edb]">class</span> <span className="text-[#d4a574]">ArticleDetailView</span>(generics.RetrieveAPIView):</p>
+                    <p className="pl-4 text-white/50">queryset = BlogArticle.objects</p>
+                    <p className="pl-8 text-white/50">.filter(is_published=True)</p>
+                    <p className="pl-8 text-white/50">.select_related(<span className="text-[#a8d58d]">"category"</span>)</p>
+                    <p className="pl-4 text-white/50">serializer_class = BlogArticleDetailSerializer</p>
+                    <p className="pl-4 text-white/50">lookup_field = <span className="text-[#a8d58d]">"slug"</span></p>
+                    <p className="text-white/20">—</p>
+                    <p className="text-white/30 text-[11px]"># 20+ endpoints · PostgreSQL · Jazzmin CMS</p>
                   </div>
                 </div>
-
-                <div className="flex gap-4">
-                  <Link 
-                    to="/weather-forecast"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#d4a574] text-black hover:bg-black hover:text-white transition-all group"
-                  >
-                    <span className="font-medium">View 72hr Forecast</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <Link 
-                    to="/about"
-                    className="inline-flex items-center gap-2 text-black hover:text-[#d4a574] hover:gap-4 transition-all group"
-                  >
-                    <span className="text-lg">Read More</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </div>
+                <div className="absolute -right-4 -bottom-4 w-full h-full border border-[#d4a574]/20 rounded-2xl -z-10" />
               </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Latest Writing ────────────────────────────────────────────────── */}
+      <section className="py-36 lg:py-48 px-6 lg:px-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div {...fadeUp} className="flex items-end justify-between mb-16">
+            <div>
+              <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
+              <h2 className="font-serif text-[clamp(2rem,4vw,3.5rem)] leading-[1.1]">Latest Writing</h2>
             </div>
+            <Link to="/blog" className="hidden md:flex items-center gap-2 text-black/40 hover:text-black text-sm transition-colors">
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
           </motion.div>
+
+          <div className="space-y-0 divide-y divide-black/6">
+            {latestArticles.length === 0 ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="py-8 flex items-center gap-8 animate-pulse">
+                  <div className="h-4 bg-black/6 rounded w-24" />
+                  <div className="h-6 bg-black/8 rounded flex-1" />
+                  <div className="h-3 bg-black/5 rounded w-16" />
+                </div>
+              ))
+            ) : (
+              latestArticles.map((a, i) => (
+                <motion.div key={a.id} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }} transition={{ delay: i * 0.1, duration: 0.5 }}>
+                  <Link to={`/blog/${a.slug}`}
+                    className="group flex flex-col md:flex-row md:items-center gap-4 py-8 hover:pl-2 transition-all duration-300">
+                    {a.category && (
+                      <span className="text-[11px] font-bold uppercase tracking-widest flex-shrink-0 w-40"
+                        style={{ color: a.category.color }}>
+                        {a.category.name}
+                      </span>
+                    )}
+                    <h3 className="font-serif text-[1.2rem] text-black group-hover:text-[#d4a574] transition-colors duration-300 flex-1 leading-snug">
+                      {a.title}
+                    </h3>
+                    <span className="text-xs text-black/35 flex-shrink-0 md:text-right">
+                      {a.read_time}m read
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-black/20 group-hover:text-[#d4a574] group-hover:translate-x-1 transition-all flex-shrink-0 hidden md:block" />
+                  </Link>
+                </motion.div>
+              ))
+            )}
+          </div>
+
+          <Link to="/blog" className="mt-8 flex md:hidden items-center gap-2 text-black/40 hover:text-black text-sm transition-colors">
+            View all articles <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
-      {/* Latest Blog Post Preview */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-white">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-              <div className="lg:col-span-4">
-                <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <h2 className="text-sm uppercase tracking-[0.3em] text-black/60 mb-8">Latest Writing</h2>
-                <Link 
-                  to="/blog"
-                  className="inline-flex items-center gap-2 text-black hover:text-[#d4a574] hover:gap-4 transition-all"
-                >
-                  <span>View All Articles</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </div>
+      {/* ── GMM + Book twin CTAs ──────────────────────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-2">
+        {/* GMM */}
+        <motion.div {...fadeUp} className="py-28 px-12 lg:px-20 bg-[#0a0a0a] text-white flex flex-col justify-between min-h-[440px] relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5" style={{ background: 'radial-gradient(circle at 80% 20%, #10b981, transparent 60%)' }} />
+          <div className="relative">
+            <div className="w-8 h-[2px] bg-[#10b981] mb-6" />
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-4">Nonprofit · Kenya</p>
+            <h2 className="font-serif text-[clamp(2rem,4vw,3rem)] leading-[1.1] mb-4">Great Men Moves</h2>
+            <p className="text-white/55 text-[15px] leading-relaxed max-w-sm">
+              Raising the next generation of purpose-driven men through mentorship, leadership programmes, and community impact.
+            </p>
+          </div>
+          <Link to="/great-men-moves" className="relative inline-flex items-center gap-2 text-[#10b981] text-sm font-medium mt-8 hover:gap-4 transition-all">
+            Learn More <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
 
-              <div className="lg:col-span-8">
-                <article>
-                  <span className="inline-block px-4 py-2 bg-[#f5f5f0] text-sm mb-6">Faith + Technology</span>
-                  <h3 
-                    className="text-[clamp(2rem,4vw,4rem)] leading-[1.15] mb-6 hover:text-[#d4a574] transition-colors cursor-pointer"
-                    style={{ fontFamily: 'var(--font-serif)' }}
-                  >
-                    The Intersection of Faith and Technology
-                  </h3>
-                  <p className="text-xl text-black/70 leading-relaxed mb-8">
-                    How my spiritual foundation guides my approach to modern technology and innovation in the 
-                    meteorological and tech fields. Exploring the harmony between belief and scientific inquiry.
-                  </p>
-                  
-                  <div className="flex items-center gap-6 text-sm text-black/60">
-                    <span>February 15, 2026</span>
-                    <span>5 min read</span>
-                  </div>
-                </article>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        {/* Book */}
+        <motion.div {...fadeUp} className="py-28 px-12 lg:px-20 bg-[#1a0a2e] text-white flex flex-col justify-between min-h-[440px] relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10" style={{ background: 'radial-gradient(circle at 20% 80%, #8b5cf6, transparent 60%)' }} />
+          <div className="relative">
+            <div className="w-8 h-[2px] bg-[#8b5cf6] mb-6" />
+            <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-4">Debut Book · Coming Soon</p>
+            <h2 className="font-serif text-[clamp(2rem,4vw,3rem)] leading-[1.1] mb-4">Broken Souls</h2>
+            <p className="text-white/55 text-[15px] leading-relaxed max-w-sm italic">
+              "Finding Wholeness in a Fractured World" — a journey through pain, faith, and redemption.
+            </p>
+          </div>
+          <Link to="/book" className="relative inline-flex items-center gap-2 text-[#8b5cf6] text-sm font-medium mt-8 hover:gap-4 transition-all">
+            Pre-Register <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
       </section>
 
-      {/* Fashion Highlight */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-black text-white">
-        <div className="max-w-[1800px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="mb-16">
-              <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-                <h2 
-                  className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] max-w-3xl"
-                  style={{ fontFamily: 'var(--font-serif)' }}
-                >
-                  Men's Fashion<br />
-                  Curation
-                </h2>
-                <Link 
-                  to="/fashion"
-                  className="inline-flex items-center gap-2 text-[#d4a574] hover:gap-4 transition-all"
-                >
-                  <span className="text-lg">View Gallery</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <div className="aspect-[16/10] overflow-hidden group cursor-pointer">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1754577060019-f997f5566168?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBtZW5zd2VhciUyMGRldGFpbCUyMHRleHR1cmV8ZW58MXx8fHwxNzcyMjczMTg2fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Fashion"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col justify-between">
-                <div>
-                  <p className="text-lg text-white/80 leading-relaxed mb-8">
-                    Fashion is intentional communication. From boardroom excellence to creative expression, 
-                    every choice reflects discipline, culture, and confidence.
-                  </p>
-                  <p className="text-white/60">
-                    Exploring the intersection of classic tailoring, contemporary African aesthetics, 
-                    and personal style evolution.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Book Feature - Broken Souls */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-white">
-        <div className="max-w-[1800px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-              <div className="order-2 lg:order-1">
-                <div className="aspect-[3/4] overflow-hidden bg-[#f5f5f0] flex items-center justify-center relative">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1760840414854-36cd365d14f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcGVuJTIwYm9vayUyMHBhZ2VzJTIwbGlnaHR8ZW58MXx8fHwxNzcyMjczMTg2fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Broken Souls"
-                    className="w-full h-full object-cover opacity-60"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-12">
-                      <p 
-                        className="text-8xl lg:text-9xl text-black/10 mb-4"
-                        style={{ fontFamily: 'var(--font-serif)' }}
-                      >
-                        BS
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="order-1 lg:order-2">
-                <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <p className="text-sm uppercase tracking-[0.3em] text-black/60 mb-6">Coming Soon</p>
-                <h2 
-                  className="text-[clamp(3rem,6vw,6rem)] leading-[1.05] mb-8"
-                  style={{ fontFamily: 'var(--font-serif)' }}
-                >
-                  Broken Souls
-                </h2>
-                <p className="text-2xl text-black/80 leading-relaxed mb-8" style={{ fontFamily: 'var(--font-serif)' }}>
-                  "A Journey from Brokenness to Wholeness"
-                </p>
-                <p className="text-lg text-black/70 leading-relaxed mb-10">
-                  An intimate exploration of pain, healing, and redemption. Through raw honesty and profound faith, 
-                  this book illuminates the path from shattered souls to beautiful testimonies of God's transformative power.
-                </p>
-
-                <div className="space-y-4 mb-10">
-                  <div className="flex items-start gap-4">
-                    <div className="w-1 h-1 bg-[#d4a574] mt-3 flex-shrink-0" />
-                    <p className="text-black/70">Themes of redemption, identity, and divine restoration</p>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-1 h-1 bg-[#d4a574] mt-3 flex-shrink-0" />
-                    <p className="text-black/70">Personal narrative woven with theological depth</p>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-1 h-1 bg-[#d4a574] mt-3 flex-shrink-0" />
-                    <p className="text-black/70">Practical wisdom for healing and hope</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  <Link 
-                    to="/book"
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all"
-                  >
-                    <span>Pre-Order Now</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <Link 
-                    to="/book"
-                    className="inline-flex items-center gap-2 px-8 py-4 border-2 border-black text-black hover:bg-black hover:text-white transition-all"
-                  >
-                    <span>Learn More</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Newsletter Subscription */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-black text-white">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <div className="w-12 h-[2px] bg-[#d4a574] mb-8 mx-auto" />
-            <h2 
-              className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] mb-8 max-w-4xl mx-auto"
-              style={{ fontFamily: 'var(--font-serif)' }}
-            >
-              Stay Connected to<br />
-              the Journey
+      {/* ── Newsletter ────────────────────────────────────────────────────── */}
+      <section className="py-36 lg:py-48 px-6 lg:px-16 bg-[#d4a574]">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div {...fadeUp}>
+            <div className="w-10 h-[2px] bg-black/30 mx-auto mb-8" />
+            <h2 className="font-serif text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.05] text-black mb-6">
+              Stay Connected<br />to the Journey
             </h2>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto mb-12 leading-relaxed">
-              Receive insights on technology, meteorology, faith, leadership, and creativity. 
-              Join a community of thinkers, builders, and believers.
+            <p className="text-black/65 text-[17px] leading-relaxed mb-12 max-w-xl mx-auto">
+              Insights on technology, meteorology, faith, leadership, and creativity — delivered with intention.
             </p>
 
-            <form className="max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="flex-1 px-8 py-5 bg-white/5 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#d4a574] transition-colors text-lg"
+            {newsletterStatus === 'done' ? (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                className="bg-black text-white rounded-2xl p-8">
+                <p className="font-serif text-2xl mb-2">You're in. ✓</p>
+                <p className="text-white/60">Look out for the next issue in your inbox.</p>
+              </motion.div>
+            ) : (
+              <form onSubmit={subscribeNewsletter} className="flex flex-col sm:flex-row gap-3">
+                <input type="text" required placeholder="Your name" value={newsletterName}
+                  onChange={e => setNewsletterName(e.target.value)}
+                  className="flex-1 px-5 py-4 bg-black/10 border border-black/20 text-black placeholder:text-black/40 focus:outline-none focus:border-black/50 rounded-xl text-sm"
                 />
-                <button
-                  type="submit"
-                  className="px-10 py-5 bg-[#d4a574] text-white hover:bg-[#c9a063] transition-colors whitespace-nowrap text-lg"
-                >
-                  Subscribe
+                <input type="email" required placeholder="Your email" value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(e.target.value)}
+                  className="flex-1 px-5 py-4 bg-black/10 border border-black/20 text-black placeholder:text-black/40 focus:outline-none focus:border-black/50 rounded-xl text-sm"
+                />
+                <button type="submit" disabled={newsletterStatus === 'sending'}
+                  className="px-8 py-4 bg-black text-white hover:bg-white hover:text-black transition-all rounded-xl text-sm font-semibold whitespace-nowrap disabled:opacity-60">
+                  {newsletterStatus === 'sending' ? 'Subscribing…' : 'Subscribe'}
                 </button>
-              </div>
-              <p className="text-sm text-white/40 mt-4">
-                No spam. Unsubscribe anytime. Your inbox deserves quality.
-              </p>
-            </form>
+              </form>
+            )}
+            {newsletterStatus === 'error' && (
+              <p className="text-red-900 text-sm mt-3">Something went wrong. Please try again.</p>
+            )}
+            <p className="text-black/40 text-xs mt-4">No spam. No noise. Unsubscribe anytime.</p>
           </motion.div>
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="py-32 lg:py-40 px-6 lg:px-12 bg-white border-t border-black/10">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-20"
-          >
-            <div>
-              <h2 
-                className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.1] mb-8"
-                style={{ fontFamily: 'var(--font-serif)' }}
-              >
-                Let's Build<br />
-                Something<br />
-                Meaningful
-              </h2>
-              <p className="text-xl text-black/70 leading-relaxed">
-                Whether you need a meteorologist, software developer, mentor, or creative collaborator—let's start a conversation.
-              </p>
-            </div>
+      {/* ── Final CTA ─────────────────────────────────────────────────────── */}
+      <section className="py-36 lg:py-48 px-6 lg:px-16 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <motion.div {...fadeUp}>
+            <h2 className="font-serif text-[clamp(3rem,6vw,5.5rem)] leading-[0.95] text-black mb-8">
+              Let's Build<br />Something<br /><span className="text-[#d4a574]">Meaningful.</span>
+            </h2>
+            <p className="text-black/55 text-[17px] leading-relaxed max-w-md">
+              Whether you need a meteorologist, backend developer, mentor, or creative collaborator — let's start a conversation.
+            </p>
+          </motion.div>
 
-            <div className="flex flex-col justify-center gap-6">
-              <Link
-                to="/contact"
-                className="group flex items-center justify-between p-8 border-2 border-black hover:bg-black hover:text-white transition-all"
-              >
+          <motion.div {...fadeUp} className="space-y-4">
+            {[
+              { to: '/contact', label: 'Get In Touch', sub: 'Collaborations & opportunities', arrow: true },
+              { to: '/projects', label: 'View Projects', sub: 'Technical work & case studies', arrow: false },
+              { to: '/great-men-moves', label: 'Join the Movement', sub: 'Volunteer with Great Men Moves', arrow: false },
+            ].map(item => (
+              <Link key={item.to} to={item.to}
+                className={`group flex items-center justify-between p-6 border-2 transition-all duration-300 ${
+                  item.arrow ? 'border-black hover:bg-black hover:text-white' : 'border-black/15 hover:border-[#d4a574]'
+                }`}>
                 <div>
-                  <h3 className="text-2xl mb-2" style={{ fontFamily: 'var(--font-serif)' }}>
-                    Get In Touch
-                  </h3>
-                  <p className="text-black/60 group-hover:text-white/60">Discuss opportunities and collaborations</p>
+                  <p className="font-serif text-xl mb-0.5">{item.label}</p>
+                  <p className="text-black/40 group-hover:text-black/30 text-sm transition-colors">{item.sub}</p>
                 </div>
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                <ArrowRight className="w-5 h-5 text-black/30 group-hover:text-current group-hover:translate-x-2 transition-all" />
               </Link>
-
-              <Link
-                to="/projects"
-                className="group flex items-center justify-between p-8 border-2 border-black/20 hover:border-[#d4a574] transition-all"
-              >
-                <div>
-                  <h3 className="text-2xl mb-2" style={{ fontFamily: 'var(--font-serif)' }}>
-                    View Projects
-                  </h3>
-                  <p className="text-black/60">Explore technical work and case studies</p>
-                </div>
-                <ExternalLink className="w-6 h-6 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-              </Link>
-            </div>
+            ))}
           </motion.div>
         </div>
       </section>

@@ -1,43 +1,42 @@
 import { motion } from 'motion/react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { 
-  Cloud, 
-  Code, 
-  Database, 
-  BookOpen, 
-  Heart, 
-  Users, 
+import { SEO } from '../components/SEO';
+import {
+  Cloud,
+  Code,
+  Database,
+  Heart,
+  Users,
   Target,
   Award,
   Lightbulb,
-  TrendingUp 
+  TrendingUp
 } from 'lucide-react';
 
 export function About() {
   const timelineEvents = [
     {
-      year: '2024 - Present',
+      year: '2024 – Present',
       title: 'Meteorologist',
       organization: 'Kenya Meteorological Department',
-      description: 'Numerical Weather Prediction Section - Forecasting atmospheric patterns and contributing to national weather systems.',
+      description: 'Numerical Weather Prediction Section — forecasting atmospheric patterns and contributing to national weather systems.',
       current: true,
     },
     {
-      year: '2024 - Present',
+      year: '2024 – Present',
       title: 'Data Science Student',
       organization: 'ALX Africa',
       description: 'Advancing technical expertise in machine learning, data analysis, and statistical modeling.',
       current: true,
     },
     {
-      year: '2020 - Present',
+      year: '2020 – Present',
       title: 'Founder & Mentor',
       organization: 'Great Men Moves',
       description: 'Mentoring young men in leadership, character development, and personal excellence.',
       current: true,
     },
     {
-      year: '2019 - Present',
+      year: '2019 – Present',
       title: 'Backend Software Developer',
       organization: 'Independent',
       description: 'Building scalable applications with Python, Django, and modern database technologies.',
@@ -74,15 +73,57 @@ export function About() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Portrait Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black z-10" />
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1668752600261-e56e7f3780b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMEFmcmljYW4lMjBtYW58ZW58MXx8fHwxNzcyMjcyNTA0fDA&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Koboko - Professional Portrait"
-          className="absolute inset-0 w-full h-full object-cover"
+      <SEO
+        title="About"
+        description="Kenyan meteorologist, backend developer, data scientist, gospel artist, author, and founder of Great Men Moves. Based in Nairobi."
+        url="/about"
+        type="profile"
+      />
+      {/* Hero Section — Pure CSS atmospheric portrait */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
+        {/* Background gradient atmosphere */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse 80% 70% at 60% 40%, #1a1208 0%, #0a0a0a 60%)',
+          }}
         />
-        
+        {/* Gold glow top-right */}
+        <div
+          className="absolute top-0 right-0 w-[55vw] h-[55vw] pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle at 80% 20%, #d4a57418 0%, transparent 65%)',
+          }}
+        />
+        {/* Subtle grid lines */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(#d4a574 1px, transparent 1px), linear-gradient(90deg, #d4a574 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+        {/* Abstract portrait silhouette */}
+        <div className="absolute right-12 lg:right-24 bottom-0 w-[40vw] max-w-[520px] h-[80vh] pointer-events-none hidden lg:block">
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(170deg, #d4a57412 0%, #d4a57406 40%, transparent 75%)',
+              clipPath: 'ellipse(48% 50% at 50% 50%)',
+            }}
+          />
+          <div
+            className="absolute inset-x-8 top-0 bottom-0"
+            style={{
+              background:
+                'linear-gradient(180deg, #d4a57420 0%, #d4a57408 60%, transparent 100%)',
+              clipPath: 'polygon(30% 0%, 70% 0%, 90% 30%, 85% 100%, 15% 100%, 10% 30%)',
+            }}
+          />
+        </div>
+
         <div className="relative z-20 px-6 lg:px-12 max-w-[1800px] mx-auto w-full">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -91,7 +132,7 @@ export function About() {
             className="max-w-4xl"
           >
             <div className="w-16 h-[2px] bg-[#d4a574] mb-8" />
-            <h1 
+            <h1
               className="text-[clamp(3.5rem,8vw,7rem)] leading-[0.95] tracking-tight text-white mb-8"
               style={{ fontFamily: 'var(--font-serif)' }}
             >
@@ -99,7 +140,7 @@ export function About() {
               Purpose &<br />
               Precision
             </h1>
-            <p className="text-[clamp(1.25rem,2vw,1.75rem)] text-white/90 leading-relaxed max-w-2xl">
+            <p className="text-[clamp(1.25rem,2vw,1.75rem)] text-white/80 leading-relaxed max-w-2xl">
               Meteorologist. Backend Developer. Data Scientist. Mentor. Gospel Artist. Author.
             </p>
           </motion.div>
@@ -122,63 +163,41 @@ export function About() {
               </div>
 
               <div className="lg:col-span-9 space-y-8">
-                <p 
+                <p
                   className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-[1.35]"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
-                  I am Koboko—a modern African polymath whose work exists at the intersection 
+                  I am Koboko — a modern African polymath whose work exists at the intersection
                   of science, technology, faith, and creative expression.
                 </p>
 
                 <div className="space-y-6 text-lg text-black/70 leading-relaxed">
                   <p>
-                    Based in Nairobi, Kenya, I serve as a Meteorologist at the Kenya Meteorological Department, 
-                    where I specialize in Numerical Weather Prediction. Every day, I work with complex atmospheric 
-                    models and computational systems to forecast weather patterns that affect agriculture, aviation, 
-                    disaster preparedness, and the daily lives of millions across East Africa. The work demands 
-                    precision, scientific rigor, and an understanding that my predictions carry real-world consequences.
+                    Based in Nairobi, Kenya, I serve as a Meteorologist at the Kenya Meteorological Department,
+                    where I specialize in Numerical Weather Prediction. Every day, I work with complex atmospheric
+                    models and computational systems to forecast weather patterns that affect agriculture, aviation,
+                    disaster preparedness, and the daily lives of millions across East Africa.
                   </p>
-
                   <p>
-                    Parallel to my meteorological career, I am a backend software developer with deep expertise in 
-                    Python and Django. I architect scalable systems, design robust APIs, and work with both SQL and 
-                    NoSQL databases to build applications that solve complex problems. Technology, for me, is not 
-                    just a profession—it's a language for creating solutions that didn't exist before.
+                    Parallel to my meteorological career, I am a backend software developer with deep expertise in
+                    Python and Django. I architect scalable systems, design robust APIs, and work with both SQL and
+                    NoSQL databases to build applications that solve complex problems.
                   </p>
-
                   <p>
-                    Currently, I am expanding my technical horizons through ALX Africa's Data Science program, 
-                    where I'm learning to transform raw data into actionable insights through machine learning, 
-                    statistical modeling, and advanced analytics. This pursuit represents my commitment to 
-                    continuous growth and staying at the forefront of technological innovation.
+                    Currently, I am expanding my technical horizons through ALX Africa's Data Science program,
+                    where I'm learning to transform raw data into actionable insights through machine learning,
+                    statistical modeling, and advanced analytics.
                   </p>
-
                   <p>
-                    But my identity extends far beyond technical competence. I am the founder of <strong>Great Men Moves</strong>, 
-                    a mentorship initiative where I guide young men toward purpose, character, and leadership. I believe 
-                    that true success is measured not just by personal achievement, but by the lives we transform and 
-                    the legacy we leave behind.
+                    But my identity extends far beyond technical competence. I am the founder of{' '}
+                    <strong>Great Men Moves</strong>, a mentorship initiative where I guide young men toward
+                    purpose, character, and leadership.
                   </p>
-
                   <p>
-                    Faith is the foundation of everything I do. As a gospel artist, I use music to worship, inspire, 
-                    and communicate truths that transcend human understanding. My upcoming book, <em>"Broken Souls,"</em> 
-                    explores themes of redemption, healing, and divine restoration—offering hope to those navigating 
-                    pain and searching for meaning.
+                    Faith is the foundation of everything I do. As a gospel artist, I use music to worship,
+                    inspire, and communicate truths that transcend human understanding. My upcoming book,{' '}
+                    <em>"Broken Souls,"</em> explores themes of redemption, healing, and divine restoration.
                   </p>
-
-                  <p>
-                    I am also passionate about men's fashion, viewing it as a form of intentional communication—an 
-                    expression of discipline, culture, and confidence. From classic tailoring to contemporary African 
-                    aesthetics, fashion is another canvas for excellence.
-                  </p>
-
-                  <p>
-                    My life is a tapestry woven from diverse threads—science and creativity, logic and faith, 
-                    individual excellence and community impact. I am proof that you don't have to fit into a single 
-                    box, and that a life of purpose can span multiple disciplines while remaining deeply coherent.
-                  </p>
-
                   <p className="text-black text-xl pt-4" style={{ fontFamily: 'var(--font-serif)' }}>
                     This is my journey. This is Koboko.
                   </p>
@@ -200,7 +219,7 @@ export function About() {
           >
             <div className="mb-20">
               <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-              <h2 
+              <h2
                 className="text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.1]"
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
@@ -230,7 +249,7 @@ export function About() {
                   </div>
 
                   <div className="lg:col-span-9">
-                    <h3 
+                    <h3
                       className="text-[clamp(1.75rem,3vw,2.5rem)] mb-3"
                       style={{ fontFamily: 'var(--font-serif)' }}
                     >
@@ -259,7 +278,7 @@ export function About() {
           >
             <div className="mb-20 text-center">
               <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
-              <h2 
+              <h2
                 className="text-[clamp(2.5rem,5vw,4.5rem)] leading-[1.1]"
                 style={{ fontFamily: 'var(--font-serif)' }}
               >
@@ -268,95 +287,56 @@ export function About() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              {/* Meteorology Skills */}
-              <div>
-                <div className="mb-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-black flex items-center justify-center">
-                      <Cloud className="w-6 h-6 text-[#d4a574]" />
-                    </div>
-                    <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
-                      Meteorology
-                    </h3>
-                  </div>
-                  <p className="text-black/60 mb-8">
-                    Atmospheric science and weather forecasting expertise
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {meteorologySkills.map((skill) => (
-                    <div key={skill.name} className="bg-white p-4 border-l-2 border-[#d4a574]">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">{skill.name}</span>
-                        <span className="text-sm text-black/60">{skill.level}</span>
+              {[
+                {
+                  icon: Cloud,
+                  label: 'Meteorology',
+                  desc: 'Atmospheric science and weather forecasting expertise',
+                  skills: meteorologySkills,
+                },
+                {
+                  icon: Code,
+                  label: 'Software Development',
+                  desc: 'Backend engineering with Python and modern databases',
+                  skills: technicalSkills,
+                },
+                {
+                  icon: Database,
+                  label: 'Data Science',
+                  desc: 'Machine learning and analytical capabilities',
+                  skills: dataScienceSkills,
+                },
+              ].map(({ icon: Icon, label, desc, skills }) => (
+                <div key={label}>
+                  <div className="mb-8">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 bg-black flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-[#d4a574]" />
                       </div>
+                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
+                        {label}
+                      </h3>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Software Development Skills */}
-              <div>
-                <div className="mb-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-black flex items-center justify-center">
-                      <Code className="w-6 h-6 text-[#d4a574]" />
-                    </div>
-                    <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
-                      Software Development
-                    </h3>
+                    <p className="text-black/60 mb-8">{desc}</p>
                   </div>
-                  <p className="text-black/60 mb-8">
-                    Backend engineering with Python and modern databases
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {technicalSkills.map((skill) => (
-                    <div key={skill.name} className="bg-white p-4 border-l-2 border-[#d4a574]">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">{skill.name}</span>
-                        <span className="text-sm text-black/60">{skill.level}</span>
+                  <div className="space-y-4">
+                    {skills.map((skill) => (
+                      <div key={skill.name} className="bg-white p-4 border-l-2 border-[#d4a574]">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{skill.name}</span>
+                          <span className="text-sm text-black/60">{skill.level}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Data Science Skills */}
-              <div>
-                <div className="mb-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-black flex items-center justify-center">
-                      <Database className="w-6 h-6 text-[#d4a574]" />
-                    </div>
-                    <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
-                      Data Science
-                    </h3>
+                    ))}
                   </div>
-                  <p className="text-black/60 mb-8">
-                    Machine learning and analytical capabilities
-                  </p>
                 </div>
-
-                <div className="space-y-4">
-                  {dataScienceSkills.map((skill) => (
-                    <div key={skill.name} className="bg-white p-4 border-l-2 border-[#d4a574]">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">{skill.name}</span>
-                        <span className="text-sm text-black/60">{skill.level}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Great Men Moves Section */}
+      {/* Great Men Moves */}
       <section className="py-32 lg:py-40 px-6 lg:px-12 bg-white">
         <div className="max-w-[1800px] mx-auto">
           <motion.div
@@ -368,7 +348,7 @@ export function About() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
               <div className="order-2 lg:order-1">
                 <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <h2 
+                <h2
                   className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.05] mb-8"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
@@ -378,27 +358,22 @@ export function About() {
                 <p className="text-2xl text-black/80 leading-relaxed mb-8" style={{ fontFamily: 'var(--font-serif)' }}>
                   Mentoring the Next Generation of Leaders
                 </p>
-
                 <div className="space-y-6 text-lg text-black/70 leading-relaxed mb-10">
                   <p>
-                    Great Men Moves is more than a mentorship program—it's a movement dedicated to shaping 
-                    young men into leaders of character, purpose, and impact. Founded on the belief that 
+                    Great Men Moves is more than a mentorship program — it's a movement dedicated to shaping
+                    young men into leaders of character, purpose, and impact. Founded on the belief that
                     every young man deserves guidance, accountability, and a vision for his future.
                   </p>
-                  
                   <p>
-                    Through intentional relationships, structured teaching, and personal example, I mentor 
-                    young men in leadership principles, emotional intelligence, financial literacy, spiritual 
-                    grounding, and practical life skills. The goal is not just success, but significance—raising 
-                    men who will transform their communities and nations.
+                    Through intentional relationships, structured teaching, and personal example, I mentor
+                    young men in leadership principles, emotional intelligence, financial literacy, spiritual
+                    grounding, and practical life skills.
                   </p>
-
                   <p>
-                    Great men are not born; they are made through discipline, mentorship, and purpose. 
+                    Great men are not born; they are made through discipline, mentorship, and purpose.
                     This is my contribution to building a better Africa, one young man at a time.
                   </p>
                 </div>
-
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <div className="flex items-center gap-3 mb-3">
@@ -412,7 +387,6 @@ export function About() {
                       <li>• Service</li>
                     </ul>
                   </div>
-
                   <div>
                     <div className="flex items-center gap-3 mb-3">
                       <Target className="w-5 h-5 text-[#d4a574]" />
@@ -428,13 +402,32 @@ export function About() {
                 </div>
               </div>
 
+              {/* CSS-gradient visual — mentorship */}
               <div className="order-1 lg:order-2">
-                <div className="aspect-[4/5] overflow-hidden">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1770240366288-f6c926c8d8a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZW50b3JzaGlwJTIwbGVhZGVyc2hpcCUyMG1lZXRpbmd8ZW58MXx8fHwxNzcyMjczNDg0fDA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Great Men Moves Mentorship"
-                    className="w-full h-full object-cover"
+                <div
+                  className="aspect-[4/5] relative overflow-hidden"
+                  style={{ background: 'linear-gradient(145deg, #0d1a0d 0%, #1a2e1a 50%, #0a0a0a 100%)' }}
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'radial-gradient(ellipse 60% 60% at 50% 35%, #2d5a2d30 0%, transparent 70%)',
+                    }}
                   />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-8 text-white/20">
+                    <Users className="w-24 h-24 text-[#d4a574]/30" />
+                    <div className="text-center px-8">
+                      <p
+                        className="text-3xl text-[#d4a574]/50 leading-tight"
+                        style={{ fontFamily: 'var(--font-serif)' }}
+                      >
+                        Shaping<br />the Future
+                      </p>
+                    </div>
+                  </div>
+                  {/* Gold accent bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#d4a574]" />
                 </div>
               </div>
             </div>
@@ -452,19 +445,43 @@ export function About() {
             transition={{ duration: 0.8 }}
           >
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              {/* CSS-gradient visual — faith */}
               <div>
-                <div className="aspect-[4/5] overflow-hidden">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1559657608-cf55e9a8b4c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcGVuJTIwYmlibGUlMjBsaWdodCUyMGZhaXRofGVufDF8fHx8MTc3MjI3MzQ4NXww&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Faith and Purpose"
-                    className="w-full h-full object-cover opacity-60"
+                <div
+                  className="aspect-[4/5] relative overflow-hidden"
+                  style={{ background: 'linear-gradient(145deg, #0d0a1a 0%, #1a1030 50%, #0a0a0a 100%)' }}
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'radial-gradient(ellipse 55% 65% at 50% 40%, #d4a57418 0%, transparent 70%)',
+                    }}
                   />
+                  {/* Cross light ray */}
+                  <div
+                    className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[2px] h-1/2 opacity-20"
+                    style={{ background: 'linear-gradient(180deg, #d4a574 0%, transparent 100%)' }}
+                  />
+                  <div
+                    className="absolute top-1/3 left-1/4 right-1/4 h-[2px] opacity-20"
+                    style={{ background: 'linear-gradient(90deg, transparent, #d4a574 50%, transparent)' }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p
+                      className="text-5xl text-[#d4a574]/20"
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
+                      Faith
+                    </p>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#d4a574]" />
                 </div>
               </div>
 
               <div>
                 <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-                <h2 
+                <h2
                   className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.05] mb-8"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
@@ -473,64 +490,41 @@ export function About() {
                 </h2>
 
                 <div className="space-y-8">
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Heart className="w-8 h-8 text-[#d4a574]" />
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>Faith Foundation</h3>
+                  {[
+                    {
+                      icon: Heart,
+                      title: 'Faith Foundation',
+                      text: 'My faith in God is not separate from my work — it is the lens through which I see everything. Every line of code, every weather forecast, every mentoring conversation is an act of worship and service.',
+                    },
+                    {
+                      icon: Target,
+                      title: 'Purpose-Driven',
+                      text: 'Success without significance is empty. I am driven by a desire to make a tangible impact — whether through accurate forecasts that save lives, systems that solve problems, or young men who become transformational leaders.',
+                    },
+                    {
+                      icon: Award,
+                      title: 'Excellence Standard',
+                      text: 'Mediocrity is not an option. In everything I do, I pursue excellence — not for ego, but because quality work honors God, serves people well, and sets a standard for those watching.',
+                    },
+                    {
+                      icon: TrendingUp,
+                      title: 'Continuous Growth',
+                      text: 'I am committed to lifelong learning. From data science studies to musical expression to theological depth — growth is non-negotiable.',
+                    },
+                    {
+                      icon: Lightbulb,
+                      title: 'Servant Leadership',
+                      text: 'True leadership is service. Whether mentoring young men, contributing to national weather systems, or building technology — my goal is to serve others and leave things better than I found them.',
+                    },
+                  ].map(({ icon: Icon, title, text }) => (
+                    <div key={title}>
+                      <div className="flex items-center gap-4 mb-4">
+                        <Icon className="w-8 h-8 text-[#d4a574]" />
+                        <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>{title}</h3>
+                      </div>
+                      <p className="text-lg text-white/70 leading-relaxed">{text}</p>
                     </div>
-                    <p className="text-lg text-white/70 leading-relaxed">
-                      My faith in God is not separate from my work—it is the lens through which I see everything. 
-                      Every line of code, every weather forecast, every mentoring conversation is an act of worship 
-                      and service. I believe that excellence in work is a reflection of divine purpose.
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Target className="w-8 h-8 text-[#d4a574]" />
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>Purpose-Driven</h3>
-                    </div>
-                    <p className="text-lg text-white/70 leading-relaxed">
-                      Success without significance is empty. I am driven by a desire to make a tangible impact—
-                      whether through accurate forecasts that save lives, systems that solve problems, or young 
-                      men who become transformational leaders. Purpose transcends profession.
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Award className="w-8 h-8 text-[#d4a574]" />
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>Excellence Standard</h3>
-                    </div>
-                    <p className="text-lg text-white/70 leading-relaxed">
-                      Mediocrity is not an option. In everything I do, I pursue excellence—not for ego, but because 
-                      quality work honors God, serves people well, and sets a standard for those watching. Excellence 
-                      is a habit, not an event.
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <TrendingUp className="w-8 h-8 text-[#d4a574]" />
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>Continuous Growth</h3>
-                    </div>
-                    <p className="text-lg text-white/70 leading-relaxed">
-                      I am committed to lifelong learning. From data science studies to musical expression to 
-                      theological depth—growth is non-negotiable. The moment we stop learning, we stop leading.
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Lightbulb className="w-8 h-8 text-[#d4a574]" />
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>Servant Leadership</h3>
-                    </div>
-                    <p className="text-lg text-white/70 leading-relaxed">
-                      True leadership is service. Whether mentoring young men, contributing to national weather 
-                      systems, or building technology—my goal is to serve others and leave things better than I 
-                      found them. Leadership is stewardship, not ownership.
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -548,12 +542,12 @@ export function About() {
             transition={{ duration: 0.8 }}
           >
             <div className="w-12 h-[2px] bg-[#d4a574] mb-8 mx-auto" />
-            <p 
+            <p
               className="text-[clamp(1.75rem,3vw,3rem)] leading-[1.3] text-black/80 mb-8"
               style={{ fontFamily: 'var(--font-serif)' }}
             >
-              "I am not defined by a single skill or title. I am a multidimensional individual 
-              pursuing excellence across science, technology, creativity, and faith—believing that 
+              "I am not defined by a single skill or title. I am a multidimensional individual
+              pursuing excellence across science, technology, creativity, and faith — believing that
               a life well-lived integrates all of who we are into a cohesive mission of purpose and impact."
             </p>
             <p className="text-xl text-black/60">— Koboko</p>

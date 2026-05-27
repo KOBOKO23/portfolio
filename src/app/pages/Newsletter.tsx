@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Mail, CheckCircle, Star, Calendar, TrendingUp, BookOpen, Heart, Sparkles, ArrowRight } from 'lucide-react';
+import { SEO } from '../components/SEO';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
@@ -101,15 +101,28 @@ export function Newsletter() {
 
   return (
     <div className="min-h-screen">
+      <SEO
+        title="Newsletter"
+        description="Subscribe to Koboko's newsletter for insights on meteorology, tech, faith, and life from Nairobi. Join a growing community of curious minds."
+        url="/newsletter"
+      />
       {/* Hero Section */}
       <section className="relative py-32 lg:py-48 px-6 lg:px-12 bg-black text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <ImageWithFallback
-            src="https://images.unsplash.com/photo-1562093890-37ee6fe41521?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqb3VybmFsJTIwd3JpdGluZyUyMGRlc2slMjBtaW5pbWFsfGVufDF8fHx8MTc3MjI4MDgzN3ww&ixlib=rb-4.1.0&q=80&w=1080"
-            alt="Newsletter"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {/* Atmospheric gradient — no external images */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 80% 70% at 50% 60%, #1a1208 0%, #0a0a0a 60%)',
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(#d4a574 1px, transparent 1px)',
+            backgroundSize: '100% 2.5rem',
+          }}
+        />
         <div className="relative z-10 max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -470,22 +483,30 @@ export function Newsletter() {
         </div>
       </section>
 
-      {/* Visual Divider */}
-      <section className="relative h-[400px] overflow-hidden">
-        <ImageWithFallback
-          src="https://images.unsplash.com/photo-1556117153-0f1cad722b5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2ZmZWUlMjBtb3JuaW5nJTIwbmV3c3BhcGVyfGVufDF8fHx8MTc3MjI4MDgzOHww&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Newsletter Reading"
-          className="w-full h-full object-cover"
+      {/* Visual Divider — pure CSS quote panel */}
+      <section className="relative h-[400px] overflow-hidden flex items-center justify-center bg-[#0a0a0a]">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 80% at 50% 50%, #1a1208 0%, #0a0a0a 70%)',
+          }}
         />
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-          <p 
-            className="text-white text-3xl md:text-5xl text-center px-6"
-            style={{ fontFamily: 'var(--font-serif)' }}
-          >
-            "The best investment you can make<br />
-            is in your own growth."
-          </p>
-        </div>
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              'linear-gradient(#d4a574 1px, transparent 1px), linear-gradient(90deg, #d4a574 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
+          }}
+        />
+        <p
+          className="relative z-10 text-white text-3xl md:text-5xl text-center px-6 max-w-4xl"
+          style={{ fontFamily: 'var(--font-serif)' }}
+        >
+          "The best investment you can make<br />
+          is in your own growth."
+        </p>
       </section>
     </div>
   );

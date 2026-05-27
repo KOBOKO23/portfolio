@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import { About } from './pages/About';
 import { Projects } from './pages/Projects';
 import { Blog } from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
 import { FashionGallery } from './pages/FashionGallery';
 import { Music } from './pages/Music';
 import { Book } from './pages/Book';
@@ -55,6 +56,14 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <Blog />
+      </Layout>
+    ),
+  },
+  {
+    path: '/blog/:slug',
+    element: (
+      <Layout>
+        <BlogDetail />
       </Layout>
     ),
   },
