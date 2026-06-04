@@ -9,6 +9,7 @@ class Feedback(models.Model):
     email = models.EmailField(blank=True)
     page_url = models.CharField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         ordering = ['-created_at']

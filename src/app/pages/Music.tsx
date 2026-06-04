@@ -1,29 +1,33 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Music as MusicIcon, Play, Heart, ExternalLink, Youtube, X } from 'lucide-react';
+import { Music as MusicIcon, Play, ExternalLink, Youtube, X, Radio } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { SEO } from '../components/SEO';
+
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 interface Track {
   id: number;
   title: string;
   slug?: string;
-  album?: string;
+  description?: string;
+  cover_image?: string | null;
   duration?: string;
-  released?: string;
+  release_date?: string | null;
   spotify_url?: string;
   youtube_url?: string;
   apple_music_url?: string;
-  description?: string;
+  soundcloud_url?: string;
+  is_featured?: boolean;
 }
 
-const FALLBACK_TRACKS: Track[] = [
-  { id: 1, title: 'Grace Unending', album: 'Faith Journey', duration: '4:32', released: '2025' },
-  { id: 2, title: 'Restored', album: 'Faith Journey', duration: '3:58', released: '2025' },
-  { id: 3, title: 'African Praise', album: 'Heritage & Hope', duration: '5:12', released: '2024' },
-  { id: 4, title: 'New Mercies', album: 'Daily Bread', duration: '4:15', released: '2024' },
-];
+function formatYear(date?: string | null) {
+  if (!date) return '';
+  return new Date(date).getFullYear().toString();
+}
 
-function extractYouTubeId(url: string): string | null {
+function extractYouTubeId(url?: string | null): string | null {
+  if (!url) return null;
   const patterns = [
     /youtu\.be\/([^?&]+)/,
     /youtube\.com\/watch\?v=([^&]+)/,
@@ -36,118 +40,35 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-function MusicHero() {
+function WaveBar({ h, delay }: { h: number; delay: number }) {
   return (
-    <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-[#0a0a0a]">
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 80% 70% at 50% 60%, #1a0a2e 0%, #0a0a0a 65%)' }}
-      />
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 40% 40% at 50% 50%, #d4a57412 0%, transparent 70%)' }}
-      />
-      {[1, 2, 3, 4, 5].map((n) => (
-        <div
-          key={n}
-          className="absolute rounded-full border border-[#d4a574] pointer-events-none"
-          style={{
-            width: `${n * 12}vw`, height: `${n * 12}vw`,
-            opacity: 0.03 + n * 0.01,
-            top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          }}
-        />
-      ))}
-      <div className="relative z-10 text-center text-white px-6">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <div
-            className="w-20 h-20 mx-auto mb-8 flex items-center justify-center border border-[#d4a574]/40"
-            style={{ background: 'rgba(212,165,116,0.08)' }}
-          >
-            <MusicIcon className="w-10 h-10 text-[#d4a574]" />
-          </div>
-          <h1 className="text-5xl md:text-7xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
-            Gospel Music
-          </h1>
-          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed text-white/80">
-            Faith-driven melodies that inspire, heal, and transform
-          </p>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function WorshipVisual() {
-  return (
-    <div
-      className="aspect-square relative overflow-hidden"
-      style={{ background: 'linear-gradient(145deg, #1a0d08 0%, #2e1a0a 50%, #0a0a0a 100%)' }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 35%, #d4a57420 0%, transparent 70%)' }}
-      />
-      {[1, 2, 3].map((n) => (
-        <div key={n} className="absolute rounded-full border border-[#d4a574]"
-          style={{ width: `${n * 30}%`, height: `${n * 30}%`, opacity: 0.08, top: '35%', left: '50%', transform: 'translate(-50%, -50%)' }}
-        />
-      ))}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <p className="text-[#d4a574]/25 text-5xl text-center" style={{ fontFamily: 'var(--font-serif)' }}>Worship</p>
-      </div>
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4a574]" />
-    </div>
-  );
-}
-
-function StudioVisual() {
-  return (
-    <div
-      className="aspect-[4/3] relative overflow-hidden"
-      style={{ background: 'linear-gradient(145deg, #081a18 0%, #0d2e2a 50%, #0a0a0a 100%)' }}
-    >
-      <div
-        className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 35% 45%, #1a4a4420 0%, transparent 70%)' }}
-      />
-      <div className="absolute inset-0 flex items-center justify-center gap-2 px-16">
-        {[4, 8, 14, 10, 6, 12, 8, 16, 6, 10, 14, 8, 4].map((h, i) => (
-          <div key={i} className="flex-1 rounded-sm"
-            style={{ height: `${h * 4}px`, background: `rgba(212,165,116,${0.08 + (h / 16) * 0.12})` }}
-          />
-        ))}
-      </div>
-      <div className="absolute inset-0 flex items-end justify-center pb-8">
-        <p className="text-white/20 text-xs uppercase tracking-[0.4em]">Recording Studio</p>
-      </div>
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4a574]" />
-    </div>
+    <motion.div
+      className="w-1 rounded-full bg-[#d4a574]"
+      style={{ height: h }}
+      animate={{ scaleY: [1, 1.8, 0.6, 1.4, 1] }}
+      transition={{ repeat: Infinity, duration: 1.6 + delay * 0.3, ease: 'easeInOut', delay }}
+    />
   );
 }
 
 function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: string; onClose: () => void }) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, [onClose]);
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 lg:p-12"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 lg:p-12"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.25 }}
+        initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.92, opacity: 0 }} transition={{ duration: 0.25 }}
         className="w-full max-w-4xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <p className="text-white text-lg" style={{ fontFamily: 'var(--font-serif)' }}>{title}</p>
@@ -160,9 +81,7 @@ function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: str
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-            style={{ border: 'none' }}
+            allowFullScreen className="w-full h-full" style={{ border: 'none' }}
           />
         </div>
       </motion.div>
@@ -170,228 +89,327 @@ function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: str
   );
 }
 
+function TrackCard({ track, index, onPlay, onWatch }: {
+  track: Track; index: number;
+  onPlay: () => void; onWatch: (id: string) => void;
+}) {
+  const ytId = extractYouTubeId(track.youtube_url);
+  const hasVideo = !!ytId;
+  const thumbnail = track.cover_image || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+  const meta = [track.duration, formatYear(track.release_date)].filter(Boolean).join(' · ');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.07 }}
+      className="group relative bg-white border border-black/5 hover:border-[#d4a574]/40 hover:shadow-xl transition-all duration-400"
+    >
+      {track.is_featured && (
+        <div className="absolute top-0 left-0 px-3 py-1 bg-[#d4a574] text-white text-[9px] uppercase tracking-widest font-semibold">
+          Featured
+        </div>
+      )}
+
+      <div className="flex items-stretch">
+        {/* Thumbnail / play */}
+        <button
+          onClick={onPlay}
+          disabled={!hasVideo && !track.spotify_url}
+          aria-label={`Play ${track.title}`}
+          className="relative w-20 flex-shrink-0 overflow-hidden focus:outline-none"
+          style={{ minHeight: 88 }}
+        >
+          {thumbnail ? (
+            <>
+              <img src={thumbnail} alt={track.title} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-white/15 border border-white/30 flex items-center justify-center group-hover:bg-[#d4a574] group-hover:border-[#d4a574] transition-all">
+                  <Play size={14} fill="white" className="text-white ml-0.5" />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a0a2e] to-[#0a0a0a] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-[#d4a574]/20 border border-[#d4a574]/40 flex items-center justify-center group-hover:bg-[#d4a574] group-hover:border-[#d4a574] transition-all">
+                <Play size={14} fill="white" className="text-white ml-0.5" />
+              </div>
+            </div>
+          )}
+        </button>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0 p-4 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3
+                className="text-[1.05rem] leading-snug group-hover:text-[#d4a574] transition-colors"
+                style={{ fontFamily: 'var(--font-serif)' }}
+              >
+                {track.title}
+              </h3>
+              {meta && <p className="text-[11px] text-black/35 mt-0.5 tracking-wide">{meta}</p>}
+            </div>
+
+            {/* Stream links */}
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              {hasVideo && (
+                <button
+                  onClick={() => onWatch(ytId!)}
+                  className="p-2 text-black/25 hover:text-red-500 transition-colors"
+                  aria-label="Watch on YouTube"
+                >
+                  <Youtube size={16} />
+                </button>
+              )}
+              {track.spotify_url && (
+                <a href={track.spotify_url} target="_blank" rel="noopener noreferrer"
+                  className="p-2 text-black/25 hover:text-[#1db954] transition-colors" aria-label="Spotify">
+                  <ExternalLink size={16} />
+                </a>
+              )}
+              {track.apple_music_url && (
+                <a href={track.apple_music_url} target="_blank" rel="noopener noreferrer"
+                  className="p-2 text-black/25 hover:text-[#fc3c44] transition-colors" aria-label="Apple Music">
+                  <MusicIcon size={16} />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {track.description && (
+            <p className="mt-2 text-[13px] text-black/50 leading-relaxed line-clamp-2">
+              {track.description}
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function Music() {
-  const [tracks, setTracks] = useState<Track[]>(FALLBACK_TRACKS);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
-    fetch(`${apiBase}/music/tracks/`)
-      .then((r) => r.json())
-      .then((body) => {
+    fetch(`${API}/music/tracks/`)
+      .then(r => r.json())
+      .then(body => {
         const items: Track[] = body?.data?.results ?? body?.data ?? [];
-        if (items.length > 0) setTracks(items);
+        setTracks(items);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
+  const featured = tracks.find(t => t.is_featured) ?? tracks[0] ?? null;
+  const featuredYtId = extractYouTubeId(featured?.youtube_url);
+  const rest = tracks.filter(t => t.id !== featured?.id);
+
   const handlePlay = (track: Track) => {
-    if (track.youtube_url) {
-      const vid = extractYouTubeId(track.youtube_url);
-      if (vid) { setPlayingVideo({ id: vid, title: track.title }); return; }
-    }
+    const vid = extractYouTubeId(track.youtube_url);
+    if (vid) { setPlayingVideo({ id: vid, title: track.title }); return; }
     if (track.spotify_url) window.open(track.spotify_url, '_blank', 'noopener');
   };
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen">
       <SEO
-        title="Music"
+        title="Gospel Music"
         description="Gospel music by Koboko — faith-filled sounds from Nairobi. Listen to original tracks and ministry recordings."
         url="/music"
       />
-      <MusicHero />
 
-      {/* About */}
-      <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-            <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
-              Music Ministry
-            </h2>
-            <div className="space-y-4 text-lg leading-relaxed text-black/70">
-              <p>
-                Gospel music is more than art — it's worship, testimony, and ministry. My musical journey
-                is deeply rooted in my faith, using melodies to express gratitude, hope, and the
-                transformative power of God's love.
-              </p>
-              <p>
-                Drawing from African musical heritage and contemporary gospel sounds, I create songs
-                that resonate with believers seeking encouragement, healing, and spiritual renewal.
-              </p>
-              <p>
-                Every note is crafted with intention, every lyric a prayer, and every performance
-                an offering of praise.
-              </p>
-            </div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <WorshipVisual />
-          </motion.div>
-        </div>
-      </section>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-[#0a0a0a] pt-20">
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 90% 80% at 50% 60%, #1a0a2e 0%, #0a0a0a 65%)' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 40% 40% at 50% 50%, #d4a57415 0%, transparent 70%)' }} />
+        {/* Rings */}
+        {[1, 2, 3, 4, 5].map(n => (
+          <div key={n} className="absolute rounded-full border border-[#d4a574] pointer-events-none"
+            style={{ width: `${n * 14}vw`, height: `${n * 14}vw`, opacity: 0.02 + n * 0.01, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+        ))}
 
-      {/* Track list */}
-      <section className="py-24 lg:py-32 bg-[#f5f5f0]">
-        <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
-            <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>
-              Recent Releases
-            </h2>
-
-            <div className="max-w-3xl mx-auto space-y-4">
-              {tracks.map((track, index) => {
-                const hasVideo = !!(track.youtube_url && extractYouTubeId(track.youtube_url));
-                const ytId = hasVideo ? extractYouTubeId(track.youtube_url!) : null;
-
-                return (
-                  <motion.div
-                    key={track.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="bg-white p-6 flex items-center justify-between gap-4 hover:shadow-lg transition-shadow group"
-                  >
-                    <div className="flex items-center gap-6 flex-1 min-w-0">
-                      {/* Play / thumbnail */}
-                      <button
-                        onClick={() => handlePlay(track)}
-                        className="w-12 h-12 flex items-center justify-center flex-shrink-0 transition-colors relative overflow-hidden"
-                        style={hasVideo && ytId ? { padding: 0 } : { background: '#d4a574' }}
-                        aria-label={`Play ${track.title}`}
-                      >
-                        {hasVideo && ytId ? (
-                          <div className="w-12 h-12 relative">
-                            <img
-                              src={`https://img.youtube.com/vi/${ytId}/default.jpg`}
-                              alt={track.title}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                              <Play size={16} fill="white" className="text-white" />
-                            </div>
-                          </div>
-                        ) : (
-                          <Play size={20} fill="white" className="text-white" />
-                        )}
-                      </button>
-
-                      <div className="flex-1 min-w-0">
-                        <h3
-                          className="text-xl mb-1 group-hover:text-[#d4a574] transition-colors truncate"
-                          style={{ fontFamily: 'var(--font-serif)' }}
-                        >
-                          {track.title}
-                        </h3>
-                        <p className="text-sm text-black/60">
-                          {track.album}{track.released ? ` · ${track.released}` : ''}
-                        </p>
-                      </div>
-
-                      {track.duration && (
-                        <div className="text-black/60 text-sm flex-shrink-0">{track.duration}</div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 flex-shrink-0">
-                      {hasVideo && (
-                        <button
-                          onClick={() => setPlayingVideo({ id: extractYouTubeId(track.youtube_url!)!, title: track.title })}
-                          className="p-2 hover:text-red-500 transition-colors"
-                          aria-label="Watch on YouTube"
-                        >
-                          <Youtube size={20} />
-                        </button>
-                      )}
-                      {track.spotify_url && (
-                        <a
-                          href={track.spotify_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 hover:text-[#d4a574] transition-colors"
-                          aria-label="Listen on Spotify"
-                        >
-                          <ExternalLink size={20} />
-                        </a>
-                      )}
-                      <button className="p-2 hover:text-[#d4a574] transition-colors" aria-label="Like">
-                        <Heart size={20} />
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Artist Reflections */}
-      <section className="py-24 lg:py-32 bg-black text-white">
-        <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
-            <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>
-              Artist Reflections
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {[
-                { text: 'Music is my spiritual language. Through gospel melodies, I express gratitude, worship, and the transformative power of faith.', author: 'Personal Reflection' },
-                { text: "Each song is a testimony of God's faithfulness, crafted to inspire, heal, and draw hearts closer to divine purpose.", author: 'Artist Statement' },
-              ].map((item, index) => (
-                <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.2 }} className="border-l-4 border-[#d4a574] pl-8">
-                  <p className="text-xl leading-relaxed text-white/90 mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
-                    "{item.text}"
-                  </p>
-                  <p className="text-sm text-[#d4a574] uppercase tracking-wide">{item.author}</p>
-                </motion.div>
+        <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
+            {/* Animated waveform */}
+            <div className="flex items-end justify-center gap-1 mb-10 h-10">
+              {[12, 20, 28, 16, 32, 20, 14, 28, 18, 24, 12, 20, 28].map((h, i) => (
+                <WaveBar key={i} h={h} delay={i * 0.12} />
               ))}
             </div>
+
+            <div className="w-16 h-[2px] bg-[#d4a574] mx-auto mb-8" />
+            <h1 className="leading-[0.92] tracking-tight text-white mb-6" style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(3.5rem, 9vw, 8rem)' }}>
+              Gospel<br /><span className="text-[#d4a574]">Music</span>
+            </h1>
+            <p className="text-white/60 text-[clamp(1rem,2vw,1.3rem)] max-w-xl mx-auto leading-relaxed">
+              Faith-driven melodies from Nairobi — worship, testimony, and ministry in sound.
+            </p>
+
+            {!loading && tracks.length > 0 && (
+              <p className="mt-6 text-white/25 text-xs uppercase tracking-[0.3em]">
+                {tracks.length} {tracks.length === 1 ? 'Track' : 'Tracks'}
+              </p>
+            )}
           </motion.div>
         </div>
       </section>
 
-      {/* Creative Process */}
-      <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="order-2 lg:order-1">
-            <StudioVisual />
-          </motion.div>
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="order-1 lg:order-2">
-            <div className="w-12 h-[2px] bg-[#d4a574] mb-6" />
-            <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>Creative Process</h2>
-            <div className="space-y-4 text-lg leading-relaxed text-black/70">
-              <p>Each song begins with prayer and meditation, allowing inspiration to flow from a place of spiritual connection. The creative process is both disciplined and Spirit-led.</p>
-              <p>From writing lyrics that speak truth to arranging melodies that touch hearts, every aspect is approached with excellence and reverence for the craft.</p>
+      {/* ── Featured Track ────────────────────────────────────────────── */}
+      {!loading && featured && (
+        <section className="py-24 px-6 lg:px-16 bg-black text-white">
+          <div className="max-w-6xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+              <div className="w-10 h-[2px] bg-[#d4a574] mb-6" />
+              <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-10">
+                {featured.is_featured ? 'Featured Track' : 'Latest Track'}
+              </p>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Player / thumbnail */}
+                <div className="relative group">
+                  {featuredYtId ? (
+                    <button
+                      onClick={() => setPlayingVideo({ id: featuredYtId, title: featured.title })}
+                      className="relative w-full aspect-video overflow-hidden block focus:outline-none"
+                    >
+                      <img
+                        src={featured.cover_image || `https://img.youtube.com/vi/${featuredYtId}/maxresdefault.jpg`}
+                        alt={featured.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                      />
+                      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <div className="w-18 h-18 rounded-full bg-white/10 border-2 border-white/40 flex items-center justify-center backdrop-blur-sm group-hover:bg-[#d4a574] group-hover:border-[#d4a574] transition-all duration-300 w-20 h-20">
+                          <Play size={32} fill="white" className="text-white ml-1" />
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4a574]" />
+                    </button>
+                  ) : featured.cover_image ? (
+                    <div className="relative w-full aspect-video overflow-hidden">
+                      <img src={featured.cover_image} alt={featured.title} className="w-full h-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4a574]" />
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-video bg-gradient-to-br from-[#1a0a2e] to-[#0a0a0a] flex items-center justify-center">
+                      <Radio className="w-16 h-16 text-[#d4a574]/30" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div>
+                  <h2 className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.05] mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+                    {featured.title}
+                  </h2>
+                  {[featured.duration, formatYear(featured.release_date)].filter(Boolean).length > 0 && (
+                    <p className="text-white/35 text-sm mb-6 tracking-wide">
+                      {[featured.duration, formatYear(featured.release_date)].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                  {featured.description && (
+                    <p className="text-white/65 text-[17px] leading-[1.85] mb-8">{featured.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    {featuredYtId && (
+                      <button
+                        onClick={() => setPlayingVideo({ id: featuredYtId, title: featured.title })}
+                        className="flex items-center gap-2 px-6 py-3 bg-[#d4a574] text-white text-sm font-medium hover:bg-white hover:text-black transition-all"
+                      >
+                        <Play size={16} fill="currentColor" /> Play Now
+                      </button>
+                    )}
+                    {featured.spotify_url && (
+                      <a href={featured.spotify_url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-6 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all">
+                        <ExternalLink size={16} /> Spotify
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Track List ────────────────────────────────────────────────── */}
+      <section className="py-24 lg:py-32 px-6 lg:px-16 bg-[#f5f5f0]">
+        <div className="max-w-3xl mx-auto">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <div className="flex items-center gap-4 mb-12">
+              <div className="w-10 h-[2px] bg-[#d4a574]" />
+              <h2 className="text-3xl" style={{ fontFamily: 'var(--font-serif)' }}>
+                {rest.length > 0 ? 'All Tracks' : 'Tracks'}
+              </h2>
             </div>
+
+            {loading ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white h-[88px] flex items-center gap-4 px-4 animate-pulse">
+                    <div className="w-20 h-full bg-black/6 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-black/6 rounded w-1/2" />
+                      <div className="h-3 bg-black/4 rounded w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : tracks.length === 0 ? (
+              <div className="text-center py-24">
+                <MusicIcon className="w-12 h-12 mx-auto mb-4 text-black/15" />
+                <p className="text-black/35 text-lg">No tracks added yet.</p>
+                <p className="text-black/25 text-sm mt-1">Add tracks from the admin dashboard.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(rest.length > 0 ? rest : tracks).map((track, index) => (
+                  <TrackCard
+                    key={track.id}
+                    track={track}
+                    index={index}
+                    onPlay={() => handlePlay(track)}
+                    onWatch={(id) => setPlayingVideo({ id, title: track.title })}
+                  />
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto bg-[#f5f5f0]">
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center">
-          <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>Stay Connected</h2>
-          <p className="text-lg text-black/60 max-w-2xl mx-auto mb-8">
-            Subscribe to receive updates on new releases, performances, and ministry events.
+      {/* ── CTA ──────────────────────────────────────────────────────── */}
+      <section className="py-24 lg:py-32 px-6 lg:px-16 bg-black text-white text-center">
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <div className="w-10 h-[2px] bg-[#d4a574] mx-auto mb-8" />
+          <h2 className="text-[clamp(2rem,5vw,4rem)] mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+            Stay Connected
+          </h2>
+          <p className="text-white/50 max-w-md mx-auto mb-10 leading-relaxed">
+            Get notified about new releases, live performances, and ministry events.
           </p>
-          <a href="/contact" className="inline-block px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300">
-            Get Updates
-          </a>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <Link to="/newsletter"
+              className="px-8 py-3 bg-[#d4a574] text-white text-sm font-medium hover:bg-white hover:text-black transition-all">
+              Subscribe
+            </Link>
+            <Link to="/contact"
+              className="px-8 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all">
+              Get in Touch
+            </Link>
+          </div>
         </motion.div>
       </section>
 
       {/* YouTube modal */}
       <AnimatePresence>
         {playingVideo && (
-          <YouTubeModal
-            videoId={playingVideo.id}
-            title={playingVideo.title}
-            onClose={() => setPlayingVideo(null)}
-          />
+          <YouTubeModal videoId={playingVideo.id} title={playingVideo.title} onClose={() => setPlayingVideo(null)} />
         )}
       </AnimatePresence>
     </div>

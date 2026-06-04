@@ -12,7 +12,7 @@ def get_weather_forecast():
         return _mock_forecast()
 
     try:
-        url = 'https://api.openweathermap.org/data/3.0/onecall'
+        url = 'https://api.openweathermap.org/data/2.5/onecall'
         params = {
             'lat': lat,
             'lon': lon,
@@ -95,7 +95,7 @@ def _mock_forecast():
 
     return {
         'location': settings.DEFAULT_WEATHER_CITY,
-        'timezone': 'Africa/Johannesburg',
+        'timezone': 'Africa/Nairobi',
         'current': {
             'temperature': 22,
             'condition': 'clear sky',

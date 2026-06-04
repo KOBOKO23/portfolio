@@ -1,212 +1,219 @@
 # Koboko Portfolio
 
-Full-stack personal portfolio for a Kenyan meteorologist, backend developer, data scientist, gospel artist, and author. Built with Django DRF + React (Vite, Tailwind v4).
+Full-stack personal portfolio — **React 18 + Django REST Framework**.  
+Meteorologist · Backend Developer · Mentor · Gospel Artist · Author · Nairobi, Kenya.
 
 ---
 
-## Project Structure
+## Architecture
 
 ```
 portfolio/
-├── backend/                  Django REST API
+├── backend/          Django 4.2 LTS — REST API + Admin CMS
 │   ├── apps/
-│   │   ├── blog/             Articles, comments, likes, reactions, shares
-│   │   ├── books/            Book info and testimonials
+│   │   ├── blog/             Articles, comments, reactions, likes, shares
+│   │   ├── books/            Book page, chapters, testimonials, pre-orders
 │   │   ├── contact/          Contact form messages
-│   │   ├── core/             Profile and skills
-│   │   ├── fashion/          Fashion gallery categories & images
-│   │   ├── feedback/         Anonymous star-rating feedback widget
-│   │   ├── great_men_moves/  GMM mentorship programme
-│   │   ├── music/            Music tracks (YouTube links)
-│   │   ├── newsletter/       Subscriber management + issue archive
-│   │   ├── payments/         M-Pesa (Daraja) + Stripe pre-orders
-│   │   └── projects/         Portfolio projects
-│   ├── config/
-│   │   ├── settings.py       Django settings (dev/prod, S3, security)
-│   │   ├── urls.py           Root URL config + robots.txt + sitemap.xml
-│   │   └── wsgi.py
-│   ├── utils/
-│   │   ├── renderers.py      Standard {success, data, error} JSON envelope
-│   │   └── pagination.py     Shared page-number pagination (default 20/page)
-│   ├── Dockerfile            Python 3.11 slim + gunicorn
-│   ├── requirements.txt
-│   └── .env.example          All required environment variables documented
-│
-├── src/                      React frontend (Vite, Tailwind v4)
-│   ├── app/
-│   │   ├── components/       Reusable UI (Navigation, Footer, SEO, WeatherForecast72Hr…)
-│   │   ├── hooks/            useApi, useDebounce, useLocalStorage, useMediaQuery…
-│   │   ├── pages/            One file per route (Blog, BlogDetail, Projects, Book…)
-│   │   ├── utils/            api.ts, validation.ts, security.ts, performance.ts
-│   │   └── types/            Shared TypeScript interfaces
-│   ├── test-setup.ts         Vitest global setup (imports @testing-library/jest-dom)
-│   ├── vite.config.ts        Build + test config
-│   └── package.json
-│
-├── nginx/
-│   └── nginx.conf            Reverse proxy, rate limiting, CSP headers, SPA routing
-├── Dockerfile                React multi-stage build → nginx
-├── docker-compose.yml        Full stack: postgres + backend + frontend + nginx
-└── scripts/
-    ├── dev.sh                Local dev: starts backend + frontend in parallel
-    ├── aws_deploy.sh         Build → ECR push → ECS force-redeploy
-    └── setup.sh              First-time project setup
+│   │   ├── core/             Profile, Skills
+│   │   ├── fashion/          Gallery images & categories
+│   │   ├── feedback/         Visitor feedback (approval-gated)
+│   │   ├── great_men_moves/  Programs, impact goals, volunteer applications
+│   │   ├── music/            Track listing with YouTube links
+│   │   ├── newsletter/       Subscribers & published issues
+│   │   ├── payments/         Stripe + M-Pesa (Daraja) integration
+│   │   └── projects/         Portfolio projects + gallery images
+│   ├── config/       Django settings, URLs, WSGI
+│   └── utils/        Shared renderers, pagination, media helpers (S3-aware)
+└── src/              React 18 + Vite 6 + Tailwind CSS 4
+    ├── app/
+    │   ├── pages/        One component per route (lazy-loaded chunks)
+    │   ├── components/   Navigation, Footer, FeedbackWidget, SEO, ErrorBoundary
+    │   └── utils/        API helpers, validation, monitoring
+    └── styles/       Global CSS, theme variables, fonts
 ```
 
 ---
 
-## Quick Start (local development)
+## Quick Start — Development
+
+### Backend
 
 ```bash
-# 1. Clone and enter the project
-git clone <repo> && cd portfolio
+cd backend
+cp .env.example .env         # fill in required vars (see below)
+./start.sh                   # creates venv, installs deps, migrates, runs dev server
+# → http://localhost:8000/admin
 
-# 2. Run the setup script (creates venv, installs deps, runs migrations, seeds data)
-./scripts/setup.sh
-
-# 3. Start both services
-./scripts/dev.sh
+python manage.py createsuperuser   # create your admin account
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000/api
-- Admin CMS: http://localhost:8000/admin  (login: `admin` / `admin123`)
+### Frontend
 
-### Environment
+```bash
+cd src
+npm install
+# create .env.local with:
+echo "VITE_API_BASE_URL=http://localhost:8000/api" > .env.local
+npm run dev
+# → http://localhost:5173
+```
 
-Copy `backend/.env.example` to `backend/.env` and fill in real values for:
-- `SECRET_KEY` — generate with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
-- Stripe keys (from https://dashboard.stripe.com/apikeys)
-- Daraja keys (from https://developer.safaricom.co.ke)
-- AWS keys (if using S3)
+---
+
+## Environment Variables
+
+### Backend — `backend/.env`
+
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `SECRET_KEY` | **prod** | Django secret — generate: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
+| `DEBUG` | no | `True` dev / `False` prod |
+| `ALLOWED_HOSTS` | **prod** | Comma-list: `koboko.dev,www.koboko.dev` |
+| `CORS_ALLOWED_ORIGINS` | no | Comma-list of frontend origins |
+| `SITE_URL` | no | Public site URL e.g. `https://koboko.dev` |
+| `DB_ENGINE` | no | `postgresql` prod, `sqlite` dev (default) |
+| `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` | prod | PostgreSQL connection |
+| `USE_S3` | no | `True` to use AWS S3 for all media |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | S3 | AWS IAM credentials |
+| `AWS_STORAGE_BUCKET_NAME` | S3 | e.g. `koboko-portfolio` |
+| `AWS_S3_REGION_NAME` | S3 | e.g. `af-south-1` |
+| `STRIPE_PUBLISHABLE_KEY` / `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | payments | Stripe dashboard |
+| `DARAJA_CONSUMER_KEY` / `DARAJA_CONSUMER_SECRET` | M-Pesa | Safaricom Daraja API |
+| `DARAJA_ENV` | M-Pesa | `sandbox` or `production` |
+| `OPENWEATHER_API_KEY` | weather | OpenWeatherMap |
+| `EMAIL_BACKEND` | no | `django.core.mail.backends.smtp.EmailBackend` for prod |
+
+### Frontend — `src/.env.local`
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_API_BASE_URL` | `http://localhost:8000/api` | Backend API root |
+
+---
+
+## Production Deployment
+
+### Backend (gunicorn)
+
+```bash
+cd backend
+export DEBUG=False
+export SECRET_KEY=your-real-secret
+export ALLOWED_HOSTS=koboko.dev,api.koboko.dev
+export DB_ENGINE=postgresql
+# ... other env vars
+./start_prod.sh
+# Runs: migrate → collectstatic → gunicorn on $PORT (default 8000)
+```
+
+### Frontend (static build)
+
+```bash
+cd src
+VITE_API_BASE_URL=https://api.koboko.dev/api npm run build
+# Serve dist/ with Nginx, S3 + CloudFront, or Netlify/Vercel
+```
+
+### Recommended stack
+
+```
+Nginx (reverse proxy)
+├── / → S3/CloudFront (React build)
+└── /api/ → gunicorn (Django)
+         ↓
+      PostgreSQL + S3 media
+```
 
 ---
 
 ## API Reference
 
-All endpoints return:
-```json
-{ "success": true,  "data": <payload>, "error": null }
-{ "success": false, "data": null,      "error": { "message": "...", "status": 400, "details": {} } }
-```
+All endpoints return `{ "success": bool, "data": any, "error": any }`.
 
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | `/api/blog/categories/` | All blog categories |
-| GET | `/api/blog/articles/` | Paginated articles (`?search=`, `?category__slug=`) |
-| GET | `/api/blog/articles/<slug>/` | Article detail + view count increment |
-| POST | `/api/blog/articles/<slug>/like/` | Toggle like (X-Fingerprint header) |
-| POST | `/api/blog/articles/<slug>/react/` | Add/change/remove emoji reaction |
-| POST | `/api/blog/articles/<slug>/share/<platform>/` | Increment share counter |
-| GET/POST | `/api/blog/articles/<slug>/comments/` | List / create comments |
-| GET | `/api/projects/` | All projects |
-| GET | `/api/projects/<slug>/` | Project detail |
-| GET | `/api/music/tracks/` | Music tracks |
-| GET | `/api/books/` | Books |
-| POST | `/api/contact/` | Submit contact form |
-| POST | `/api/newsletter/subscribe/` | Subscribe / resubscribe |
-| GET | `/api/newsletter/issues/` | Newsletter archive |
-| POST | `/api/payments/mpesa/stk-push/` | Initiate M-Pesa payment |
-| POST | `/api/payments/mpesa/callback/` | Daraja server callback (not for clients) |
-| POST | `/api/payments/stripe/create-intent/` | Create Stripe PaymentIntent |
-| POST | `/api/payments/stripe/webhook/` | Stripe webhook (not for clients) |
-| GET | `/api/payments/orders/<uuid>/` | Poll order status |
-| PATCH | `/api/payments/orders/<uuid>/` | Confirm Stripe payment |
-| GET | `/robots.txt` | Crawler instructions |
-| GET | `/sitemap.xml` | XML sitemap (static pages + live blog articles) |
+### Core
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| `GET` | `/api/profile/` | Profile & social links |
+| `GET` | `/api/skills/` | Skills grouped by category |
+| `GET` | `/api/weather/forecast/` | 72-hour Nairobi forecast |
 
----
+### Blog
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| `GET` | `/api/blog/articles/` | `?search=` `?category__slug=` `?is_featured=` |
+| `GET` | `/api/blog/articles/:slug/` | Full detail incl. content_html |
+| `GET` | `/api/blog/articles/:slug/comments/` | Approved comments |
+| `POST` | `/api/blog/articles/:slug/comments/` | `author_name`, `author_email`, `content` |
+| `POST` | `/api/blog/articles/:slug/like/` | Header: `X-Fingerprint` |
+| `POST` | `/api/blog/articles/:slug/react/` | Body: `{"reaction":"fire"}` |
+| `POST` | `/api/blog/articles/:slug/share/:platform/` | platforms: twitter facebook linkedin whatsapp copy_link |
+| `GET` | `/api/blog/categories/` | All categories |
 
-## Tests
+### Projects
+| `GET` | `/api/projects/` | `?is_featured=` `?year=` |
+| `GET` | `/api/projects/:slug/` | Detail + gallery images |
 
-### Backend (Django)
+### Fashion
+| `GET` | `/api/fashion/images/` | `?category__slug=` |
+| `GET` | `/api/fashion/categories/` | |
 
-```bash
-cd backend
-source venv/bin/activate
-python manage.py test                    # all 92 tests
-python manage.py test apps.blog          # single app
-python manage.py test --verbosity=2      # verbose
-```
-
-Test files:
-| File | Coverage |
-|------|----------|
-| `apps/blog/tests.py` | Models, API: articles, comments, likes, reactions, shares |
-| `apps/contact/tests.py` | Contact form model + API |
-| `apps/newsletter/tests.py` | Subscribe, resubscription, issue listing |
-| `apps/payments/tests.py` | PreOrder model, M-Pesa (mocked), Stripe (mocked) |
-| `apps/projects/tests.py` | Project/category models + API |
-| `utils/tests.py` | StandardRenderer unit tests + integration |
-
-### Frontend (Vitest)
-
-```bash
-cd src
-npm test               # run once
-npm run test:watch     # watch mode
-npm run test:coverage  # with coverage report
-```
-
-Test files:
-| File | Coverage |
-|------|----------|
-| `app/utils/validation.test.ts` | All 13 validation/sanitisation functions |
-| `app/utils/api.test.ts` | get, post, getCached, clearCache, API_ENDPOINTS |
-| `app/hooks/useDebounce.test.ts` | Timing, rapid changes, default delay |
-| `app/hooks/useLocalStorage.test.ts` | Read, write, remove, functional updates, fallback |
-| `app/components/SEO.test.tsx` | Render without crash for all prop combinations |
+### Music · Books · Great Men Moves · Newsletter · Contact · Feedback · Payments
+See [backend/apps/*/urls.py](backend/apps/) for the full list.
 
 ---
 
-## Deployment (AWS)
+## Admin CMS Guide
 
-### Prerequisites
+Visit `/admin/` with your superuser account.
 
-1. AWS CLI configured (`aws configure`)
-2. ECR repos created for backend and frontend images
-3. ECS cluster + task definitions set up
-4. RDS PostgreSQL instance running
-5. S3 bucket for static/media files
-
-### Deploy
-
-```bash
-export AWS_ACCOUNT_ID=123456789012
-export AWS_REGION=us-east-1
-./scripts/aws_deploy.sh --full          # build + push + migrate + deploy
-./scripts/aws_deploy.sh --push-only     # build and push images only
-./scripts/aws_deploy.sh --migrate-only  # run Django migrations on ECS
-```
-
-### Environment (production)
-
-Set these in ECS task definition or AWS Secrets Manager:
-- `DEBUG=False`
-- `SECRET_KEY=<strong-random-key>`
-- `ALLOWED_HOSTS=koboko.dev,www.koboko.dev`
-- `CORS_ALLOWED_ORIGINS=https://koboko.dev,https://www.koboko.dev`
-- `DB_ENGINE=postgresql` + `DB_*` vars
-- `USE_S3=True` + `AWS_*` vars
-- `STRIPE_*` + `DARAJA_*` keys
-- `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` + SMTP vars
-
-### HTTPS / SSL
-
-Uncomment the HTTP→HTTPS redirect block in `nginx/nginx.conf` and mount your
-TLS certificates into `nginx/ssl/`. Use AWS ACM + ALB for managed certificates.
+| Section | What to manage |
+|---------|---------------|
+| **Blog → Articles** | Write & publish (Markdown). Images inline. Comments moderation. |
+| **Blog → Comments** | Approve / reject reader comments. |
+| **Projects** | Add projects, upload gallery images, paste GitHub/live URLs. |
+| **Fashion → Images** | Upload photos, assign categories and captions. |
+| **Music → Tracks** | Add YouTube URL → embedded player activates automatically. |
+| **Books** | Chapter previews, Author's Note, testimonials, pricing, publish flag. |
+| **Great Men Moves** | Programs, impact goals (number + progress %), volunteer applications. |
+| **Newsletter** | View subscribers, publish issues. |
+| **Contact** | Read and triage incoming messages. |
+| **Feedback** | Approve testimonials to display publicly on the site. |
+| **Core → Skills** | Set skill name, category, proficiency (0–100). |
+| **Core → Profile** | Name, bio, social links — reflected live across the site. |
 
 ---
 
-## Design System
+## Tech Stack
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| Gold | `#d4a574` | Accents, CTAs, active states |
-| Black | `#0a0a0a` | Hero backgrounds, dark sections |
-| Off-white | `#f5f5f0` | Light section backgrounds |
-| Serif font | Playfair Display | Headings (`var(--font-serif)`) |
-| Sans font | Inter | Body text |
+| Layer | Technologies |
+|-------|-------------|
+| **Backend** | Python 3.11, Django 4.2 LTS, DRF, Jazzmin, django-cors-headers, django-filter, Stripe SDK, boto3, Pillow, Markdown, bleach, gunicorn |
+| **Frontend** | React 18, TypeScript, Vite 6, Tailwind CSS 4, Framer Motion, React Router 7, Lucide React, Stripe.js |
+| **Database** | SQLite (dev) · PostgreSQL (prod) |
+| **Media** | Local filesystem (dev) · AWS S3 (prod) |
+| **Payments** | Stripe (international card) + Safaricom Daraja M-Pesa (Kenya) |
+| **3rd party** | OpenWeatherMap API, Google Fonts |
 
-All section backgrounds use pure CSS gradients — no external images required.
-Images are uploaded via the CMS (`/admin`) and served from `/media/` (or S3).
+---
+
+## Security
+
+- HTTPS enforced in production (HSTS 1 year + preload)
+- All Django security headers: XSS filter, content-type nosniff, X-Frame-Options DENY, referrer policy
+- CORS restricted to listed origins in production
+- Rate limiting: 5/hr contact & newsletter, 200/hr anonymous API
+- `SECRET_KEY` validation on startup — app refuses to boot with dev key in production
+- `USE_S3=True` → all media goes to S3; local disk has no user-uploaded content in prod
+- SQL injection protected by Django ORM throughout
+- No credentials in source code — all via environment variables
+
+---
+
+## Roadmap
+
+- [ ] Email notifications to admin on new contact messages / volunteer applications
+- [ ] Blog article scheduling (publish at future date)
+- [ ] i18n — Swahili language support (backend model already has `language` field)
+- [ ] PWA manifest + service worker for offline reading
+- [ ] Search page with full-text across blog + projects
+- [ ] Admin email reply action for contact messages

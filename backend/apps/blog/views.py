@@ -62,7 +62,7 @@ class BlogArticleDetailView(generics.RetrieveAPIView):
         BlogArticle.objects
         .filter(is_published=True)
         .select_related('category')
-        .prefetch_related('share_counts', 'likes', 'reactions')
+        .prefetch_related('share_counts', 'likes', 'reactions', 'images')
     )
     serializer_class = BlogArticleDetailSerializer
     lookup_field = 'slug'

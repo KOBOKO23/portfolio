@@ -3,10 +3,14 @@ from django.db import models
 
 class ContactMessage(models.Model):
     SUBJECT_CHOICES = [
+        ('general', 'General Inquiry'),
         ('collaboration', 'Collaboration'),
         ('project', 'Project Inquiry'),
         ('speaking', 'Speaking Engagement'),
-        ('general', 'General Inquiry'),
+        ('donation', 'Donation / Sponsorship'),
+        ('mentorship', 'Mentorship — Great Men Moves'),
+        ('music', 'Gospel Music'),
+        ('book', 'Book — Broken Souls'),
         ('other', 'Other'),
     ]
 
@@ -15,7 +19,7 @@ class ContactMessage(models.Model):
     subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES, default='general')
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         ordering = ['-created_at']

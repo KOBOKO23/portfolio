@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import ProjectCategory, Project
+from .models import ProjectCategory, Project, ProjectImage
+from utils.media import media_url
 
 
 class ProjectCategorySerializer(serializers.ModelSerializer):
@@ -13,22 +14,30 @@ class ProjectCategorySerializer(serializers.ModelSerializer):
         return obj.project_count
 
 
+class ProjectImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectImage
+        fields = ['id', 'image', 'caption', 'order']
+
+    def get_image(self, obj):
+        return media_url(self.context.get('request'), obj.image)
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     category = ProjectCategorySerializer(read_only=True)
     image = serializers.SerializerMethodField()
+    gallery = ProjectImageSerializer(many=True, read_only=True, source='images')
     technologies_list = serializers.ReadOnlyField()
 
     class Meta:
         model = Project
         fields = [
             'id', 'title', 'slug', 'description', 'detailed_description',
-            'category', 'image', 'technologies', 'technologies_list',
+            'category', 'image', 'gallery', 'technologies', 'technologies_list',
             'github_url', 'live_url', 'year', 'is_featured',
         ]
 
     def get_image(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-        return None
+        return media_url(self.context.get('request'), obj.image)

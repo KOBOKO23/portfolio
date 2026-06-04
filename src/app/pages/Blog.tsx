@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Clock, Eye, Heart, MessageCircle, ArrowRight, Globe, X } from 'lucide-react';
 import { SEO } from '../components/SEO';
@@ -44,6 +44,9 @@ function ArticleSkeleton() {
 function ArticleCard({ article, featured = false }: { article: Article; featured?: boolean }) {
   const color = article.category?.color || '#d4a574';
   const iconChar = ICON_MAP[article.category?.icon || ''] || '◈';
+  const navigate = useNavigate();
+  const href = `/blog/${article.slug}`;
+
   return (
     <motion.article
       layout
@@ -51,13 +54,11 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.45 }}
-      className={`group flex flex-col ${featured ? 'md:flex-row gap-8 lg:gap-12 items-start' : ''}`}
+      onClick={() => navigate(href)}
+      className={`group cursor-pointer flex flex-col ${featured ? 'md:flex-row gap-8 lg:gap-12 items-start' : ''}`}
     >
       {/* Thumbnail */}
-      <Link
-        to={`/blog/${article.slug}`}
-        className={`block overflow-hidden rounded-2xl flex-shrink-0 ${featured ? 'md:w-1/2' : 'w-full'}`}
-      >
+      <div className={`block overflow-hidden rounded-2xl flex-shrink-0 ${featured ? 'md:w-1/2' : 'w-full'}`}>
         <div
           className={`relative overflow-hidden ${featured ? 'aspect-[4/3]' : 'aspect-[16/9]'}`}
           style={{ background: article.thumbnail ? '#000' : categoryGradient(color) }}
@@ -73,25 +74,19 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
             </div>
           )}
 
-          {/* Featured badge */}
           {article.is_featured && (
             <div className="absolute top-3 left-3 px-2.5 py-0.5 bg-[#d4a574] text-white text-[10px] uppercase tracking-widest rounded-full font-semibold">
               Featured
             </div>
           )}
 
-          {/* Read CTA on hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500 flex items-center justify-center">
-            <motion.span
-              initial={{ opacity: 0, y: 6 }}
-              whileHover={{ opacity: 1, y: 0 }}
-              className="hidden group-hover:flex items-center gap-2 px-4 py-2 bg-white/96 text-black text-sm font-medium rounded-full shadow-lg"
-            >
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500 flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 px-4 py-2 bg-white text-black text-sm font-medium rounded-full shadow-lg">
               Read <ArrowRight className="w-3.5 h-3.5" />
-            </motion.span>
+            </span>
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Content */}
       <div className={`flex flex-col flex-1 ${featured ? 'py-2' : 'mt-4'}`}>
@@ -101,19 +96,21 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
           </span>
         )}
 
-        <Link to={`/blog/${article.slug}`}>
-          <h2 className={`font-serif text-black leading-snug mb-3 group-hover:text-[#d4a574] transition-colors duration-300 ${
+        {/* Semantic link on the title for accessibility / SEO */}
+        <Link
+          to={href}
+          onClick={e => e.stopPropagation()}
+          className={`font-serif text-black leading-snug mb-3 group-hover:text-[#d4a574] transition-colors duration-300 ${
             featured ? 'text-[clamp(1.6rem,3vw,2.4rem)]' : 'text-[1.2rem]'
-          }`}>
-            {article.title}
-          </h2>
+          }`}
+        >
+          {article.title}
         </Link>
 
         <p className={`text-black/55 leading-relaxed mb-5 ${featured ? 'text-[15px]' : 'text-[13px] line-clamp-3'}`}>
           {article.excerpt}
         </p>
 
-        {/* Tags */}
         {article.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-5">
             {article.tags.slice(0, 3).map(t => (
@@ -124,7 +121,6 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
           </div>
         )}
 
-        {/* Meta row */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-black/35 mt-auto pt-4 border-t border-black/6">
           <span className="text-black/55 font-semibold">{article.author}</span>
           <span>{formatDate(article.published_date)}</span>
@@ -148,6 +144,7 @@ export function Blog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -169,6 +166,7 @@ export function Blog() {
 
   useEffect(() => {
     setLoading(true);
+    setFetchError(false);
     const params = new URLSearchParams({ page: String(page), page_size: '9', ordering: '-published_date' });
     if (selectedCategory) params.set('category__slug', selectedCategory);
     if (debouncedSearch) params.set('search', debouncedSearch);
@@ -184,6 +182,7 @@ export function Blog() {
           setHasMore(!!d.next);
         }
       })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, [selectedCategory, debouncedSearch, page]);
 
@@ -271,8 +270,21 @@ export function Blog() {
           </motion.p>
         )}
 
-        {/* Skeleton */}
-        {loading && page === 1 ? (
+        {/* Fetch error */}
+        {fetchError && !loading && (
+          <div className="text-center py-36">
+            <span className="text-6xl text-black/10 font-serif block mb-5">◈</span>
+            <p className="text-black/50 text-lg mb-2">Could not load articles</p>
+            <p className="text-black/30 text-sm mb-6">Check your connection and try again.</p>
+            <button onClick={() => { setFetchError(false); setPage(1); }}
+              className="text-[#d4a574] text-sm hover:underline">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Skeleton / articles */}
+        {!fetchError && (loading && page === 1 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {[...Array(6)].map((_, i) => <ArticleSkeleton key={i} />)}
           </div>
@@ -318,7 +330,7 @@ export function Blog() {
               </div>
             )}
           </>
-        )}
+        ))}
       </div>
     </div>
   );

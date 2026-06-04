@@ -13,6 +13,9 @@ class Book(models.Model):
     publisher = models.CharField(max_length=200, blank=True)
     amazon_url = models.URLField(blank=True)
     preview_pdf = models.FileField(upload_to='books/previews/', blank=True, null=True)
+    authors_note = models.TextField(blank=True, help_text="Author's personal note shown on the book page")
+    price_kes = models.PositiveIntegerField(default=1500, help_text='Pre-order price in KES')
+    price_usd = models.DecimalField(max_digits=6, decimal_places=2, default=9.99, help_text='Pre-order price in USD')
     is_published = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)
 
@@ -21,6 +24,21 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class BookChapter(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='chapters')
+    number = models.PositiveIntegerField()
+    title = models.CharField(max_length=200)
+    theme = models.CharField(max_length=200, blank=True, help_text='Subtitle / theme of the chapter')
+    excerpt = models.TextField(blank=True, help_text='Short preview shown on the book page')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'number']
+
+    def __str__(self):
+        return f'Chapter {self.number}: {self.title}'
 
 
 class BookTestimonial(models.Model):

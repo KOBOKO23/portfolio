@@ -7,3 +7,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = ['id', 'rating', 'message', 'email', 'page_url', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+class FeedbackPublicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['id', 'rating', 'message', 'created_at']

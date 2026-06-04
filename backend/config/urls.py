@@ -43,7 +43,7 @@ def sitemap_xml(request):
             f'<changefreq>{freq}</changefreq></url>'
         )
     try:
-        for article in BlogArticle.objects.filter(status='published').values('slug', 'updated_at'):
+        for article in BlogArticle.objects.filter(is_published=True).values('slug', 'updated_at'):
             lines.append(
                 f'  <url><loc>{SITE_URL}/blog/{article["slug"]}</loc>'
                 f'<lastmod>{article["updated_at"].date()}</lastmod>'

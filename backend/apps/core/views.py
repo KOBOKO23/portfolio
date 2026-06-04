@@ -1,8 +1,8 @@
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Profile, Skill
-from .serializers import ProfileSerializer, SkillSerializer
+from .models import CareerEvent, Profile, Skill
+from .serializers import CareerEventSerializer, ProfileSerializer, SkillSerializer
 from .services import get_weather_forecast
 
 
@@ -18,6 +18,12 @@ class ProfileView(APIView):
 class SkillListView(generics.ListAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    pagination_class = None
+
+
+class CareerEventListView(generics.ListAPIView):
+    queryset = CareerEvent.objects.all()
+    serializer_class = CareerEventSerializer
     pagination_class = None
 
 

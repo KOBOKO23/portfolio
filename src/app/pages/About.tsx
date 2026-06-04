@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 import {
@@ -9,67 +10,61 @@ import {
   Target,
   Award,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
+  Globe,
+  Wrench,
+  Palette,
+  Server,
 } from 'lucide-react';
 
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
+interface Skill { id: number; name: string; category: string; proficiency: number; icon: string; }
+interface CareerEvent { id: number; year: string; title: string; organization: string; description: string; is_current: boolean; order: number; }
+
+const CATEGORY_META: Record<string, { label: string; Icon: React.ElementType; desc: string }> = {
+  meteorology: { label: 'Meteorology', Icon: Cloud, desc: 'Atmospheric science and weather forecasting expertise' },
+  software:    { label: 'Software Development', Icon: Code, desc: 'Backend engineering with Python and modern databases' },
+  data_science:{ label: 'Data Science', Icon: Database, desc: 'Machine learning and analytical capabilities' },
+  frontend:    { label: 'Frontend', Icon: Globe, desc: 'UI development with modern frameworks' },
+  backend:     { label: 'Backend', Icon: Server, desc: 'Server-side engineering and APIs' },
+  devops:      { label: 'DevOps & Tools', Icon: Wrench, desc: 'Infrastructure, CI/CD, and tooling' },
+  design:      { label: 'Design', Icon: Palette, desc: 'Visual design and prototyping' },
+  other:       { label: 'Other', Icon: Lightbulb, desc: 'Additional skills and expertise' },
+};
+
+const CATEGORY_ORDER = ['meteorology', 'software', 'data_science', 'frontend', 'backend', 'devops', 'design', 'other'];
+
+function proficiencyLabel(p: number) {
+  if (p >= 85) return 'Expert';
+  if (p >= 70) return 'Advanced';
+  if (p >= 50) return 'Intermediate';
+  return 'Beginner';
+}
+
 export function About() {
-  const timelineEvents = [
-    {
-      year: '2024 – Present',
-      title: 'Meteorologist',
-      organization: 'Kenya Meteorological Department',
-      description: 'Numerical Weather Prediction Section — forecasting atmospheric patterns and contributing to national weather systems.',
-      current: true,
-    },
-    {
-      year: '2024 – Present',
-      title: 'Data Science Student',
-      organization: 'ALX Africa',
-      description: 'Advancing technical expertise in machine learning, data analysis, and statistical modeling.',
-      current: true,
-    },
-    {
-      year: '2020 – Present',
-      title: 'Founder & Mentor',
-      organization: 'Great Men Moves',
-      description: 'Mentoring young men in leadership, character development, and personal excellence.',
-      current: true,
-    },
-    {
-      year: '2019 – Present',
-      title: 'Backend Software Developer',
-      organization: 'Independent',
-      description: 'Building scalable applications with Python, Django, and modern database technologies.',
-      current: false,
-    },
-  ];
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [careerEvents, setCareerEvents] = useState<CareerEvent[]>([]);
 
-  const technicalSkills = [
-    { name: 'Python', level: 'Expert' },
-    { name: 'Django', level: 'Expert' },
-    { name: 'PostgreSQL', level: 'Advanced' },
-    { name: 'MongoDB', level: 'Advanced' },
-    { name: 'SQL', level: 'Expert' },
-    { name: 'REST APIs', level: 'Expert' },
-    { name: 'Git & Version Control', level: 'Advanced' },
-    { name: 'Data Analysis', level: 'Advanced' },
-  ];
+  useEffect(() => {
+    fetch(`${API}/skills/`)
+      .then(r => r.json())
+      .then(data => setSkills(data.success ? (data.data ?? []) : []))
+      .catch(() => {});
+    fetch(`${API}/career/`)
+      .then(r => r.json())
+      .then(data => setCareerEvents(data.success ? (data.data ?? []) : []))
+      .catch(() => {});
+  }, []);
 
-  const meteorologySkills = [
-    { name: 'Numerical Weather Prediction', level: 'Expert' },
-    { name: 'Atmospheric Science', level: 'Expert' },
-    { name: 'Climate Modeling', level: 'Advanced' },
-    { name: 'Data Visualization', level: 'Advanced' },
-    { name: 'Forecasting Systems', level: 'Expert' },
-    { name: 'Remote Sensing', level: 'Intermediate' },
-  ];
+  const groupedSkills = CATEGORY_ORDER
+    .map(cat => ({
+      cat,
+      meta: CATEGORY_META[cat] ?? { label: cat, Icon: Lightbulb, desc: '' },
+      skills: skills.filter(s => s.category === cat),
+    }))
+    .filter(g => g.skills.length > 0);
 
-  const dataScienceSkills = [
-    { name: 'Machine Learning', level: 'Intermediate' },
-    { name: 'Statistical Analysis', level: 'Advanced' },
-    { name: 'Data Engineering', level: 'Intermediate' },
-    { name: 'Python (NumPy/Pandas)', level: 'Advanced' },
-  ];
 
   return (
     <div className="min-h-screen">
@@ -228,9 +223,9 @@ export function About() {
             </div>
 
             <div className="space-y-12">
-              {timelineEvents.map((event, index) => (
+              {careerEvents.map((event, index) => (
                 <motion.div
-                  key={index}
+                  key={event.id}
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
@@ -240,7 +235,7 @@ export function About() {
                   <div className="lg:col-span-3">
                     <div className="flex items-center gap-3 mb-4">
                       <span className="text-lg text-white/60">{event.year}</span>
-                      {event.current && (
+                      {event.is_current && (
                         <span className="px-3 py-1 bg-[#d4a574] text-white text-xs uppercase tracking-wider">
                           Current
                         </span>
@@ -286,52 +281,49 @@ export function About() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              {[
-                {
-                  icon: Cloud,
-                  label: 'Meteorology',
-                  desc: 'Atmospheric science and weather forecasting expertise',
-                  skills: meteorologySkills,
-                },
-                {
-                  icon: Code,
-                  label: 'Software Development',
-                  desc: 'Backend engineering with Python and modern databases',
-                  skills: technicalSkills,
-                },
-                {
-                  icon: Database,
-                  label: 'Data Science',
-                  desc: 'Machine learning and analytical capabilities',
-                  skills: dataScienceSkills,
-                },
-              ].map(({ icon: Icon, label, desc, skills }) => (
-                <div key={label}>
-                  <div className="mb-8">
+            {groupedSkills.length === 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-4 animate-pulse">
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 bg-black flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-[#d4a574]" />
-                      </div>
-                      <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
-                        {label}
-                      </h3>
+                      <div className="w-12 h-12 bg-black/10" />
+                      <div className="h-6 bg-black/10 rounded w-40" />
                     </div>
-                    <p className="text-black/60 mb-8">{desc}</p>
-                  </div>
-                  <div className="space-y-4">
-                    {skills.map((skill) => (
-                      <div key={skill.name} className="bg-white p-4 border-l-2 border-[#d4a574]">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{skill.name}</span>
-                          <span className="text-sm text-black/60">{skill.level}</span>
-                        </div>
-                      </div>
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="bg-white p-4 border-l-2 border-black/10 h-14" />
                     ))}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {groupedSkills.map(({ cat, meta: { label, Icon, desc }, skills: catSkills }) => (
+                  <div key={cat}>
+                    <div className="mb-8">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-black flex items-center justify-center">
+                          <Icon className="w-6 h-6 text-[#d4a574]" />
+                        </div>
+                        <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
+                          {label}
+                        </h3>
+                      </div>
+                      <p className="text-black/60 mb-8">{desc}</p>
+                    </div>
+                    <div className="space-y-4">
+                      {catSkills.map(skill => (
+                        <div key={skill.id} className="bg-white p-4 border-l-2 border-[#d4a574]">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{skill.name}</span>
+                            <span className="text-sm text-black/60">{proficiencyLabel(skill.proficiency)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>

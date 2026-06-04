@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import MusicTrack
+from utils.media import media_url
 
 
 class MusicTrackSerializer(serializers.ModelSerializer):
@@ -14,8 +15,4 @@ class MusicTrackSerializer(serializers.ModelSerializer):
         ]
 
     def get_cover_image(self, obj):
-        if obj.cover_image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.cover_image.url)
-        return None
+        return media_url(self.context.get('request'), obj.cover_image)

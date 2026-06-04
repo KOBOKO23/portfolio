@@ -1,6 +1,7 @@
 import { useState, useEffect, type ElementType } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ExternalLink, Github, Cloud, Code, Database, Gauge, Terminal, Globe } from 'lucide-react';
+import { ExternalLink, Github, Cloud, Code, Database, Gauge, Terminal, Globe, ArrowRight } from 'lucide-react';
 import { SEO } from '../components/SEO';
 
 interface ProjectCategory {
@@ -85,6 +86,23 @@ function ProjectVisual({ project }: { project: Project }) {
   const color = project.category?.color ?? '#1a1a1a';
   const Icon: ElementType = CATEGORY_ICONS[categoryName] ?? Terminal;
 
+  if (project.image) {
+    return (
+      <div className="relative aspect-[4/3] overflow-hidden bg-black">
+        <img
+          src={project.image}
+          alt={project.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover/visual:scale-105"
+        />
+        {/* Gold corner accent */}
+        <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none">
+          <div className="absolute top-0 left-0 w-16 h-[2px]" style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }} />
+          <div className="absolute top-0 left-0 h-16 w-[2px]" style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="relative aspect-[4/3] overflow-hidden"
@@ -123,6 +141,7 @@ function ProjectVisual({ project }: { project: Project }) {
 export function Projects() {
   const [projects, setProjects] = useState<Project[]>(FALLBACK_PROJECTS);
   const [loading, setLoading] = useState(true);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
@@ -131,8 +150,9 @@ export function Projects() {
       .then((body) => {
         const items: Project[] = body?.data?.results ?? body?.data ?? [];
         if (items.length > 0) setProjects(items);
+        else setUsingFallback(true);
       })
-      .catch(() => {})
+      .catch(() => setUsingFallback(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -163,6 +183,11 @@ export function Projects() {
 
       {/* Projects */}
       <section className="px-6 lg:px-12 max-w-[1800px] mx-auto pb-24">
+        {usingFallback && !loading && (
+          <p className="text-center text-black/30 text-xs mb-8 uppercase tracking-widest">
+            Showing sample projects — connect to the API to load live data
+          </p>
+        )}
         {loading ? (
           <div className="space-y-24">
             {[1, 2, 3].map((n) => (
@@ -190,7 +215,9 @@ export function Projects() {
                 }`}
               >
                 <div className={index % 2 === 1 ? 'lg:col-start-2' : ''}>
-                  <ProjectVisual project={project} />
+                  <Link to={`/projects/${project.slug}`} className="block group/visual">
+                    <ProjectVisual project={project} />
+                  </Link>
                 </div>
 
                 <div className={index % 2 === 1 ? 'lg:col-start-1 lg:row-start-1' : ''}>
@@ -199,9 +226,11 @@ export function Projects() {
                       {project.category.name}
                     </p>
                   )}
-                  <h2 className="text-3xl md:text-4xl mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
-                    {project.title}
-                  </h2>
+                  <Link to={`/projects/${project.slug}`}>
+                    <h2 className="text-3xl md:text-4xl mb-4 hover:text-[#d4a574] transition-colors" style={{ fontFamily: 'var(--font-serif)' }}>
+                      {project.title}
+                    </h2>
+                  </Link>
                   <p className="text-lg text-black/70 leading-relaxed mb-6">{project.description}</p>
 
                   <div className="mb-6">
@@ -215,16 +244,20 @@ export function Projects() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <Link to={`/projects/${project.slug}`}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#d4a574] hover:gap-3 transition-all">
+                      Read More <ArrowRight size={16} />
+                    </Link>
                     {project.github_url && project.github_url !== '#' && (
                       <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors">
+                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors">
                         <Github size={18} /><span>View Code</span>
                       </a>
                     )}
                     {project.live_url && project.live_url !== '#' && (
                       <a href={project.live_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm hover:text-[#d4a574] transition-colors">
+                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors">
                         <ExternalLink size={18} /><span>Live Demo</span>
                       </a>
                     )}

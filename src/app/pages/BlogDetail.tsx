@@ -78,26 +78,35 @@ export default function BlogDetail() {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
+    setError(null);
+
     fetch(`${API}/blog/articles/${slug}/`, { headers: { 'X-Fingerprint': fp } })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(res => {
-        if (res.success) {
+        if (res.success && res.data) {
           const a = res.data;
           setArticle(a);
-          setLiked(a.user_liked);
-          setLikeCount(a.like_count);
-          setUserReaction(a.user_reaction);
+          setLiked(Boolean(a.user_liked));
+          setLikeCount(Number(a.like_count) || 0);
+          setUserReaction(a.user_reaction ?? null);
           setReactions(a.reaction_summary || {});
         } else {
           setError('Article not found.');
         }
       })
-      .catch(() => setError('Failed to load article.'))
+      .catch(err => {
+        console.error('[BlogDetail] fetch failed:', err);
+        setError('Failed to load article. Please try again.');
+      })
       .finally(() => setLoading(false));
 
     fetch(`${API}/blog/articles/${slug}/comments/`)
       .then(r => r.json())
-      .then(res => { if (res.success) setComments(res.data?.results ?? res.data ?? []); });
+      .then(res => { if (res.success) setComments(res.data?.results ?? res.data ?? []); })
+      .catch(() => {});
   }, [slug]);
 
   useEffect(() => {
@@ -246,9 +255,9 @@ export default function BlogDetail() {
             <img
               src={article.thumbnail}
               alt={article.thumbnail_alt || article.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-30"
+              className="absolute inset-0 w-full h-full object-cover opacity-60"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/10" />
           </>
         ) : (
           <div className="absolute inset-0"
@@ -303,7 +312,13 @@ export default function BlogDetail() {
               prose-code:bg-black/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
               prose-pre:bg-[#0a0a0a] prose-pre:text-white prose-pre:rounded-xl prose-pre:p-6
               prose-ol:text-black/80 prose-ul:text-black/80
-              prose-hr:border-black/10"
+              prose-hr:border-black/10
+              [&_img]:rounded-xl [&_img]:my-8 [&_img]:shadow-md
+              [&_img.img-right]:float-right [&_img.img-right]:ml-8 [&_img.img-right]:mb-4 [&_img.img-right]:max-w-[45%]
+              [&_img.img-left]:float-left [&_img.img-left]:mr-8 [&_img.img-left]:mb-4 [&_img.img-left]:max-w-[45%]
+              [&_img.img-center]:mx-auto [&_img.img-center]:block [&_img.img-center]:max-w-[80%]
+              [&_figure]:my-8 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:text-black/45 [&_figcaption]:mt-2
+              [&_.clearfix]:clear-both"
             dangerouslySetInnerHTML={{ __html: article.content_html }}
           />
 

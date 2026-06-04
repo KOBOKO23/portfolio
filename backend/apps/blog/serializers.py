@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import BlogCategory, BlogArticle, BlogComment, BlogLike, BlogReaction, BlogShareCount
+from .models import BlogCategory, BlogArticle, BlogImage, BlogComment, BlogLike, BlogReaction, BlogShareCount
+from utils.media import media_url
 
 
 class BlogCategorySerializer(serializers.ModelSerializer):
@@ -11,6 +12,17 @@ class BlogCategorySerializer(serializers.ModelSerializer):
 
     def get_article_count(self, obj):
         return obj.article_count
+
+
+class BlogImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BlogImage
+        fields = ['id', 'image', 'alt_text', 'caption', 'order']
+
+    def get_image(self, obj):
+        return media_url(self.context.get('request'), obj.image)
 
 
 class BlogArticleListSerializer(serializers.ModelSerializer):
@@ -28,11 +40,7 @@ class BlogArticleListSerializer(serializers.ModelSerializer):
         ]
 
     def get_thumbnail(self, obj):
-        if obj.thumbnail:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.thumbnail.url)
-        return None
+        return media_url(self.context.get('request'), obj.thumbnail)
 
 
 class BlogArticleDetailSerializer(BlogArticleListSerializer):
@@ -41,12 +49,13 @@ class BlogArticleDetailSerializer(BlogArticleListSerializer):
     share_counts = serializers.SerializerMethodField()
     user_liked = serializers.SerializerMethodField()
     user_reaction = serializers.SerializerMethodField()
+    gallery = BlogImageSerializer(many=True, read_only=True, source='images')
 
     class Meta(BlogArticleListSerializer.Meta):
         fields = BlogArticleListSerializer.Meta.fields + [
             'content', 'content_html', 'author_bio', 'allow_comments',
             'reaction_summary', 'share_counts', 'user_liked', 'user_reaction',
-            'updated_at',
+            'updated_at', 'gallery',
         ]
 
     def get_content_html(self, obj):

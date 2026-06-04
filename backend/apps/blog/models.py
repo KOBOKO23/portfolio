@@ -26,9 +26,14 @@ import bleach
 ALLOWED_TAGS = [
     'p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'blockquote',
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre', 'hr', 'img',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td', 'figure', 'figcaption',
 ]
-ALLOWED_ATTRS = {'a': ['href', 'title', 'rel'], 'img': ['src', 'alt', 'width', 'height']}
+ALLOWED_ATTRS = {
+    'a': ['href', 'title', 'rel'],
+    'img': ['src', 'alt', 'width', 'height', 'class'],
+    'figure': ['class'],
+    'figcaption': ['class'],
+}
 
 LANGUAGE_CHOICES = [
     ('en', 'English'),
@@ -89,9 +94,9 @@ class BlogArticle(models.Model):
     read_time = models.PositiveIntegerField(default=5, help_text='Minutes')
     views = models.PositiveIntegerField(default=0)
     is_featured = models.BooleanField(default=False)
-    is_published = models.BooleanField(default=True)
+    is_published = models.BooleanField(default=True, db_index=True)
     allow_comments = models.BooleanField(default=True)
-    published_date = models.DateTimeField(auto_now_add=True)
+    published_date = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -126,6 +131,26 @@ class BlogArticle(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+
+class BlogImage(models.Model):
+    PLACEMENT_CHOICES = [
+        ('full', 'Full width'),
+        ('right', 'Float right'),
+        ('left', 'Float left'),
+        ('center', 'Centered'),
+    ]
+    article = models.ForeignKey(BlogArticle, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='blog/images/')
+    alt_text = models.CharField(max_length=200, blank=True)
+    caption = models.CharField(max_length=300, blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f'Image for "{self.article.title}" #{self.order}'
 
 
 class BlogComment(models.Model):

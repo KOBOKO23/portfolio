@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import FashionCategory, FashionImage
+from utils.media import media_url
 
 
 class FashionCategorySerializer(serializers.ModelSerializer):
@@ -22,7 +23,4 @@ class FashionImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'category', 'description', 'location', 'photographer', 'date_taken']
 
     def get_image(self, obj):
-        request = self.context.get('request')
-        if request and obj.image:
-            return request.build_absolute_uri(obj.image.url)
-        return None
+        return media_url(self.context.get('request'), obj.image)

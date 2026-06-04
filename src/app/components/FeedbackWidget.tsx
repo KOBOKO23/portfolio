@@ -2,19 +2,32 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X, Send, CheckCircle, Star } from 'lucide-react';
 
+const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
 export function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [feedback, setFeedback] = useState('');
   const [email, setEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (feedback.trim()) {
+    if (!feedback.trim()) return;
+    setIsSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch(`${API}/feedback/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: rating || 5, message: feedback, email, page_url: window.location.pathname }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error?.message || 'Failed');
       setIsSubmitted(true);
-      // Reset after 3 seconds
       setTimeout(() => {
         setIsSubmitted(false);
         setIsOpen(false);
@@ -22,6 +35,10 @@ export function FeedbackWidget() {
         setEmail('');
         setRating(0);
       }, 3000);
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,13 +171,17 @@ export function FeedbackWidget() {
                       </p>
                     </div>
 
+                    {/* Error */}
+                    {error && <p className="text-red-600 text-sm">{error}</p>}
+
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full px-6 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300 flex items-center justify-center gap-2 group"
+                      disabled={isSubmitting}
+                      className="w-full px-6 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                     >
-                      <span>Send Feedback</span>
-                      <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                      <span>{isSubmitting ? 'Sending…' : 'Send Feedback'}</span>
+                      {!isSubmitting && <Send size={18} className="group-hover:translate-x-1 transition-transform" />}
                     </button>
                   </form>
                 </>

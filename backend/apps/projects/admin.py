@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import ProjectCategory, Project
+from .models import ProjectCategory, Project, ProjectImage
 
 
 @admin.register(ProjectCategory)
 class ProjectCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'slug', 'color', 'project_count']
     prepopulated_fields = {'slug': ('name',)}
+
+
+class ProjectImageInline(admin.TabularInline):
+    model = ProjectImage
+    extra = 3
+    fields = ['image', 'caption', 'order']
 
 
 @admin.register(Project)
@@ -15,3 +21,4 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']
     prepopulated_fields = {'slug': ('title',)}
     list_editable = ['is_featured', 'order']
+    inlines = [ProjectImageInline]

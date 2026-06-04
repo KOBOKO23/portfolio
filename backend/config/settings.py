@@ -156,10 +156,21 @@ if USE_S3:
     AWS_DEFAULT_ACL = 'public-read'
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
     AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False  # keep original filenames, never silently overwrite
 
     STORAGES = {
-        'default': {'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage'},
-        'staticfiles': {'BACKEND': 'storages.backends.s3boto3.S3StaticStorage'},
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'OPTIONS': {
+                'location': 'media',           # all uploads go to bucket/media/...
+                'file_overwrite': False,
+                'default_acl': 'public-read',
+            },
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.s3boto3.S3StaticStorage',
+            'OPTIONS': {'location': 'static'},
+        },
     }
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
@@ -191,8 +202,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '200/hour',
         'user': '1000/hour',
-        'contact': '10/hour',
-        'newsletter': '20/hour',
+        'contact': '5/hour',       # tighter: prevent spam
+        'newsletter': '5/hour',    # tighter: prevent abuse
+        'feedback': '10/hour',
     },
 }
 
@@ -202,6 +214,9 @@ CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(',') if o.strip()]
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + ['x-fingerprint']
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
@@ -210,6 +225,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Koboko Newsletter <noreply@koboko.dev>')
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', '')
 
 # ─── Stripe ───────────────────────────────────────────────────────────────────
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
@@ -246,7 +262,7 @@ JAZZMIN_SETTINGS = {
     "search_model": ["blog.BlogArticle", "contact.ContactMessage", "newsletter.NewsletterSubscriber"],
     "user_avatar": None,
     "topmenu_links": [
-        {"name": "🌐 View Site", "url": "http://localhost:5173", "new_window": True},
+        {"name": "🌐 View Site", "url": os.getenv('SITE_URL', 'http://localhost:5173'), "new_window": True},
         {"name": "📝 New Article", "url": "/admin/blog/blogarticle/add/", "new_window": False},
         {"model": "auth.User"},
     ],

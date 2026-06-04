@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Cloud, Code, Users, BookOpen, Music, Shirt } from 'lucide-react';
+import { ArrowRight, Cloud, Code, Users, BookOpen, Music, Shirt, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 
@@ -8,6 +8,7 @@ const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 interface Article { id: number; title: string; slug: string; excerpt: string; category: { name: string; color: string } | null; read_time: number; published_date: string; }
 interface Project { id: number; title: string; description: string; technologies: string[]; github_url: string; live_url: string; }
+interface ApprovedFeedback { id: number; rating: number; message: string; created_at: string; }
 
 const fadeUp = { initial: { opacity: 0, y: 28 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } };
 
@@ -23,6 +24,7 @@ const PILLARS = [
 export function Home() {
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
   const [featuredProject, setFeaturedProject] = useState<Project | null>(null);
+  const [approvedFeedback, setApprovedFeedback] = useState<ApprovedFeedback[]>([]);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterName, setNewsletterName] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
@@ -40,6 +42,16 @@ export function Home() {
           if (p) setFeaturedProject(p);
         }
       });
+
+    fetch(`${API}/feedback/approved/`)
+      .then(r => r.json())
+      .then(data => {
+        const items = data.success
+          ? (data.data?.results ?? data.data ?? [])
+          : (Array.isArray(data) ? data : (data.results ?? []));
+        setApprovedFeedback(items.slice(0, 6));
+      })
+      .catch(() => {});
   }, []);
 
   const subscribeNewsletter = async (e: React.FormEvent) => {
@@ -295,6 +307,35 @@ export function Home() {
           </Link>
         </motion.div>
       </section>
+
+      {/* ── Testimonials ─────────────────────────────────────────────────── */}
+      {approvedFeedback.length > 0 && (
+        <section className="py-28 px-6 lg:px-16 bg-[#fafafa] border-t border-black/6">
+          <div className="max-w-7xl mx-auto">
+            <motion.div {...fadeUp} className="mb-14">
+              <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
+              <h2 className="font-serif text-[clamp(2rem,4vw,3.5rem)] leading-[1.1]">What People Say</h2>
+            </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {approvedFeedback.map((fb, i) => (
+                <motion.div key={fb.id} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.6 }}
+                  className="bg-white border border-black/8 p-8 flex flex-col gap-4">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <Star key={s} size={16} className={s <= fb.rating ? 'text-[#d4a574] fill-[#d4a574]' : 'text-black/15'} />
+                    ))}
+                  </div>
+                  <p className="text-black/70 text-[15px] leading-relaxed flex-1">"{fb.message}"</p>
+                  <p className="text-xs text-black/30 uppercase tracking-widest">
+                    {new Date(fb.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Newsletter ────────────────────────────────────────────────────── */}
       <section className="py-36 lg:py-48 px-6 lg:px-16 bg-[#d4a574]">
