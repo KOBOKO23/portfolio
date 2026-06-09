@@ -9,15 +9,16 @@ Covers:
 """
 
 from django.test import TestCase
-from django.urls import reverse
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from .models import (
-    BlogArticle, BlogCategory, BlogComment,
-    BlogLike, BlogReaction, BlogShareCount,
+    BlogArticle,
+    BlogCategory,
+    BlogComment,
+    BlogLike,
+    BlogReaction,
 )
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

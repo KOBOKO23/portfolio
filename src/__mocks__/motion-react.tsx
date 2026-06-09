@@ -3,12 +3,18 @@ import { vi } from 'vitest';
 
 function makeEl(tag: string) {
   return function MotionEl({
-    children, initial, animate, exit, whileInView, whileHover,
-    whileTap, whileFocus, whileDrag, transition, variants,
-    viewport, layout, layoutId, drag, dragConstraints,
-    onAnimationStart, onAnimationComplete,
+    children,
+    initial: _initial, animate: _animate, exit: _exit,
+    whileInView: _whileInView, whileHover: _whileHover,
+    whileTap: _whileTap, whileFocus: _whileFocus, whileDrag: _whileDrag,
+    transition: _transition, variants: _variants,
+    viewport: _viewport, layout: _layout, layoutId: _layoutId,
+    drag: _drag, dragConstraints: _dragConstraints,
+    onAnimationStart: _onAnimationStart, onAnimationComplete: _onAnimationComplete,
     ...props
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return React.createElement(tag, props, children);
   };
 }

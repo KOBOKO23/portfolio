@@ -111,9 +111,9 @@ export function FeedbackWidget() {
                   <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Rating */}
                     <div>
-                      <label className="block text-sm text-black/70 mb-3">
+                      <p className="block text-sm text-black/70 mb-3">
                         How would you rate your experience?
-                      </label>
+                      </p>
                       <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button

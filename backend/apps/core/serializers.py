@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import CareerEvent, Profile, Skill
+
 from utils.media import media_url
+
+from .models import CareerEvent, Profile, Skill
 
 
 class CareerEventSerializer(serializers.ModelSerializer):

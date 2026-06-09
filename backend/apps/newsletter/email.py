@@ -1,8 +1,10 @@
 """Newsletter email dispatch helpers."""
 import logging
-from django.core.mail import send_mass_mail, EmailMultiAlternatives
+
 from django.conf import settings
-from .models import NewsletterSubscriber, NewsletterIssue
+from django.core.mail import EmailMultiAlternatives
+
+from .models import NewsletterIssue, NewsletterSubscriber
 
 logger = logging.getLogger(__name__)
 

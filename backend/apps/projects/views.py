@@ -1,6 +1,7 @@
-from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import ProjectCategory, Project
+from rest_framework import filters, generics
+
+from .models import Project, ProjectCategory
 from .serializers import ProjectCategorySerializer, ProjectSerializer
 
 

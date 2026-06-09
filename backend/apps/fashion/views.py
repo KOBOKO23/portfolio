@@ -1,5 +1,6 @@
-from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics
+
 from .models import FashionCategory, FashionImage
 from .serializers import FashionCategorySerializer, FashionImageSerializer
 

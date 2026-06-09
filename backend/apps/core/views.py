@@ -1,7 +1,8 @@
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.db import connection
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .models import CareerEvent, Profile, Skill
 from .serializers import CareerEventSerializer, ProfileSerializer, SkillSerializer
 from .services import get_weather_forecast

@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import ProjectCategory, Project, ProjectImage
+
 from utils.media import media_url
+
+from .models import Project, ProjectCategory, ProjectImage
 
 
 class ProjectCategorySerializer(serializers.ModelSerializer):

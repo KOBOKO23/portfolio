@@ -1,8 +1,8 @@
 """Populate the database with meaningful portfolio data."""
-from django.core.management.base import BaseCommand
-from django.utils import timezone
 from datetime import date, timedelta
 
+from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 BLOG_CONTENT: dict = {
     'django-rest-api': """
@@ -251,7 +251,7 @@ class Command(BaseCommand):
         self.stdout.write(f'  ✓ {len(skills)} skills')
 
     def _seed_blog(self):
-        from apps.blog.models import BlogCategory, BlogArticle
+        from apps.blog.models import BlogArticle, BlogCategory
         BlogArticle.objects.all().delete()
         BlogCategory.objects.all().delete()
 
@@ -329,7 +329,7 @@ class Command(BaseCommand):
         self.stdout.write(f'  ✓ {len(articles)} blog articles')
 
     def _seed_projects(self):
-        from apps.projects.models import ProjectCategory, Project
+        from apps.projects.models import Project, ProjectCategory
         Project.objects.all().delete()
         ProjectCategory.objects.all().delete()
 

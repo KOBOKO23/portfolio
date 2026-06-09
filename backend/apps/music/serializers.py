@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import MusicTrack
+
 from utils.media import media_url
+
+from .models import MusicTrack
 
 
 class MusicTrackSerializer(serializers.ModelSerializer):

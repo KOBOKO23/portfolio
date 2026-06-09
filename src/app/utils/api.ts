@@ -112,10 +112,10 @@ async function apiRequest<T>(
 /**
  * Retry logic for failed requests
  */
-async function apiRequestWithRetry<T>(
+export async function apiRequestWithRetry<T>(
   endpoint: string,
   options: RequestInit = {},
-  maxRetries: number = 3
+  maxRetries = 3
 ): Promise<APIResponse<T>> {
   let lastError: APIError | undefined;
 

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import BlogCategory, BlogArticle, BlogImage, BlogComment, BlogLike, BlogReaction
+
+from .models import BlogArticle, BlogCategory, BlogComment, BlogImage, BlogLike, BlogReaction
 
 
 @admin.register(BlogCategory)

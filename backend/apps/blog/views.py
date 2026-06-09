@@ -17,15 +17,19 @@ POST articles/<slug>/share/<platform>/ — increment share counter for twitter|f
 Authentication: none — all endpoints are public.
 Rate limiting: inherits project-wide DRF throttle (200 req/hr anon).
 """
-from rest_framework import generics, filters, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from .models import BlogCategory, BlogArticle, BlogComment, BlogLike, BlogReaction, BlogShareCount
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import BlogArticle, BlogCategory, BlogComment, BlogLike, BlogReaction, BlogShareCount
 from .serializers import (
-    BlogCategorySerializer, BlogArticleListSerializer, BlogArticleDetailSerializer,
-    BlogCommentSerializer, BlogCommentCreateSerializer,
+    BlogArticleDetailSerializer,
+    BlogArticleListSerializer,
+    BlogCategorySerializer,
+    BlogCommentCreateSerializer,
+    BlogCommentSerializer,
 )
 
 

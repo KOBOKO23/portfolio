@@ -30,11 +30,11 @@ export function Home() {
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
 
   useEffect(() => {
-    fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
+    void fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
       .then(r => r.json())
       .then(res => { if (res.success) setLatestArticles((res.data?.results ?? res.data).slice(0, 3)); });
 
-    fetch(`${API}/projects/?is_featured=true&page_size=1`)
+    void fetch(`${API}/projects/?is_featured=true&page_size=1`)
       .then(r => r.json())
       .then(res => {
         if (res.success) {

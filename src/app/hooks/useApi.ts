@@ -2,7 +2,7 @@
  * Custom hook for API calls with loading and error states
  */
 import { useState, useEffect, useCallback } from 'react';
-import { APIResponse } from '../utils/api';
+import type { APIResponse } from '../utils/api';
 
 interface UseApiOptions {
   immediate?: boolean;
@@ -63,7 +63,7 @@ export function useApi<T>(
 
   useEffect(() => {
     if (immediate) {
-      execute();
+      void execute();
     }
   }, [immediate, execute]);
 

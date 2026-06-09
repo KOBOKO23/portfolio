@@ -1,4 +1,5 @@
-from rest_framework import generics, filters
+from rest_framework import filters, generics
+
 from .models import MusicTrack
 from .serializers import MusicTrackSerializer
 

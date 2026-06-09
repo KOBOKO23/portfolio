@@ -1,9 +1,14 @@
+import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.response import Response
+
 from .models import ContactMessage
 from .serializers import ContactMessageSerializer
+
+logger = logging.getLogger(__name__)
 
 ADMIN_EMAIL = getattr(settings, 'ADMIN_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', '')
 
@@ -39,4 +44,4 @@ def _notify_admin_contact(msg: ContactMessage) -> None:
             fail_silently=True,
         )
     except Exception:
-        pass
+        logger.debug('Admin notification email failed', exc_info=True)

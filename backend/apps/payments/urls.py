@@ -1,10 +1,11 @@
 from django.urls import path
+
 from .views import (
-    MpesaSTKPushView,
     MpesaCallbackView,
+    MpesaSTKPushView,
+    OrderStatusView,
     StripeCreateIntentView,
     StripeWebhookView,
-    OrderStatusView,
 )
 
 urlpatterns = [

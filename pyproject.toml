@@ -1,0 +1,67 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["backend"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+    "N",   # pep8-naming
+    "DJ",  # flake8-django
+    "T20", # flake8-print (no stray print statements)
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "S101",   # assert — used in tests
+    "S105",   # hardcoded password — triggers on env-var fallbacks
+    "S106",   # hardcoded password in function arg
+    "S311",   # random — not used for crypto
+    "B008",   # function calls in default args — common in Django views
+    "N806",   # variable in function uppercase — common for model vars
+    "RUF012", # mutable class vars — Django models need this
+    "E501",   # line length — enforced by black/formatter, not ruff linter
+    "DJ012",  # model field ordering — existing codebase, fix in dedicated PR
+    "RUF001", # ambiguous unicode chars — intentional in content strings
+    "RUF005", # collection concatenation — existing style
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests.py" = ["S", "T20", "B017", "F841"]   # tests use asserts/prints/raises/unused vars
+"*/migrations/*.py" = ["E501", "RUF", "I"]    # migrations are auto-generated
+"*/admin.py" = ["E501", "RUF001"]             # admin has inline HTML format strings
+"*/settings.py" = ["E501"]                    # settings has long env var lines
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config", "utils"]
+known-third-party = ["django", "rest_framework", "stripe"]
+
+[tool.bandit]
+targets = ["backend"]
+exclude_dirs = ["backend/apps/*/migrations", "backend/venv"]
+skips = ["B101", "B311"]  # assert, random — same as ruff ignores
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+strict = false
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_return_any = true
+exclude = [
+    "backend/venv/",
+    "backend/apps/.*/migrations/",
+]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]

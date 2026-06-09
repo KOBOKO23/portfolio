@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development, test]
+  pull_request:
+    branches: [main, development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Backend: lint + security scan + tests
+  # ──────────────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11"]
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint — ruff
+        run: ruff check . --output-format=github
+
+      - name: Format — ruff format check
+        run: ruff format --check .
+
+      - name: Security — bandit SAST
+        run: bandit -r apps/ config/ utils/ -c ../pyproject.toml --format json | python -c "
+import json, sys
+data = json.load(sys.stdin)
+highs = [i for i in data.get('results', []) if i['issue_severity'] in ('HIGH', 'CRITICAL')]
+if highs:
+    for i in highs: print(f\"FAIL  {i['filename']}:{i['line_number']}  {i['test_id']} {i['issue_text']}\")
+    sys.exit(1)
+print(f'bandit: 0 HIGH/CRITICAL issues ({len(data[\"results\"])} total checked)')
+"
+
+      - name: Security — pip-audit (dependency CVEs)
+        run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2024-243
+
+      - name: Django checks
+        env:
+          SECRET_KEY: ci-test-secret-key-not-real
+          DEBUG: "True"
+        run: python manage.py check --fail-level WARNING
+
+      - name: Run tests
+        env:
+          SECRET_KEY: ci-test-secret-key-not-real
+          DEBUG: "True"
+        run: python manage.py test --verbosity=2
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Frontend: audit + lint + typecheck + test + build
+  # ──────────────────────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["20", "22"]
+
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Security — npm audit
+        run: npm audit --audit-level=high
+
+      - name: Lint — ESLint
+        run: npm run lint
+
+      - name: Format — Prettier check
+        run: npm run format:check
+
+      - name: Typecheck — tsc
+        run: npm run typecheck
+
+      - name: Tests — Vitest
+        run: npm test
+
+      - name: Build — Vite
+        env:
+          VITE_API_BASE_URL: https://api.koboko.dev/api
+          VITE_SITE_URL: https://koboko.dev
+        run: npm run build

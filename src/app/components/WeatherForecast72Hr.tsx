@@ -139,7 +139,7 @@ export function WeatherForecast72Hr() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, []);
 
   const goToNext = () => setCurrentIndex((p) => Math.min(p + 1, forecastData.length - 1));
   const goToPrevious = () => setCurrentIndex((p) => Math.max(p - 1, 0));

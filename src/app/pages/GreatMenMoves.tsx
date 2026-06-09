@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
 import {
   Users, Target, Heart, Award, TrendingUp, BookOpen, Compass,

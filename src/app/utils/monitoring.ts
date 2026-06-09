@@ -71,7 +71,7 @@ export class PerformanceMonitor {
       });
 
       observer.observe({ entryTypes: ['largest-contentful-paint'] });
-    } catch (error) {
+    } catch {
       console.warn('LCP observation not supported');
     }
   }
@@ -91,7 +91,7 @@ export class PerformanceMonitor {
       });
 
       observer.observe({ entryTypes: ['first-input'] });
-    } catch (error) {
+    } catch {
       console.warn('FID observation not supported');
     }
   }
@@ -115,7 +115,7 @@ export class PerformanceMonitor {
       });
 
       observer.observe({ entryTypes: ['layout-shift'] });
-    } catch (error) {
+    } catch {
       console.warn('CLS observation not supported');
     }
   }
@@ -193,7 +193,7 @@ export class PerformanceMonitor {
   /**
    * Send metrics to analytics service
    */
-  async sendToAnalytics(endpoint: string = '/api/analytics/metrics'): Promise<void> {
+  async sendToAnalytics(endpoint = '/api/analytics/metrics'): Promise<void> {
     if (this.metrics.length === 0) return;
 
     try {
@@ -208,7 +208,7 @@ export class PerformanceMonitor {
       });
 
       this.clear();
-    } catch (error) {
+    } catch {
       console.error('Failed to send metrics:', error);
     }
   }
@@ -311,7 +311,7 @@ export class ErrorMonitor {
   /**
    * Send errors to monitoring service
    */
-  async sendToMonitoring(endpoint: string = '/api/analytics/errors'): Promise<void> {
+  async sendToMonitoring(endpoint = '/api/analytics/errors'): Promise<void> {
     if (this.errors.length === 0) return;
 
     try {
@@ -325,7 +325,7 @@ export class ErrorMonitor {
       });
 
       this.clear();
-    } catch (error) {
+    } catch {
       console.error('Failed to send errors:', error);
     }
   }

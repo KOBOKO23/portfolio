@@ -3,9 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
 import {
-  ArrowLeft, Clock, Eye, Calendar, Share2, Heart, MessageCircle,
+  ArrowLeft, Clock, Eye, Calendar, Heart, MessageCircle,
   Twitter, Linkedin, Facebook, Link2, Check, ChevronUp, Tag,
-  Send, AlertCircle, Globe,
+  Send, Globe,
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -169,7 +169,7 @@ export default function BlogDetail() {
     } else if (shareUrls[platform]) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
-    fetch(`${API}/blog/articles/${slug}/share/${platform}/`, { method: 'POST', headers: { 'X-Fingerprint': fp } });
+    void fetch(`${API}/blog/articles/${slug}/share/${platform}/`, { method: 'POST', headers: { 'X-Fingerprint': fp } });
   }, [article, slug, fp]);
 
   const submitComment = useCallback(async (e: React.FormEvent) => {

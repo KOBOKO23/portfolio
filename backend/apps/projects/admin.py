@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import ProjectCategory, Project, ProjectImage
+
+from .models import Project, ProjectCategory, ProjectImage
 
 
 @admin.register(ProjectCategory)

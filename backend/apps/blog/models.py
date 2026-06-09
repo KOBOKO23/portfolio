@@ -17,11 +17,10 @@ Fingerprint
 A UUID stored in the browser's localStorage (key "_fp") and sent as the
 X-Fingerprint header identifies anonymous interactions without requiring auth.
 """
+import bleach
+import markdown
 from django.db import models
 from django.utils.text import slugify
-import markdown
-import bleach
-
 
 ALLOWED_TAGS = [
     'p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'blockquote',

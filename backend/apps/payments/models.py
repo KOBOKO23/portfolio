@@ -20,8 +20,9 @@ Note: stripe_client_secret is stored temporarily to allow order-status
 polling. It should be cleared after successful payment in a production
 cleanup job.
 """
-from django.db import models
 import uuid
+
+from django.db import models
 
 
 class PreOrder(models.Model):

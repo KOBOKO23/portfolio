@@ -1,7 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+
 from .models import Feedback
-from .serializers import FeedbackSerializer, FeedbackPublicSerializer
+from .serializers import FeedbackPublicSerializer, FeedbackSerializer
 
 
 class FeedbackCreateView(generics.CreateAPIView):

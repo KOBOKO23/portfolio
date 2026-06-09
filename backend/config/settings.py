@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,7 +29,24 @@ PERMISSIONS_POLICY = {
     'camera': [],
     'microphone': [],
     'geolocation': [],
+    'payment': ['https://js.stripe.com'],
 }
+
+# Session hardening
+SESSION_COOKIE_HTTPONLY = True        # JS cannot read the session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'      # CSRF protection for cross-site navigations
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 14 days
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# CSRF cookie — leave readable by JS (needed by DRF + Axios/fetch on admin)
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Prevent session fixation
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Admin URL — obfuscated via env var to reduce attack surface
+ADMIN_URL = os.getenv('ADMIN_URL', 'admin/')
 
 # Production: ensure SECRET_KEY is real
 if not DEBUG and SECRET_KEY.startswith('django-insecure'):
@@ -97,6 +116,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ─── Database ────────────────────────────────────────────────────────────────
 _db_engine = os.getenv('DB_ENGINE', 'sqlite')
 if _db_engine == 'postgresql':
+    _db_options: dict = {}
+    if not DEBUG:
+        # Require SSL for all production connections — never transmit credentials in plain text
+        _db_options['sslmode'] = 'require'
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -105,6 +128,9 @@ if _db_engine == 'postgresql':
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
+            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', '60')),  # reuse connections; reduces RDS overhead
+            'CONN_HEALTH_CHECKS': True,
+            'OPTIONS': _db_options,
         }
     }
 else:
@@ -218,7 +244,6 @@ CORS_ALLOW_CREDENTIALS = True
 _csrf = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://localhost:3000')
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(',') if o.strip()]
 
-from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + ['x-fingerprint']
 
 # ─── Email ────────────────────────────────────────────────────────────────────
@@ -243,6 +268,61 @@ DARAJA_CONSUMER_SECRET = os.getenv('DARAJA_CONSUMER_SECRET', '')
 DARAJA_SHORTCODE = os.getenv('DARAJA_SHORTCODE', '174379')
 DARAJA_PASSKEY = os.getenv('DARAJA_PASSKEY', '')
 DARAJA_CALLBACK_URL = os.getenv('DARAJA_CALLBACK_URL', '')
+
+# ─── Logging ─────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'json': {
+            '()': 'logging.Formatter',
+            'fmt': '{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}',
+        },
+        'verbose': {
+            'format': '[%(levelname)s %(asctime)s %(name)s:%(lineno)d] %(message)s',
+        },
+    },
+    'filters': {
+        'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'},
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json' if not DEBUG else 'verbose',
+        },
+        'security': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json' if not DEBUG else 'verbose',
+            'level': 'WARNING',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO' if not DEBUG else 'WARNING'),
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
 
 # ─── Site ─────────────────────────────────────────────────────────────────────
 SITE_URL = os.getenv('SITE_URL', 'https://koboko.dev')

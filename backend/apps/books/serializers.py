@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import Book, BookChapter, BookTestimonial
+
 from utils.media import media_url
+
+from .models import Book, BookChapter, BookTestimonial
 
 
 class BookTestimonialSerializer(serializers.ModelSerializer):

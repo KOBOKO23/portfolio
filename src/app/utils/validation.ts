@@ -65,7 +65,7 @@ export function sanitizeHTML(html: string): string {
 export function sanitizeInput(input: string): string {
   return input
     .trim()
-    .replace(/[<>\"']/g, '') // Remove potentially dangerous characters
+    .replace(/[<>"']/g, '') // Remove potentially dangerous characters
     .substring(0, 1000); // Limit length
 }
 
@@ -101,9 +101,7 @@ export function isInRange(num: number, min: number, max: number): boolean {
 /**
  * Form validation errors type
  */
-export interface ValidationErrors {
-  [field: string]: string;
-}
+export type ValidationErrors = Record<string, string>;
 
 /**
  * Contact form validation
@@ -189,7 +187,7 @@ export function validateFeedbackForm(data: {
     errors.message = 'Message must be between 10 and 1000 characters';
   }
 
-  if (data.email && data.email.trim() && !isValidEmail(data.email)) {
+  if (data.email?.trim() && !isValidEmail(data.email)) {
     errors.email = 'Please enter a valid email address';
   }
 

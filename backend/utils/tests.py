@@ -9,11 +9,8 @@ Covers:
 
 import json
 
-from django.test import TestCase, RequestFactory
+from django.test import TestCase
 from rest_framework.test import APIClient
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.renderers import JSONRenderer
 
 from .renderers import StandardRenderer
 

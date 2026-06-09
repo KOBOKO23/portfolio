@@ -256,7 +256,7 @@ function StripeVisaForm({ orderId, clientSecret, priceUsd, name, onSuccess, onEr
 
       {/* Card number */}
       <div>
-        <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Card Number</label>
+        <p className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Card Number</p>
         <div className={fieldClass('number')}>
           <CardNumberElement options={elStyle}
             onFocus={() => setFocused('number')}
@@ -275,7 +275,7 @@ function StripeVisaForm({ orderId, clientSecret, priceUsd, name, onSuccess, onEr
       {/* Expiry + CVV */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Expiry Date</label>
+          <p className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Expiry Date</p>
           <div className={fieldClass('expiry')}>
             <CardExpiryElement options={elStyle}
               onFocus={() => setFocused('expiry')}
@@ -284,9 +284,9 @@ function StripeVisaForm({ orderId, clientSecret, priceUsd, name, onSuccess, onEr
           </div>
         </div>
         <div>
-          <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">
+          <p className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">
             Security Code
-          </label>
+          </p>
           <div className={fieldClass('cvc')}>
             <CardCvcElement options={elStyle}
               onFocus={() => setFocused('cvc')}
@@ -572,21 +572,21 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
               >
                 {/* Name */}
                 <div>
-                  <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Full Name *</label>
-                  <input type="text" placeholder="Philip Koboko" {...field('name')} />
+                  <label htmlFor="checkout-name" className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Full Name *</label>
+                  <input id="checkout-name" type="text" placeholder="Philip Koboko" {...field('name')} />
                   {fieldErr.name && <p className="text-red-500 text-xs mt-1">{fieldErr.name}</p>}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Email Address *</label>
-                  <input type="email" placeholder="you@email.com" {...field('email')} />
+                  <label htmlFor="checkout-email" className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Email Address *</label>
+                  <input id="checkout-email" type="email" placeholder="you@email.com" {...field('email')} />
                   {fieldErr.email && <p className="text-red-500 text-xs mt-1">{fieldErr.email}</p>}
                 </div>
 
                 {/* Payment method */}
                 <div>
-                  <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Pay With *</label>
+                  <p className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-2">Pay With *</p>
                   <div className="grid grid-cols-2 gap-3">
                     {([
                       {
@@ -633,13 +633,14 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.22 }}
                     >
-                      <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">M-Pesa Number *</label>
+                      <label htmlFor="checkout-phone" className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">M-Pesa Number *</label>
                       <div className={`flex border transition-colors ${fieldErr.phone ? 'border-red-400' : 'border-black/12 focus-within:border-[#d4a574]'}`}>
                         <div className="flex items-center px-3 gap-1.5 flex-shrink-0 border-r border-inherit bg-[#f7f7f5]">
                           <span className="text-sm">🇰🇪</span>
                           <span className="text-xs text-black/45 font-mono">+254</span>
                         </div>
                         <input
+                          id="checkout-phone"
                           type="tel"
                           placeholder="712 345 678"
                           value={form.phone}
@@ -938,14 +939,14 @@ function NotifyModal({ book, onClose }: { book: BookData; onClose: () => void })
                   </div>
                 )}
                 <div>
-                  <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Name *</label>
-                  <input value={form.name} onChange={e => { setForm(p => ({ ...p, name: e.target.value })); setErr(''); }}
+                  <label htmlFor="notify-name" className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Name *</label>
+                  <input id="notify-name" value={form.name} onChange={e => { setForm(p => ({ ...p, name: e.target.value })); setErr(''); }}
                     className="w-full px-4 py-3.5 border border-black/12 focus:border-[#d4a574] outline-none text-sm transition-colors"
                     placeholder="Your name" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Email *</label>
-                  <input type="email" value={form.email} onChange={e => { setForm(p => ({ ...p, email: e.target.value })); setErr(''); }}
+                  <label htmlFor="notify-email" className="block text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em] mb-1.5">Email *</label>
+                  <input id="notify-email" type="email" value={form.email} onChange={e => { setForm(p => ({ ...p, email: e.target.value })); setErr(''); }}
                     className="w-full px-4 py-3.5 border border-black/12 focus:border-[#d4a574] outline-none text-sm transition-colors"
                     placeholder="you@email.com" />
                 </div>

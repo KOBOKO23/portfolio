@@ -47,7 +47,6 @@ def stk_push(phone: str, amount: int, account_ref: str, description: str, callba
     shortcode = os.getenv('DARAJA_SHORTCODE', '174379')
     passkey = os.getenv('DARAJA_PASSKEY', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919')
     password, timestamp = _get_password_and_timestamp(shortcode, passkey)
-    access_token = _get_access_token()
 
     payload = {
         'BusinessShortCode': shortcode,

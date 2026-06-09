@@ -17,8 +17,9 @@ Duplicate active emails are rejected with 400 (unique constraint on EmailField).
 """
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .models import NewsletterSubscriber, NewsletterIssue
-from .serializers import NewsletterSubscribeSerializer, NewsletterIssueSerializer
+
+from .models import NewsletterIssue, NewsletterSubscriber
+from .serializers import NewsletterIssueSerializer, NewsletterSubscribeSerializer
 
 
 class NewsletterSubscribeView(generics.CreateAPIView):

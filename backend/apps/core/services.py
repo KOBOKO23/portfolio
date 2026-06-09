@@ -1,5 +1,6 @@
-import requests
 from datetime import datetime, timedelta
+
+import requests
 from django.conf import settings
 
 # WMO Weather Interpretation Codes → (description, icon filename)

@@ -145,7 +145,7 @@ export function measurePerformance(
       performance.clearMarks(startMark);
       performance.clearMarks(endMark);
       performance.clearMeasures(measureName);
-    } catch (e) {
+    } catch {
       // Measurement failed, ignore
     }
   } else {

@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import FashionCategory, FashionImage
+
 from utils.media import media_url
+
+from .models import FashionCategory, FashionImage
 
 
 class FashionCategorySerializer(serializers.ModelSerializer):

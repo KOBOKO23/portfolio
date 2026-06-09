@@ -1,9 +1,8 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from .models import Feedback
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -36,7 +35,7 @@ class FeedbackModelTest(TestCase):
             self.assertEqual(fb.rating, r)
 
     def test_ordering_newest_first(self):
-        fb1 = make_feedback(message='First')
+        make_feedback(message='First')
         fb2 = make_feedback(message='Second')
         newest = Feedback.objects.first()
         self.assertEqual(newest.pk, fb2.pk)

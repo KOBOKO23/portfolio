@@ -1,7 +1,7 @@
-from django.contrib import admin
-from django.contrib import messages
-from .models import NewsletterSubscriber, NewsletterIssue
+from django.contrib import admin, messages
+
 from .email import send_newsletter_issue
+from .models import NewsletterIssue, NewsletterSubscriber
 
 
 @admin.register(NewsletterSubscriber)

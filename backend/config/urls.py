@@ -1,9 +1,8 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.urls import include, path
 
 SITE_URL = getattr(settings, 'SITE_URL', 'https://koboko.dev')
 
@@ -50,7 +49,7 @@ def sitemap_xml(request):
                 f'<priority>0.7</priority>'
                 f'<changefreq>monthly</changefreq></url>'
             )
-    except Exception:
+    except Exception:  # noqa: S110 — sitemap is best-effort; DB may not be ready at startup
         pass
     try:
         from apps.projects.models import Project
@@ -60,14 +59,16 @@ def sitemap_xml(request):
                 f'<priority>0.8</priority>'
                 f'<changefreq>monthly</changefreq></url>'
             )
-    except Exception:
+    except Exception:  # noqa: S110 — sitemap is best-effort; DB may not be ready at startup
         pass
     lines.append('</urlset>')
     return HttpResponse('\n'.join(lines), content_type='application/xml')
 
 
+_admin_url = getattr(settings, 'ADMIN_URL', 'admin/')
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(_admin_url, admin.site.urls),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_xml),
     path('api/blog/', include('apps.blog.urls')),

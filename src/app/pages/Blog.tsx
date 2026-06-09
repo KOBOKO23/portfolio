@@ -151,7 +151,7 @@ export function Blog() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    fetch(`${API}/blog/categories/`)
+    void fetch(`${API}/blog/categories/`)
       .then(r => r.json())
       .then(res => { if (res.success) setCategories(res.data || []); });
   }, []);

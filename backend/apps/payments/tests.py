@@ -10,14 +10,12 @@ Covers:
 """
 
 import uuid
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 from rest_framework.test import APIClient
-from rest_framework import status
 
 from .models import PreOrder
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

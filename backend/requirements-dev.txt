@@ -1,0 +1,14 @@
+-r requirements.txt
+
+# Linting & formatting
+ruff>=0.4
+black>=24.0
+
+# Security scanning
+bandit[toml]>=1.7
+pip-audit>=2.7
+
+# Type checking
+mypy>=1.10
+django-stubs[compatible-mypy]>=5.0
+djangorestframework-stubs[compatible-mypy]>=3.15

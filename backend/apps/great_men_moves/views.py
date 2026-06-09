@@ -1,9 +1,18 @@
+import logging
+
 from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.response import Response
+
 from .models import GreatMenProgram, ImpactGoal, VolunteerApplication
-from .serializers import GreatMenProgramSerializer, ImpactGoalSerializer, VolunteerApplicationSerializer
+from .serializers import (
+    GreatMenProgramSerializer,
+    ImpactGoalSerializer,
+    VolunteerApplicationSerializer,
+)
+
+logger = logging.getLogger(__name__)
 
 ADMIN_EMAIL = getattr(settings, 'ADMIN_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', '')
 
@@ -51,4 +60,4 @@ def _notify_admin_volunteer(app: VolunteerApplication) -> None:
             fail_silently=True,
         )
     except Exception:
-        pass
+        logger.debug('Volunteer notification email failed', exc_info=True)
