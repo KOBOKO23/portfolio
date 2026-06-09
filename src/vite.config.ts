@@ -32,6 +32,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./test-setup.ts'],
     include: ['app/**/*.{test,spec}.{ts,tsx}'],
+    alias: {
+      'motion/react': new URL('./__mocks__/motion-react.tsx', import.meta.url).pathname,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -247,8 +247,7 @@ DARAJA_CALLBACK_URL = os.getenv('DARAJA_CALLBACK_URL', '')
 # ─── Site ─────────────────────────────────────────────────────────────────────
 SITE_URL = os.getenv('SITE_URL', 'https://koboko.dev')
 
-# ─── Weather API ──────────────────────────────────────────────────────────────
-OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY', '')
+# ─── Weather (Open-Meteo — free, no API key required) ────────────────────────
 DEFAULT_WEATHER_CITY = os.getenv('DEFAULT_WEATHER_CITY', 'Nairobi,KE')
 DEFAULT_WEATHER_LAT = float(os.getenv('DEFAULT_WEATHER_LAT', '-1.2921'))
 DEFAULT_WEATHER_LON = float(os.getenv('DEFAULT_WEATHER_LON', '36.8219'))
