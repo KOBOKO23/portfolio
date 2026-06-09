@@ -117,7 +117,7 @@ export default function BlogDetail() {
         }
       })
       .catch(() => {});
-  }, [slug]);
+  }, [slug, fp]);
 
   useEffect(() => {
     const onScroll = () => {

@@ -420,6 +420,7 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
     return () => { window.removeEventListener('keydown', h); stopPoll(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stopPoll = () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -866,6 +867,7 @@ function NotifyModal({ book, onClose }: { book: BookData; onClose: () => void })
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const submit = async (e: React.FormEvent) => {

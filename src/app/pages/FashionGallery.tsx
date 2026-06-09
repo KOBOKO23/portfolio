@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, MapPin, Camera, User } from 'lucide-react';
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry';
@@ -96,17 +96,17 @@ export function FashionGallery() {
   const selectedImage = images.find(img => img.id === selectedId) ?? null;
   const selectedIdx = filtered.findIndex(img => img.id === selectedId);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (filtered.length === 0) return;
     const idx = selectedIdx <= 0 ? filtered.length - 1 : selectedIdx - 1;
-    setSelectedId(filtered[idx].id);
-  };
+    setSelectedId(filtered[idx]?.id ?? null);
+  }, [filtered, selectedIdx]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (filtered.length === 0) return;
     const idx = (selectedIdx + 1) % filtered.length;
-    setSelectedId(filtered[idx].id);
-  };
+    setSelectedId(filtered[idx]?.id ?? null);
+  }, [filtered, selectedIdx]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -118,7 +118,7 @@ export function FashionGallery() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, selectedIdx, filtered]);
+  }, [selectedId, handlePrev, handleNext]);
 
   // Group images by category for the collection view
   const collections = categories
