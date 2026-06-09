@@ -25,8 +25,8 @@ export function FeedbackWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating: rating || 5, message: feedback, email, page_url: window.location.pathname }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error?.message || 'Failed');
+      const data = (await res.json()) as { success: boolean; error?: { message?: string } };
+      if (!res.ok || !data.success) throw new Error(data.error?.message ?? 'Failed');
       setIsSubmitted(true);
       setTimeout(() => {
         setIsSubmitted(false);

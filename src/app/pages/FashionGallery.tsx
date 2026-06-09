@@ -6,6 +6,8 @@ import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T }
+
 interface FashionCategory {
   id: number;
   name: string;
@@ -76,12 +78,12 @@ export function FashionGallery() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/fashion/categories/`).then(r => r.json()),
-      fetch(`${API}/fashion/images/?page_size=100`).then(r => r.json()),
+      fetch(`${API}/fashion/categories/`).then(r => r.json() as Promise<Resp<FashionCategory[]>>),
+      fetch(`${API}/fashion/images/?page_size=100`).then(r => r.json() as Promise<Resp<FashionImage[] | { results?: FashionImage[] }>>),
     ]).then(([catData, imgData]) => {
-      if (catData.success) setCategories(catData.data || []);
-      if (imgData.success) {
-        const items = imgData.data?.results ?? imgData.data ?? [];
+      if (catData.success && catData.data) setCategories(catData.data);
+      if (imgData.success && imgData.data) {
+        const items = Array.isArray(imgData.data) ? imgData.data : (imgData.data).results ?? [];
         setImages(items);
       }
     }).catch(() => {}).finally(() => setLoading(false));
@@ -199,7 +201,7 @@ export function FashionGallery() {
           {loading ? (
             <ResponsiveMasonry columnsCountBreakPoints={{ 0: 1, 640: 2, 1024: 3 }}>
             <Masonry gutter="16px">
-              {[...Array(6)].map((_, i) => <SkeletonTile key={i} />)}
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonTile key={i} />)}
             </Masonry>
             </ResponsiveMasonry>
           ) : noImages ? (

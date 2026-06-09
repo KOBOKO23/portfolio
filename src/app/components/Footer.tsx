@@ -18,8 +18,8 @@ export function Footer() {
 
   useEffect(() => {
     fetch(`${API}/profile/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setProfile(d.data); })
+      .then(r => r.json() as Promise<{ success: boolean; data?: Profile }>)
+      .then(d => { if (d.success && d.data) setProfile(d.data); })
       .catch(() => {});
   }, []);
 

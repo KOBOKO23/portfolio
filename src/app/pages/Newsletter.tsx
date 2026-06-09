@@ -8,6 +8,8 @@ import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T; error?: { message?: string; details?: Record<string, string[]> } }
+
 interface NewsletterIssue {
   id: number;
   number: number;
@@ -52,13 +54,22 @@ export function Newsletter() {
 
   useEffect(() => {
     fetch(`${API}/newsletter/issues/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setIssues(d.data?.results ?? d.data ?? []); })
+      .then(r => r.json() as Promise<Resp<{ results?: NewsletterIssue[] } | NewsletterIssue[]>>)
+      .then(d => {
+        if (d.success && d.data) {
+          setIssues(Array.isArray(d.data) ? d.data : (d.data).results ?? []);
+        }
+      })
       .catch(() => {});
 
     fetch(`${API}/feedback/approved/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setTestimonials((d.data?.results ?? d.data ?? []).slice(0, 3)); })
+      .then(r => r.json() as Promise<Resp<{ results?: ApprovedFeedback[] } | ApprovedFeedback[]>>)
+      .then(d => {
+        if (d.success && d.data) {
+          const items = Array.isArray(d.data) ? d.data : (d.data).results ?? [];
+          setTestimonials(items.slice(0, 3));
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -73,15 +84,15 @@ export function Newsletter() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as Resp<{ message?: string }>;
       if (data.success) {
         setStatus('success');
-        setMessage(data.data?.message || 'Thank you for subscribing!');
+        setMessage(data.data?.message ?? 'Thank you for subscribing!');
         setName('');
         setEmail('');
       } else {
         setStatus('error');
-        const errMsg = data.error?.details?.email?.[0] || data.error?.message || 'Something went wrong.';
+        const errMsg = data.error?.details?.email?.[0] ?? data.error?.message ?? 'Something went wrong.';
         setMessage(errMsg);
       }
     } catch {
@@ -233,7 +244,7 @@ export function Newsletter() {
                 <motion.div key={t.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="bg-white p-10">
                   <div className="flex gap-1 mb-6">
-                    {[...Array(t.rating)].map((_, j) => <Star key={j} size={18} className="text-[#d4a574] fill-[#d4a574]" />)}
+                    {Array.from({ length: t.rating }).map((_, j) => <Star key={j} size={18} className="text-[#d4a574] fill-[#d4a574]" />)}
                   </div>
                   <p className="text-lg leading-relaxed text-black/80" style={{ fontFamily: 'var(--font-serif)' }}>
                     "{t.message}"

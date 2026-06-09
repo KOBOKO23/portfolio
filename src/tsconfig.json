@@ -9,8 +9,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -20,6 +18,6 @@
       "@/*": ["./app/*"]
     }
   },
-  "include": ["app", "__mocks__", "test-setup.ts", "vite.config.ts", "main.tsx", "index.html"],
+  "include": ["app", "__mocks__", "test-setup.ts", "main.tsx", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

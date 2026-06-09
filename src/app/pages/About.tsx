@@ -19,6 +19,8 @@ import {
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T }
+
 interface Skill { id: number; name: string; category: string; proficiency: number; icon: string; }
 interface CareerEvent { id: number; year: string; title: string; organization: string; description: string; is_current: boolean; order: number; }
 
@@ -48,12 +50,12 @@ export function About() {
 
   useEffect(() => {
     fetch(`${API}/skills/`)
-      .then(r => r.json())
-      .then(data => setSkills(data.success ? (data.data ?? []) : []))
+      .then(r => r.json() as Promise<Resp<Skill[]>>)
+      .then(data => setSkills(data.success && data.data ? data.data : []))
       .catch(() => {});
     fetch(`${API}/career/`)
-      .then(r => r.json())
-      .then(data => setCareerEvents(data.success ? (data.data ?? []) : []))
+      .then(r => r.json() as Promise<Resp<CareerEvent[]>>)
+      .then(data => setCareerEvents(data.success && data.data ? data.data : []))
       .catch(() => {});
   }, []);
 
@@ -283,13 +285,13 @@ export function About() {
 
             {groupedSkills.length === 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {[...Array(3)].map((_, i) => (
+                {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="space-y-4 animate-pulse">
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-12 h-12 bg-black/10" />
                       <div className="h-6 bg-black/10 rounded w-40" />
                     </div>
-                    {[...Array(4)].map((_, j) => (
+                    {Array.from({ length: 4 }).map((_, j) => (
                       <div key={j} className="bg-white p-4 border-l-2 border-black/10 h-14" />
                     ))}
                   </div>

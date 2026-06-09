@@ -95,7 +95,7 @@ function TrackCard({ track, index, onPlay, onWatch }: {
 }) {
   const ytId = extractYouTubeId(track.youtube_url);
   const hasVideo = !!ytId;
-  const thumbnail = track.cover_image || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+  const thumbnail = (track.cover_image ?? '') || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
   const meta = [track.duration, formatYear(track.release_date)].filter(Boolean).join(' · ');
 
   return (
@@ -156,7 +156,7 @@ function TrackCard({ track, index, onPlay, onWatch }: {
             <div className="flex items-center gap-0.5 flex-shrink-0">
               {hasVideo && (
                 <button
-                  onClick={() => onWatch(ytId!)}
+                  onClick={() => onWatch(ytId)}
                   className="p-2 text-black/25 hover:text-red-500 transition-colors"
                   aria-label="Watch on YouTube"
                 >
@@ -196,9 +196,10 @@ export function Music() {
 
   useEffect(() => {
     fetch(`${API}/music/tracks/`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<{ data?: Track[] | { results?: Track[] } }>)
       .then(body => {
-        const items: Track[] = body?.data?.results ?? body?.data ?? [];
+        const d = body.data;
+        const items: Track[] = Array.isArray(d) ? d : (d)?.results ?? [];
         setTracks(items);
       })
       .catch(() => {})
@@ -278,7 +279,7 @@ export function Music() {
                       className="relative w-full aspect-video overflow-hidden block focus:outline-none"
                     >
                       <img
-                        src={featured.cover_image || `https://img.youtube.com/vi/${featuredYtId}/maxresdefault.jpg`}
+                        src={(featured.cover_image ?? '') || `https://img.youtube.com/vi/${featuredYtId}/maxresdefault.jpg`}
                         alt={featured.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       />
@@ -350,7 +351,7 @@ export function Music() {
 
             {loading ? (
               <div className="space-y-3">
-                {[...Array(4)].map((_, i) => (
+                {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="bg-white h-[88px] flex items-center gap-4 px-4 animate-pulse">
                     <div className="w-20 h-full bg-black/6 flex-shrink-0" />
                     <div className="flex-1 space-y-2">

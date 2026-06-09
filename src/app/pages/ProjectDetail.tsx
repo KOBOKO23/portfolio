@@ -109,7 +109,7 @@ export default function ProjectDetail() {
   useEffect(() => {
     if (!slug) return;
     fetch(`${API}/projects/${slug}/`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<{ success: boolean; data?: Project }>)
       .then(data => {
         if (data.success && data.data) setProject(data.data);
         else setNotFound(true);
@@ -124,7 +124,7 @@ export default function ProjectDetail() {
         <div className="h-4 bg-black/8 rounded w-24 mb-12" />
         <div className="h-16 bg-black/8 rounded w-3/4 mb-6" />
         <div className="space-y-3">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-4 bg-black/5 rounded" />)}
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-4 bg-black/5 rounded" />)}
         </div>
       </div>
     );
@@ -201,7 +201,7 @@ export default function ProjectDetail() {
       </section>
 
       {/* Images */}
-      {(project.image || (project.gallery && project.gallery.length > 0)) && (
+      {((project.image ?? '') || (project.gallery && project.gallery.length > 0)) && (
         <div className="bg-[#0a0a0a] py-12 px-6 lg:px-16">
           <div className="max-w-5xl mx-auto space-y-4">
             {/* Main image — full width */}

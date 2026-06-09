@@ -84,7 +84,7 @@ export function isValidLength(
 /**
  * Validate required fields
  */
-export function validateRequired(value: any): boolean {
+export function validateRequired(value: unknown): boolean {
   if (value === null || value === undefined) return false;
   if (typeof value === 'string') return value.trim().length > 0;
   if (Array.isArray(value)) return value.length > 0;
@@ -206,7 +206,7 @@ export function hasValidationErrors(errors: ValidationErrors): boolean {
  */
 export function safeJSONParse<T>(json: string, fallback: T): T {
   try {
-    return JSON.parse(json);
+    return JSON.parse(json) as T;
   } catch {
     return fallback;
   }

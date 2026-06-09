@@ -6,6 +6,8 @@ import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T }
+
 interface Category { id: number; name: string; slug: string; icon: string; color: string; article_count: number; }
 interface Article {
   id: number; title: string; slug: string; excerpt: string;
@@ -42,8 +44,8 @@ function ArticleSkeleton() {
 }
 
 function ArticleCard({ article, featured = false }: { article: Article; featured?: boolean }) {
-  const color = article.category?.color || '#d4a574';
-  const iconChar = ICON_MAP[article.category?.icon || ''] || '◈';
+  const color = article.category?.color ?? '#d4a574';
+  const iconChar = ICON_MAP[article.category?.icon ?? ''] ?? '◈';
   const navigate = useNavigate();
   const href = `/blog/${article.slug}`;
 
@@ -152,8 +154,8 @@ export function Blog() {
 
   useEffect(() => {
     void fetch(`${API}/blog/categories/`)
-      .then(r => r.json())
-      .then(res => { if (res.success) setCategories(res.data || []); });
+      .then(r => r.json() as Promise<Resp<Category[]>>)
+      .then(res => { if (res.success && res.data) setCategories(res.data); });
   }, []);
 
   useEffect(() => {
@@ -172,14 +174,14 @@ export function Blog() {
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     fetch(`${API}/blog/articles/?${params}`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<Resp<{ results?: Article[]; count?: number; next?: string | null } | Article[]>>)
       .then(res => {
-        if (res.success) {
+        if (res.success && res.data) {
           const d = res.data;
-          const results: Article[] = d.results ?? d;
+          const results: Article[] = Array.isArray(d) ? d : (d as { results?: Article[] }).results ?? [];
           setArticles(prev => page === 1 ? results : [...prev, ...results]);
-          setTotalCount(d.count ?? results.length);
-          setHasMore(!!d.next);
+          setTotalCount(Array.isArray(d) ? results.length : ((d as { count?: number }).count ?? results.length));
+          setHasMore(!Array.isArray(d) && !!((d as { next?: string | null }).next));
         }
       })
       .catch(() => setFetchError(true))
@@ -286,7 +288,7 @@ export function Blog() {
         {/* Skeleton / articles */}
         {!fetchError && (loading && page === 1 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {[...Array(6)].map((_, i) => <ArticleSkeleton key={i} />)}
+            {Array.from({ length: 6 }).map((_, i) => <ArticleSkeleton key={i} />)}
           </div>
         ) : articles.length === 0 ? (
           <div className="text-center py-36">

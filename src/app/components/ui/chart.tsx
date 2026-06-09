@@ -8,19 +8,17 @@ import { cn } from "./utils";
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
-export type ChartConfig = {
-  [k in string]: {
+export type ChartConfig = Record<string, {
     label?: React.ReactNode;
     icon?: React.ComponentType;
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  );
-};
+  )>;
 
-type ChartContextProps = {
+interface ChartContextProps {
   config: ChartConfig;
-};
+}
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
@@ -104,15 +102,15 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
-type ChartPayloadItem = {
+interface ChartPayloadItem {
   dataKey?: string;
   name?: string;
   value?: number | string;
   payload?: Record<string, unknown>;
   color?: string;
-};
+}
 
-type ChartTooltipContentProps = {
+interface ChartTooltipContentProps {
   active?: boolean;
   payload?: ChartPayloadItem[];
   className?: string;
@@ -132,7 +130,7 @@ type ChartTooltipContentProps = {
   color?: string;
   nameKey?: string;
   labelKey?: string;
-};
+}
 
 function ChartTooltipContent({
   active,
@@ -161,7 +159,7 @@ function ChartTooltipContent({
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === "string"
-        ? config[label as keyof typeof config]?.label || label
+        ? config[label]?.label || label
         : itemConfig?.label;
 
     if (labelFormatter) {
@@ -274,20 +272,20 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
-type ChartLegendItem = {
+interface ChartLegendItem {
   dataKey?: string;
   value?: string;
   color?: string;
   [key: string]: unknown;
-};
+}
 
-type ChartLegendContentProps = {
+interface ChartLegendContentProps {
   className?: string;
   hideIcon?: boolean;
   payload?: ChartLegendItem[];
   verticalAlign?: "top" | "bottom";
   nameKey?: string;
-};
+}
 
 function ChartLegendContent({
   className,
@@ -362,7 +360,7 @@ function getPayloadConfigFromPayload(
     key in payload &&
     typeof payload[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string;
+    configLabelKey = payload[key as keyof typeof payload];
   } else if (
     payloadPayload &&
     key in payloadPayload &&
@@ -370,12 +368,12 @@ function getPayloadConfigFromPayload(
   ) {
     configLabelKey = payloadPayload[
       key as keyof typeof payloadPayload
-    ] as string;
+    ];
   }
 
   return configLabelKey in config
     ? config[configLabelKey]
-    : config[key as keyof typeof config];
+    : config[key];
 }
 
 export {

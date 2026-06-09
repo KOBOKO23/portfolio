@@ -10,6 +10,8 @@ import { Link } from 'react-router-dom';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T; error?: { message?: string; details?: Record<string, string[]> } }
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface Program {
   id: number; title: string; date: string; location: string;
@@ -49,15 +51,15 @@ function VolunteerForm() {
     setStatus('submitting'); setMsg('');
     try {
       const res  = await fetch(`${API}/great-men-moves/volunteer/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      const data = await res.json();
+      const data = (await res.json()) as Resp<{ message?: string }>;
       if (data.success) {
         setStatus('success');
-        setMsg(data.data?.message || 'Application received! We\'ll be in touch soon.');
+        setMsg(data.data?.message ?? "Application received! We'll be in touch soon.");
         setForm({ full_name: '', email: '', phone: '', profession: '', motivation: '' });
       } else {
         setStatus('error');
         const detail = data.error?.details;
-        setMsg(detail ? Object.values(detail).flat().join(' ') : data.error?.message || 'Something went wrong.');
+        setMsg(detail ? Object.values(detail).flat().join(' ') : data.error?.message ?? 'Something went wrong.');
       }
     } catch {
       setStatus('error'); setMsg('Unable to connect. Please try again.');
@@ -128,14 +130,22 @@ export function GreatMenMoves() {
 
   useEffect(() => {
     fetch(`${API}/great-men-moves/programs/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setPrograms(Array.isArray(d.data) ? d.data : d.data?.results ?? []); })
+      .then(r => r.json() as Promise<Resp<Program[] | { results?: Program[] }>>)
+      .then(d => {
+        if (d.success && d.data) {
+          setPrograms(Array.isArray(d.data) ? d.data : (d.data).results ?? []);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoadingP(false));
 
     fetch(`${API}/great-men-moves/impact-goals/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setGoals(Array.isArray(d.data) ? d.data : d.data?.results ?? []); })
+      .then(r => r.json() as Promise<Resp<ImpactGoal[] | { results?: ImpactGoal[] }>>)
+      .then(d => {
+        if (d.success && d.data) {
+          setGoals(Array.isArray(d.data) ? d.data : (d.data).results ?? []);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoadingG(false));
   }, []);
@@ -260,7 +270,7 @@ export function GreatMenMoves() {
 
           {loadingGoals ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[...Array(4)].map((_, i) => <div key={i} className="border border-black/8 p-8 h-48 animate-pulse bg-black/3" />)}
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="border border-black/8 p-8 h-48 animate-pulse bg-black/3" />)}
             </div>
           ) : goals.length === 0 ? null : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -293,7 +303,7 @@ export function GreatMenMoves() {
 
           {loadingProgs ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {[...Array(4)].map((_, i) => <div key={i} className="border border-white/10 p-8 h-48 animate-pulse" />)}
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="border border-white/10 p-8 h-48 animate-pulse" />)}
             </div>
           ) : programs.length === 0 ? (
             <div className="text-center py-16 text-white/30">

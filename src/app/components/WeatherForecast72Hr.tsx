@@ -66,6 +66,20 @@ const weatherIcons: Record<string, typeof Cloud> = {
   thunderstorm: Zap,
 };
 
+interface OpenMeteoHourly {
+  time: string[];
+  temperature_2m: number[];
+  apparent_temperature: number[];
+  precipitation: number[];
+  weathercode: number[];
+  windspeed_10m: number[];
+  winddirection_10m: number[];
+  relativehumidity_2m: number[];
+  cloudcover: number[];
+  pressure_msl: number[];
+  visibility: (number | null)[];
+}
+
 // ── Open-Meteo ECMWF IFS fetch ───────────────────────────────────────────────
 const LAT = 1.2921;  // Nairobi
 const LON = 36.8219;
@@ -93,25 +107,27 @@ async function fetchECMWF(): Promise<ForecastData[]> {
 
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
   if (!res.ok) throw new Error(`Open-Meteo error: ${res.status}`);
-  const json = await res.json();
+  const json = (await res.json()) as { hourly: OpenMeteoHourly };
   const h = json.hourly;
 
   // Take every 3rd hour → 24 data points for 72 hours
   const points: ForecastData[] = [];
   for (let i = 0; i < h.time.length; i += 3) {
+    const t = h.time[i] ?? '';
+    const wmo = h.weathercode[i] ?? 0;
     points.push({
-      time: new Date(h.time[i]),
-      temperature: Math.round(h.temperature_2m[i]),
-      feelsLike: Math.round(h.apparent_temperature[i]),
-      humidity: Math.round(h.relativehumidity_2m[i]),
-      windSpeed: Math.round(h.windspeed_10m[i]),
-      windDirection: degToCompass(h.winddirection_10m[i]),
-      pressure: Math.round(h.pressure_msl[i]),
-      visibility: Math.round((h.visibility[i] ?? 10000) / 1000),
-      precipitation: Math.round(h.precipitation[i] * 10) / 10,
-      condition: wmoToCondition(h.weathercode[i]),
-      cloudCover: Math.round(h.cloudcover[i]),
-      wmoCode: h.weathercode[i],
+      time: new Date(t),
+      temperature: Math.round(h.temperature_2m[i] ?? 0),
+      feelsLike: Math.round(h.apparent_temperature[i] ?? 0),
+      humidity: Math.round(h.relativehumidity_2m[i] ?? 0),
+      windSpeed: Math.round(h.windspeed_10m[i] ?? 0),
+      windDirection: degToCompass(h.winddirection_10m[i] ?? 0),
+      pressure: Math.round(h.pressure_msl[i] ?? 1013),
+      visibility: Math.round(((h.visibility[i] ?? null) ?? 10000) / 1000),
+      precipitation: Math.round((h.precipitation[i] ?? 0) * 10) / 10,
+      condition: wmoToCondition(wmo),
+      cloudCover: Math.round(h.cloudcover[i] ?? 0),
+      wmoCode: wmo,
     });
   }
   return points;

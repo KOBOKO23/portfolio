@@ -2,7 +2,8 @@
  * Error Boundary Component
  * Catches React errors and provides fallback UI
  */
-import { Component, ReactNode, ErrorInfo } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
+import { Component } from 'react';
 import { errorMonitor } from '../utils/monitoring';
 
 interface Props {
@@ -39,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
     errorMonitor.logError({
       message: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
       timestamp: Date.now(),
       url: window.location.href,
       userAgent: navigator.userAgent,
@@ -54,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('Error Boundary caught an error:', error, errorInfo);
     }
   }
@@ -106,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500">
                 <h2 className="text-lg font-bold text-red-900 mb-3">
                   Error Details (Development Only)

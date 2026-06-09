@@ -3,6 +3,26 @@
  * Performance tracking, error monitoring, and user analytics
  */
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+interface LCPEntry extends PerformanceEntry {
+  renderTime: number;
+  loadTime: number;
+}
+
+interface FIDEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
+interface CLSEntry extends PerformanceEntry {
+  hadRecentInput: boolean;
+  value: number;
+}
+
 interface PerformanceMetric {
   name: string;
   value: number;
@@ -59,9 +79,9 @@ export class PerformanceMonitor {
   private observeLCP(): void {
     try {
       const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1] as any;
-        
+        const entries = list.getEntries() as LCPEntry[];
+        const lastEntry = entries[entries.length - 1];
+        if (!lastEntry) return;
         this.addMetric({
           name: 'LCP',
           value: lastEntry.renderTime || lastEntry.loadTime,
@@ -79,7 +99,7 @@ export class PerformanceMonitor {
   private observeFID(): void {
     try {
       const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries() as any[];
+        const entries = list.getEntries() as FIDEntry[];
         entries.forEach((entry) => {
           this.addMetric({
             name: 'FID',
@@ -100,7 +120,7 @@ export class PerformanceMonitor {
     try {
       let clsValue = 0;
       const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries() as any[];
+        const entries = list.getEntries() as CLSEntry[];
         entries.forEach((entry) => {
           if (!entry.hadRecentInput) {
             clsValue += entry.value;
@@ -208,8 +228,8 @@ export class PerformanceMonitor {
       });
 
       this.clear();
-    } catch {
-      console.error('Failed to send metrics:', error);
+    } catch (err: unknown) {
+      console.error('Failed to send metrics:', err);
     }
   }
 
@@ -222,7 +242,7 @@ export class PerformanceMonitor {
     }
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.log(`📊 ${metric.name}: ${metric.value.toFixed(2)}ms`);
     }
   }
@@ -249,7 +269,7 @@ export class ErrorMonitor {
     window.addEventListener('error', (event) => {
       this.logError({
         message: event.message,
-        stack: event.error?.stack,
+        stack: (event.error as Error | undefined)?.stack,
         timestamp: Date.now(),
         url: window.location.href,
         userAgent: navigator.userAgent,
@@ -260,7 +280,7 @@ export class ErrorMonitor {
     window.addEventListener('unhandledrejection', (event) => {
       this.logError({
         message: `Unhandled Promise Rejection: ${event.reason}`,
-        stack: event.reason?.stack,
+        stack: (event.reason as Error | undefined)?.stack,
         timestamp: Date.now(),
         url: window.location.href,
         userAgent: navigator.userAgent,
@@ -273,11 +293,11 @@ export class ErrorMonitor {
    */
   logError(error: Partial<ErrorLog>): void {
     const errorLog: ErrorLog = {
-      message: error.message || 'Unknown error',
+      message: error.message ?? 'Unknown error',
       stack: error.stack,
-      timestamp: error.timestamp || Date.now(),
-      url: error.url || window.location.href,
-      userAgent: error.userAgent || navigator.userAgent,
+      timestamp: error.timestamp ?? Date.now(),
+      url: error.url ?? window.location.href,
+      userAgent: error.userAgent ?? navigator.userAgent,
       componentStack: error.componentStack,
     };
 
@@ -289,7 +309,7 @@ export class ErrorMonitor {
     }
 
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       console.error('❌ Error logged:', errorLog);
     }
   }
@@ -325,8 +345,8 @@ export class ErrorMonitor {
       });
 
       this.clear();
-    } catch {
-      console.error('Failed to send errors:', error);
+    } catch (err: unknown) {
+      console.error('Failed to send errors:', err);
     }
   }
 }
@@ -346,7 +366,7 @@ export class AnalyticsTracker {
   /**
    * Track page view
    */
-  trackPageView(pageName: string, additionalData?: Record<string, any>): void {
+  trackPageView(pageName: string, additionalData?: Record<string, unknown>): void {
     this.trackAction({
       action: 'page_view',
       category: 'navigation',
@@ -354,9 +374,8 @@ export class AnalyticsTracker {
       timestamp: Date.now(),
     });
 
-    // Send to Google Analytics or other service
     if (typeof window !== 'undefined' && 'gtag' in window) {
-      (window as any).gtag('event', 'page_view', {
+      window.gtag?.('event', 'page_view', {
         page_title: pageName,
         page_path: window.location.pathname,
         ...additionalData,
@@ -381,9 +400,8 @@ export class AnalyticsTracker {
       timestamp: Date.now(),
     });
 
-    // Send to Google Analytics
     if (typeof window !== 'undefined' && 'gtag' in window) {
-      (window as any).gtag('event', action, {
+      window.gtag?.('event', action, {
         event_category: category,
         event_label: label,
         value,
@@ -475,7 +493,7 @@ export function initializeMonitoring(): void {
   // Log page view
   analyticsTracker.trackPageView(document.title);
 
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.MODE === 'development') {
     console.log('📈 Monitoring initialized');
   }
 }
@@ -483,7 +501,7 @@ export function initializeMonitoring(): void {
 /**
  * Track route change (for SPAs)
  */
-export function trackRouteChange(newPath: string, newTitle: string): void {
+export function trackRouteChange(_newPath: string, newTitle: string): void {
   analyticsTracker.trackPageView(newTitle);
   performanceMonitor.recordMetric('route_change', performance.now());
 }

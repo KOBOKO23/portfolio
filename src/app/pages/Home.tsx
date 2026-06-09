@@ -10,7 +10,10 @@ interface Article { id: number; title: string; slug: string; excerpt: string; ca
 interface Project { id: number; title: string; description: string; technologies: string[]; github_url: string; live_url: string; }
 interface ApprovedFeedback { id: number; rating: number; message: string; created_at: string; }
 
-const fadeUp = { initial: { opacity: 0, y: 28 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } };
+interface Resp<T> { success: boolean; data?: T }
+type PagResp<T> = Resp<{ results?: T[]; count?: number } | T[]>;
+
+const fadeUp = { initial: { opacity: 0, y: 28 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } };
 
 const PILLARS = [
   { icon: Cloud, label: 'Meteorology', sub: 'Kenya Met Department', href: '/weather-forecast', color: '#0ea5e9' },
@@ -31,25 +34,31 @@ export function Home() {
 
   useEffect(() => {
     void fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
-      .then(r => r.json())
-      .then(res => { if (res.success) setLatestArticles((res.data?.results ?? res.data).slice(0, 3)); });
+      .then(r => r.json() as Promise<PagResp<Article>>)
+      .then(res => {
+        if (res.success && res.data) {
+          const items = Array.isArray(res.data) ? res.data : (res.data as { results?: Article[] }).results ?? [];
+          setLatestArticles(items.slice(0, 3));
+        }
+      });
 
     void fetch(`${API}/projects/?is_featured=true&page_size=1`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<PagResp<Project>>)
       .then(res => {
-        if (res.success) {
-          const p = (res.data?.results ?? res.data)[0];
+        if (res.success && res.data) {
+          const items = Array.isArray(res.data) ? res.data : (res.data as { results?: Project[] }).results ?? [];
+          const p = items[0];
           if (p) setFeaturedProject(p);
         }
       });
 
     fetch(`${API}/feedback/approved/`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<Resp<ApprovedFeedback[] | { results?: ApprovedFeedback[] }>>)
       .then(data => {
-        const items = data.success
-          ? (data.data?.results ?? data.data ?? [])
-          : (Array.isArray(data) ? data : (data.results ?? []));
-        setApprovedFeedback(items.slice(0, 6));
+        if (data.success && data.data) {
+          const items = Array.isArray(data.data) ? data.data : (data.data).results ?? [];
+          setApprovedFeedback(items.slice(0, 6));
+        }
       })
       .catch(() => {});
   }, []);
@@ -64,7 +73,7 @@ export function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newsletterName, email: newsletterEmail }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { success: boolean };
       setNewsletterStatus(data.success ? 'done' : 'error');
     } catch { setNewsletterStatus('error'); }
   };
@@ -235,7 +244,7 @@ export function Home() {
 
           <div className="space-y-0 divide-y divide-black/6">
             {latestArticles.length === 0 ? (
-              [...Array(3)].map((_, i) => (
+              Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="py-8 flex items-center gap-8 animate-pulse">
                   <div className="h-4 bg-black/6 rounded w-24" />
                   <div className="h-6 bg-black/8 rounded flex-1" />

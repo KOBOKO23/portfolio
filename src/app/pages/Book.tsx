@@ -40,18 +40,23 @@ function getStripe(pk: string) {
 }
 
 // ── API helpers ────────────────────────────────────────────────────────────────
+interface MpesaResp { success: boolean; data?: { order_id: string; message: string }; error?: { message?: string } }
+interface OrderResp { data?: { status?: string } }
+interface StripeResp { success: boolean; data?: { client_secret: string; publishable_key: string; order_id: string }; error?: { message?: string } }
+interface BookListResp { data?: BookData[] | { results?: BookData[] } }
+
 async function initMpesa(data: { name: string; email: string; phone: string; amount: number }) {
   const res  = await fetch(`${API}/payments/mpesa/stk-push/`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok || !json.success) throw new Error(json.error?.message ?? 'M-Pesa request failed');
-  return json.data as { order_id: string; message: string };
+  const json = (await res.json()) as MpesaResp;
+  if (!res.ok || !json.success || !json.data) throw new Error(json.error?.message ?? 'M-Pesa request failed');
+  return json.data;
 }
 
 async function pollOrderStatus(orderId: string) {
   const res  = await fetch(`${API}/payments/orders/${orderId}/`);
-  const json = await res.json();
+  const json = (await res.json()) as OrderResp;
   return json?.data?.status ?? 'processing';
 }
 
@@ -115,7 +120,7 @@ function VisaCardPreview({ name, focused }: {
             <div className="flex justify-between items-start relative z-10">
               {/* EMV chip */}
               <div className="w-9 h-[26px] border border-[#d4a574]/40 bg-[#d4a574]/10 rounded-[3px] grid grid-cols-3 grid-rows-3 gap-px p-[3px]">
-                {[...Array(9)].map((_, i) => (
+                {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="bg-[#d4a574]/35 rounded-[1px]" />
                 ))}
               </div>
@@ -175,7 +180,7 @@ function VisaCardPreview({ name, focused }: {
                 <div className="flex-1 h-full bg-[repeating-linear-gradient(90deg,#f5f5f0_0px,#f5f5f0_6px,#e8e4dc_6px,#e8e4dc_8px)] opacity-60" />
                 <div className="flex items-center gap-1 pl-2">
                   <p className="text-black/40 text-[10px] font-mono italic mr-1">CVV</p>
-                  {[...Array(3)].map((_, i) => (
+                  {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="w-[7px] h-[7px] rounded-full bg-black/40" />
                   ))}
                 </div>
@@ -352,7 +357,7 @@ function MpesaPhoneUI({ priceKes, mpesaMsg, paid }: {
               <p className="text-[8px] text-black/40 mb-1.5">M-Pesa PIN</p>
               {/* PIN dots */}
               <div className="flex gap-1.5">
-                {[...Array(4)].map((_, i) => (
+                {Array.from({ length: 4 }).map((_, i) => (
                   <motion.div
                     key={i}
                     className="w-4 h-4 rounded-full border-2"
@@ -462,15 +467,15 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
           currency: 'usd',
         }),
       })
-        .then(r => r.json())
+        .then(r => r.json() as Promise<StripeResp>)
         .then(json => {
-          if (!json.success) throw new Error(json.error?.message ?? 'Failed to initialise payment');
+          if (!json.success || !json.data) throw new Error(json.error?.message ?? 'Failed to initialise payment');
           setSecret(json.data.client_secret);
           setStrKey(json.data.publishable_key);
           setOrderId(json.data.order_id);
           setStatus('idle');
         })
-        .catch(err => { setStatus('failed'); setErrMsg(err.message); });
+        .catch((err: unknown) => { setStatus('failed'); setErrMsg(err instanceof Error ? err.message : 'Request failed'); });
     }
   };
 
@@ -873,7 +878,7 @@ function NotifyModal({ book, onClose }: { book: BookData; onClose: () => void })
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: form.name, email: form.email }),
       });
-      const json = await res.json();
+      const json = (await res.json()) as { success?: boolean; error?: { message?: string } };
       if (res.ok || json.success) { setDone(true); }
       else throw new Error(json.error?.message ?? 'Could not subscribe');
     } catch {
@@ -973,10 +978,11 @@ export function Book() {
 
   useEffect(() => {
     fetch(`${API}/books/`)
-      .then(r => r.json())
+      .then(r => r.json() as Promise<BookListResp>)
       .then(d => {
-        const results = d.data?.results ?? d.data ?? [];
-        if (results.length) setBook(results[0]);
+        const results: BookData[] = Array.isArray(d.data) ? d.data : (d.data?.results ?? []);
+        const first = results[0];
+        if (first) setBook(first);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -1059,7 +1065,7 @@ export function Book() {
               )}
             </div>
 
-            {(book.page_count || book.publisher) && (
+            {(Boolean(book.page_count) || Boolean(book.publisher)) && (
               <div className="flex justify-center gap-8 mt-10 text-white/30 text-xs uppercase tracking-widest">
                 {book.page_count && <span>{book.page_count} pages</span>}
                 {book.publisher  && <><span>·</span><span>{book.publisher}</span></>}
@@ -1162,7 +1168,7 @@ export function Book() {
                     viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
                     className="border border-white/10 p-8 hover:border-[#d4a574]/40 transition-colors">
                     <div className="flex gap-1 mb-4">
-                      {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} className="text-[#d4a574] fill-[#d4a574]" />)}
+                      {Array.from({ length: t.rating }).map((_, j) => <Star key={j} size={14} className="text-[#d4a574] fill-[#d4a574]" />)}
                     </div>
                     <p className="text-lg leading-relaxed text-white/85 mb-6" style={{ fontFamily: 'var(--font-serif)' }}>"{t.quote}"</p>
                     <div className="flex items-center gap-3">

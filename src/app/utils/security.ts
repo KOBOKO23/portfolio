@@ -13,7 +13,7 @@ export const CSP_DIRECTIVES = {
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-  connectSrc: ["'self'", process.env.VITE_API_BASE_URL || 'http://localhost:8000'],
+  connectSrc: ["'self'", import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'],
   mediaSrc: ["'self'"],
   objectSrc: ["'none'"],
   frameSrc: ["'none'"],
@@ -26,7 +26,7 @@ export const CSP_DIRECTIVES = {
  * Rate limiting for client-side actions
  */
 class RateLimiter {
-  private attempts: Map<string, number[]> = new Map();
+  private attempts = new Map<string, number[]>();
 
   /**
    * Check if action is rate limited
@@ -34,9 +34,9 @@ class RateLimiter {
    * @param maxAttempts - Maximum attempts allowed
    * @param windowMs - Time window in milliseconds
    */
-  isRateLimited(key: string, maxAttempts: number = 5, windowMs: number = 60000): boolean {
+  isRateLimited(key: string, maxAttempts = 5, windowMs = 60000): boolean {
     const now = Date.now();
-    const attempts = this.attempts.get(key) || [];
+    const attempts = this.attempts.get(key) ?? [];
     
     // Remove old attempts outside the time window
     const recentAttempts = attempts.filter(time => now - time < windowMs);
@@ -74,8 +74,8 @@ export const rateLimiter = new RateLimiter();
 export function preventClickjacking(): void {
   if (typeof window !== 'undefined') {
     // Ensure we're not in an iframe
-    if (window.self !== window.top) {
-      window.top!.location = window.self.location;
+    if (window.self !== window.top && window.top) {
+      window.top.location.href = window.self.location.href;
     }
   }
 }
@@ -149,7 +149,7 @@ export function createCSPMetaTag(): HTMLMetaElement | null {
 /**
  * Secure random string generator
  */
-export function generateSecureToken(length: number = 32): string {
+export function generateSecureToken(length = 32): string {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return Array.from(array, byte => byte.toString(36)).join('').slice(0, length);
@@ -239,7 +239,7 @@ export function deobfuscate(encoded: string): string {
  * Secure data storage in localStorage with encryption
  */
 export const secureStorage = {
-  setItem(key: string, value: any): void {
+  setItem(key: string, value: unknown): void {
     try {
       const serialized = JSON.stringify(value);
       const obfuscated = obfuscate(serialized);
@@ -255,7 +255,7 @@ export const secureStorage = {
       if (!obfuscated) return null;
       
       const deobfuscated = deobfuscate(obfuscated);
-      return JSON.parse(deobfuscated);
+      return JSON.parse(deobfuscated) as T;
     } catch (error) {
       console.error('Secure storage get error:', error);
       return null;
@@ -281,7 +281,7 @@ export function initializeSecurity(): void {
   preventClickjacking();
 
   // Disable right-click in production (optional)
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.MODE === 'production') {
     // Uncomment if you want to disable right-click
     // document.addEventListener('contextmenu', e => e.preventDefault());
   }
@@ -293,7 +293,7 @@ export function initializeSecurity(): void {
   });
 
   // Detect and warn about console usage in production
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.MODE === 'production') {
     const consoleWarning = () => {
       console.log(
         '%cStop!',

@@ -26,13 +26,18 @@ const API_TIMEOUT = 30000; // 30 seconds
 export interface APIError {
   message: string;
   status?: number;
-  details?: any;
+  details?: Record<string, string[]>;
 }
 
 export interface APIResponse<T> {
   data?: T;
   error?: APIError;
   success: boolean;
+}
+
+interface ErrorBody {
+  message?: string;
+  details?: Record<string, string[]>;
 }
 
 /**
@@ -77,35 +82,26 @@ async function apiRequest<T>(
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        message: response.statusText,
-      }));
+      const errorData = await (response.json() as Promise<ErrorBody>).catch(
+        (): ErrorBody => ({ message: response.statusText })
+      );
 
       return {
         success: false,
         error: {
-          message: errorData.message || 'An error occurred',
+          message: errorData.message ?? 'An error occurred',
           status: response.status,
           details: errorData.details,
         },
       };
     }
 
-    const data = await response.json();
-    return {
-      success: true,
-      data,
-    };
-  } catch (error: any) {
-    console.error('API Request Error:', error);
-
-    return {
-      success: false,
-      error: {
-        message: error.message || 'Network error occurred',
-        details: error,
-      },
-    };
+    const data = (await response.json()) as T;
+    return { success: true, data };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Network error occurred';
+    console.error('API Request Error:', err);
+    return { success: false, error: { message } };
   }
 }
 
@@ -163,7 +159,7 @@ export async function get<T>(
  */
 export async function post<T>(
   endpoint: string,
-  data: any,
+  data: unknown,
   options: RequestInit = {}
 ): Promise<APIResponse<T>> {
   return apiRequest<T>(endpoint, {
@@ -178,7 +174,7 @@ export async function post<T>(
  */
 export async function put<T>(
   endpoint: string,
-  data: any,
+  data: unknown,
   options: RequestInit = {}
 ): Promise<APIResponse<T>> {
   return apiRequest<T>(endpoint, {
@@ -208,7 +204,7 @@ export async function uploadFile(
   endpoint: string,
   file: File,
   onProgress?: (progress: number) => void
-): Promise<APIResponse<any>> {
+): Promise<APIResponse<unknown>> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
@@ -224,7 +220,7 @@ export async function uploadFile(
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
-          const data = JSON.parse(xhr.responseText);
+          const data = JSON.parse(xhr.responseText) as unknown;
           resolve({ success: true, data });
         } catch {
           resolve({ success: true, data: xhr.responseText });
@@ -257,7 +253,7 @@ export async function uploadFile(
 /**
  * Cache for API responses
  */
-const cache = new Map<string, { data: any; timestamp: number }>();
+const cache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -271,7 +267,7 @@ export async function getCached<T>(
   const cached = cache.get(endpoint);
 
   if (cached && Date.now() - cached.timestamp < cacheDuration) {
-    return { success: true, data: cached.data };
+    return { success: true, data: cached.data as T };
   }
 
   const response = await get<T>(endpoint, options);

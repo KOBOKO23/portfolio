@@ -22,6 +22,7 @@ interface Project {
   github_url?: string;
   live_url?: string;
   is_featured?: boolean;
+  image?: string;
 }
 
 const CATEGORY_ICONS: Record<string, ElementType> = {
@@ -146,9 +147,10 @@ export function Projects() {
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
     fetch(`${apiBase}/projects/`)
-      .then((r) => r.json())
+      .then((r) => r.json() as Promise<{ data?: Project[] | { results?: Project[] } }>)
       .then((body) => {
-        const items: Project[] = body?.data?.results ?? body?.data ?? [];
+        const d = body.data;
+        const items: Project[] = Array.isArray(d) ? d : (d)?.results ?? [];
         if (items.length > 0) setProjects(items);
         else setUsingFallback(true);
       })

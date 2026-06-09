@@ -4,23 +4,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { APIResponse } from '../utils/api';
 
-interface UseApiOptions {
+interface UseApiOptions<T> {
   immediate?: boolean;
-  onSuccess?: (data: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (data: T) => void;
+  onError?: (error: unknown) => void;
 }
 
 interface UseApiReturn<T> {
   data: T | null;
   loading: boolean;
   error: string | null;
-  execute: (...args: any[]) => Promise<void>;
+  execute: (...args: unknown[]) => Promise<void>;
   reset: () => void;
 }
 
 export function useApi<T>(
-  apiFunc: (...args: any[]) => Promise<APIResponse<T>>,
-  options: UseApiOptions = {}
+  apiFunc: (...args: unknown[]) => Promise<APIResponse<T>>,
+  options: UseApiOptions<T> = {}
 ): UseApiReturn<T> {
   const { immediate = false, onSuccess, onError } = options;
   
@@ -29,7 +29,7 @@ export function useApi<T>(
   const [error, setError] = useState<string | null>(null);
 
   const execute = useCallback(
-    async (...args: any[]) => {
+    async (...args: unknown[]) => {
       try {
         setLoading(true);
         setError(null);
@@ -40,12 +40,12 @@ export function useApi<T>(
           setData(response.data);
           onSuccess?.(response.data);
         } else {
-          const errorMessage = response.error?.message || 'An error occurred';
+          const errorMessage = response.error?.message ?? 'An error occurred';
           setError(errorMessage);
           onError?.(response.error);
         }
-      } catch (err: any) {
-        const errorMessage = err.message || 'An unexpected error occurred';
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
         setError(errorMessage);
         onError?.(err);
       } finally {

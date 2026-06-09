@@ -8,7 +8,7 @@ import { GreatMenMoves } from './GreatMenMoves';
 vi.mock('../components/SEO', () => ({ SEO: () => null }));
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.stubGlobal('fetch', mockFetch);
 
 function ok(body: unknown) {
   return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) } as Response);

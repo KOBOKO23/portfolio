@@ -17,9 +17,9 @@ interface SEOProps {
 }
 
 const SITE_NAME = 'Koboko';
-const BASE_URL = (import.meta.env.VITE_SITE_URL as string) || 'https://koboko.dev';
-const GITHUB_URL = (import.meta.env.VITE_GITHUB_URL as string) || 'https://github.com/KOBOKO23';
-const TWITTER_HANDLE = (import.meta.env.VITE_TWITTER_HANDLE as string) || '';
+const BASE_URL = (import.meta.env.VITE_SITE_URL) || 'https://koboko.dev';
+const GITHUB_URL = (import.meta.env.VITE_GITHUB_URL) || 'https://github.com/KOBOKO23';
+const TWITTER_HANDLE = (import.meta.env.VITE_TWITTER_HANDLE) || '';
 
 const DEFAULT_DESCRIPTION =
   'Kenyan meteorologist, backend developer, data scientist, gospel artist, and author. Building things that matter from Nairobi.';

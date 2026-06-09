@@ -28,7 +28,7 @@ export const motion = {
   form: makeEl('form'),
 };
 
-export const AnimatePresence = ({ children }: any) => children;
+export const AnimatePresence = ({ children }: { children?: React.ReactNode }): React.ReactNode => children;
 export const useAnimation    = () => ({ start: vi.fn(), stop: vi.fn() });
-export const useMotionValue  = (v: any) => ({ get: () => v, set: vi.fn() });
+export const useMotionValue  = <T,>(v: T) => ({ get: () => v, set: vi.fn() });
 export const useTransform    = () => ({ get: vi.fn() });

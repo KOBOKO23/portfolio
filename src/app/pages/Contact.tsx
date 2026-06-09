@@ -6,6 +6,8 @@ import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+interface Resp<T> { success: boolean; data?: T; error?: { message?: string; details?: Record<string, string[]> } }
+
 interface Profile {
   full_name: string;
   email: string;
@@ -44,8 +46,8 @@ export function Contact() {
 
   useEffect(() => {
     fetch(`${API}/profile/`)
-      .then(r => r.json())
-      .then(d => { if (d.success) setProfile(d.data); })
+      .then(r => r.json() as Promise<Resp<Profile>>)
+      .then(d => { if (d.success && d.data) setProfile(d.data); })
       .catch(() => {});
   }, []);
 
@@ -62,15 +64,15 @@ export function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const data = (await res.json()) as Resp<{ message?: string }>;
       if (data.success) {
         setStatus('sent');
-        setSuccessMsg(data.data?.message || "I'll get back to you within 24 hours.");
+        setSuccessMsg(data.data?.message ?? "I'll get back to you within 24 hours.");
         setForm({ name: '', email: '', subject: '', message: '' });
       } else {
         setStatus('error');
         const details = data.error?.details;
-        setErrMsg(details ? Object.values(details).flat().join(' ') : data.error?.message || 'Something went wrong.');
+        setErrMsg(details ? Object.values(details).flat().join(' ') : data.error?.message ?? 'Something went wrong.');
       }
     } catch {
       setStatus('error');
@@ -88,15 +90,15 @@ export function Contact() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: nlName || nlEmail.split('@')[0], email: nlEmail }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as Resp<{ message?: string }>;
       if (data.success) {
         setNlStatus('done');
-        setNlMsg(data.data?.message || 'Subscribed!');
+        setNlMsg(data.data?.message ?? 'Subscribed!');
         setNlEmail(''); setNlName('');
       } else {
         setNlStatus('error');
         const details = data.error?.details;
-        setNlMsg(details?.email?.[0] || data.error?.message || 'Something went wrong.');
+        setNlMsg(details?.email?.[0] ?? data.error?.message ?? 'Something went wrong.');
       }
     } catch {
       setNlStatus('error'); setNlMsg('Unable to connect.');
@@ -104,10 +106,10 @@ export function Contact() {
   };
 
   const socialLinks = [
-    { icon: Linkedin,  label: 'LinkedIn',  url: profile?.linkedin_url  || '#' },
-    { icon: Twitter,   label: 'Twitter',   url: profile?.twitter_url   || '#' },
-    { icon: Github,    label: 'GitHub',    url: profile?.github_url    || '#' },
-    { icon: Instagram, label: 'Instagram', url: profile?.instagram_url || '#' },
+    { icon: Linkedin,  label: 'LinkedIn',  url: profile?.linkedin_url  ?? '#' },
+    { icon: Twitter,   label: 'Twitter',   url: profile?.twitter_url   ?? '#' },
+    { icon: Github,    label: 'GitHub',    url: profile?.github_url    ?? '#' },
+    { icon: Instagram, label: 'Instagram', url: profile?.instagram_url ?? '#' },
   ].filter(s => s.url && s.url !== '#');
 
   return (
@@ -144,10 +146,10 @@ export function Contact() {
 
             <div className="space-y-6">
               {[
-                profile?.email    && { icon: Mail,   title: 'Email',    content: profile.email,    link: `mailto:${profile.email}` },
-                profile?.location && { icon: MapPin, title: 'Location', content: profile.location, link: null },
-                profile?.phone    && { icon: Phone,  title: 'Phone',    content: profile.phone,    link: `tel:${profile.phone.replace(/\s/g, '')}` },
-              ].filter(Boolean).map((info: any) => (
+                profile?.email    ? { icon: Mail,   title: 'Email',    content: profile.email,    link: `mailto:${profile.email}` }          : null,
+                profile?.location ? { icon: MapPin, title: 'Location', content: profile.location, link: null as string | null }                : null,
+                profile?.phone    ? { icon: Phone,  title: 'Phone',    content: profile.phone,    link: `tel:${profile.phone.replace(/\s/g, '')}` } : null,
+              ].filter((x): x is NonNullable<typeof x> => x !== null).map((info) => (
                 <div key={info.title} className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-[#f5f5f0] flex items-center justify-center flex-shrink-0">
                     <info.icon className="w-5 h-5 text-[#d4a574]" />

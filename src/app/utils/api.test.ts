@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { get, post, getCached, clearCache, API_ENDPOINTS } from './api';
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.stubGlobal('fetch', mockFetch);
 
 function mockOk(body: unknown) {
   return Promise.resolve({
@@ -65,7 +65,7 @@ describe('post()', () => {
     const result = await post('/contact/', payload);
     expect(result.success).toBe(true);
 
-    const [, options] = mockFetch.mock.calls[0];
+    const [, options] = mockFetch.mock.calls[0] as [unknown, { method: string; body: string }];
     expect(options.method).toBe('POST');
     expect(JSON.parse(options.body)).toEqual(payload);
   });

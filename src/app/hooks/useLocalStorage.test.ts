@@ -68,7 +68,7 @@ describe('useLocalStorage', () => {
     act(() => { result.current[1]({ name: 'Koboko', score: 100 }); });
 
     expect(result.current[0]).toEqual({ name: 'Koboko', score: 100 });
-    expect(JSON.parse(ls().getItem('profile')!)).toEqual({ name: 'Koboko', score: 100 });
+    expect(JSON.parse(ls().getItem('profile'))).toEqual({ name: 'Koboko', score: 100 });
   });
 
   it('falls back to initial value when localStorage contains invalid JSON', () => {

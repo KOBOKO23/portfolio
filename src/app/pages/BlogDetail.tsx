@@ -18,6 +18,11 @@ const REACTIONS = [
   { key: 'insightful', emoji: '💡', label: 'Insightful' },
 ];
 
+interface ArticleResp { success: boolean; data?: Article }
+interface CommentsResp { success: boolean; data?: { results?: Comment[] } | Comment[] }
+interface LikeResp { success: boolean; data?: { liked: boolean; count: number } }
+interface ReactResp { success: boolean; data?: { reaction: string | null; summary: Record<string, number> } }
+
 function getFingerprint(): string {
   let fp = localStorage.getItem('_fp');
   if (!fp) {
@@ -83,7 +88,7 @@ export default function BlogDetail() {
     fetch(`${API}/blog/articles/${slug}/`, { headers: { 'X-Fingerprint': fp } })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
+        return r.json() as Promise<ArticleResp>;
       })
       .then(res => {
         if (res.success && res.data) {
@@ -92,7 +97,7 @@ export default function BlogDetail() {
           setLiked(Boolean(a.user_liked));
           setLikeCount(Number(a.like_count) || 0);
           setUserReaction(a.user_reaction ?? null);
-          setReactions(a.reaction_summary || {});
+          setReactions(a.reaction_summary ?? {});
         } else {
           setError('Article not found.');
         }
@@ -104,8 +109,13 @@ export default function BlogDetail() {
       .finally(() => setLoading(false));
 
     fetch(`${API}/blog/articles/${slug}/comments/`)
-      .then(r => r.json())
-      .then(res => { if (res.success) setComments(res.data?.results ?? res.data ?? []); })
+      .then(r => r.json() as Promise<CommentsResp>)
+      .then(res => {
+        if (res.success) {
+          const d = res.data;
+          setComments(Array.isArray(d) ? d : (d as { results?: Comment[] })?.results ?? []);
+        }
+      })
       .catch(() => {});
   }, [slug]);
 
@@ -132,8 +142,8 @@ export default function BlogDetail() {
       const res = await fetch(`${API}/blog/articles/${slug}/like/`, {
         method: 'POST', headers: { 'X-Fingerprint': fp, 'Content-Type': 'application/json' },
       });
-      const data = await res.json();
-      if (data.success) { setLiked(data.data.liked); setLikeCount(data.data.count); }
+      const data = (await res.json()) as LikeResp;
+      if (data.success && data.data) { setLiked(data.data.liked); setLikeCount(data.data.count); }
     } catch { setLiked(prev); setLikeCount(c => c + (prev ? 1 : -1)); }
   }, [slug, liked, fp]);
 
@@ -145,8 +155,8 @@ export default function BlogDetail() {
         headers: { 'X-Fingerprint': fp, 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction: type }),
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = (await res.json()) as ReactResp;
+      if (data.success && data.data) {
         setUserReaction(data.data.reaction);
         setReactions(data.data.summary);
       }
@@ -155,7 +165,7 @@ export default function BlogDetail() {
 
   const share = useCallback(async (platform: string) => {
     const url = window.location.href;
-    const title = article?.title || '';
+    const title = article?.title ?? '';
     const shareUrls: Record<string, string> = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
@@ -188,15 +198,18 @@ export default function BlogDetail() {
         headers: { 'Content-Type': 'application/json', 'X-Fingerprint': fp },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { success: boolean };
       if (data.success) {
         setCommentSuccess(true);
         setCommentForm({ name: '', email: '', content: '', parent: null });
         setReplyingTo(null);
         setTimeout(() => setCommentSuccess(false), 4000);
         const refresh = await fetch(`${API}/blog/articles/${slug}/comments/`);
-        const refreshData = await refresh.json();
-        if (refreshData.success) setComments(refreshData.data?.results ?? refreshData.data ?? []);
+        const refreshData = (await refresh.json()) as CommentsResp;
+        if (refreshData.success) {
+          const d = refreshData.data;
+          setComments(Array.isArray(d) ? d : (d as { results?: Comment[] })?.results ?? []);
+        }
       }
     } finally { setCommentSubmitting(false); }
   }, [slug, commentForm, fp]);
@@ -213,7 +226,7 @@ export default function BlogDetail() {
   if (error || !article) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center px-6">
-        <p className="text-2xl font-serif mb-4">{error || 'Article not found'}</p>
+        <p className="text-2xl font-serif mb-4">{error ?? 'Article not found'}</p>
         <button onClick={() => navigate('/blog')} className="text-[#d4a574] flex items-center gap-2 mx-auto hover:gap-3 transition-all">
           <ArrowLeft className="w-4 h-4" /> Back to Blog
         </button>
@@ -261,7 +274,7 @@ export default function BlogDetail() {
           </>
         ) : (
           <div className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, ${article.category?.color || '#d4a574'}22 0%, #000 60%)` }}
+            style={{ background: `linear-gradient(135deg, ${article.category?.color ?? '#d4a574'}22 0%, #000 60%)` }}
           />
         )}
 
