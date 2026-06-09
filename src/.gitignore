@@ -40,4 +40,8 @@ build/
 
 # Mac
 .AppleDouble
-.LSOverride
+.LSOverrides
+
+# Playwright
+test-results/
+playwright-report/
