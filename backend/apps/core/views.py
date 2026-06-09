@@ -1,9 +1,21 @@
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.db import connection
 from .models import CareerEvent, Profile, Skill
 from .serializers import CareerEventSerializer, ProfileSerializer, SkillSerializer
 from .services import get_weather_forecast
+
+
+class HealthCheckView(APIView):
+    def get(self, request):
+        try:
+            connection.ensure_connection()
+            db_ok = True
+        except Exception:
+            db_ok = False
+        status = 200 if db_ok else 503
+        return Response({'status': 'ok' if db_ok else 'degraded', 'db': db_ok}, status=status)
 
 
 class ProfileView(APIView):

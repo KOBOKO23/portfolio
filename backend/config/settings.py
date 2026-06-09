@@ -214,6 +214,10 @@ CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(',') if o.strip()]
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_CREDENTIALS = True
 
+# CSRF trusted origins — required when frontend lives on a different domain from the API
+_csrf = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://localhost:3000')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(',') if o.strip()]
+
 from corsheaders.defaults import default_headers
 CORS_ALLOW_HEADERS = list(default_headers) + ['x-fingerprint']
 

@@ -20,6 +20,7 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 | `DEBUG` | `False` |
 | `ALLOWED_HOSTS` | `koboko.dev,www.koboko.dev` (your real domain) |
 | `CORS_ALLOWED_ORIGINS` | `https://koboko.dev,https://www.koboko.dev` |
+| `CSRF_TRUSTED_ORIGINS` | `https://koboko.dev,https://www.koboko.dev` |
 | `SITE_URL` | `https://koboko.dev` |
 
 ### 1.2 Payment API Keys

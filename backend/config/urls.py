@@ -52,6 +52,16 @@ def sitemap_xml(request):
             )
     except Exception:
         pass
+    try:
+        from apps.projects.models import Project
+        for project in Project.objects.all().values('slug'):
+            lines.append(
+                f'  <url><loc>{SITE_URL}/projects/{project["slug"]}</loc>'
+                f'<priority>0.8</priority>'
+                f'<changefreq>monthly</changefreq></url>'
+            )
+    except Exception:
+        pass
     lines.append('</urlset>')
     return HttpResponse('\n'.join(lines), content_type='application/xml')
 
