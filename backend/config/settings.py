@@ -17,9 +17,19 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
+    # Render (and most PaaS) terminate SSL at the load balancer and forward
+    # requests internally over plain HTTP.  SECURE_SSL_REDIRECT would cause
+    # an infinite redirect loop because Django sees HTTP even though the
+    # client is on HTTPS.  The correct pattern is to trust the
+    # X-Forwarded-Proto header that the load balancer injects instead.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# W008 warns that SECURE_SSL_REDIRECT is not True. We use
+# SECURE_PROXY_SSL_HEADER instead (correct for Render / any PaaS that
+# terminates TLS at the load balancer). Silence the spurious warning.
+SILENCED_SYSTEM_CHECKS = ['security.W008']
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -114,11 +124,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ─── Database ────────────────────────────────────────────────────────────────
-_db_engine = os.getenv('DB_ENGINE', 'sqlite')
-if _db_engine == 'postgresql':
+# Render (and most PaaS providers) inject a single DATABASE_URL environment
+# variable.  We prefer that when it is present.  Individual DB_* vars are
+# kept as a fallback so local dev with explicit credentials still works.
+import dj_database_url as _dj_db_url  # noqa: E402
+
+_DATABASE_URL = os.getenv('DATABASE_URL')
+
+if _DATABASE_URL:
+    DATABASES = {
+        'default': _dj_db_url.config(
+            default=_DATABASE_URL,
+            conn_max_age=int(os.getenv('CONN_MAX_AGE', '60')),
+            conn_health_checks=True,
+            ssl_require=not DEBUG,
+        )
+    }
+elif os.getenv('DB_ENGINE', 'sqlite') == 'postgresql':
     _db_options: dict = {}
     if not DEBUG:
-        # Require SSL for all production connections — never transmit credentials in plain text
         _db_options['sslmode'] = 'require'
     DATABASES = {
         'default': {
@@ -128,7 +152,7 @@ if _db_engine == 'postgresql':
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', '60')),  # reuse connections; reduces RDS overhead
+            'CONN_MAX_AGE': int(os.getenv('CONN_MAX_AGE', '60')),
             'CONN_HEALTH_CHECKS': True,
             'OPTIONS': _db_options,
         }

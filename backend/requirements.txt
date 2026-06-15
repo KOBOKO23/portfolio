@@ -8,6 +8,7 @@ requests>=2.31
 whitenoise>=6.5
 gunicorn>=21.2
 psycopg2-binary>=2.9
+dj-database-url>=2.1
 django-jazzmin>=3.0
 Markdown>=3.5
 bleach>=6.0
