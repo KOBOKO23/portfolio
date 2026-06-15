@@ -1,9 +1,16 @@
+"""
+apps/contact/views.py — Contact form submission with admin email notification.
+
+Endpoints (under /api/contact/)
+  POST  messages/  — create a contact message (rate-limited: 5 requests/hr per IP)
+"""
 import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import ContactMessage
 from .serializers import ContactMessageSerializer
@@ -13,8 +20,13 @@ logger = logging.getLogger(__name__)
 ADMIN_EMAIL = getattr(settings, 'ADMIN_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', '')
 
 
+class ContactRateThrottle(AnonRateThrottle):
+    scope = 'contact'
+
+
 class ContactCreateView(generics.CreateAPIView):
     serializer_class = ContactMessageSerializer
+    throttle_classes = [ContactRateThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

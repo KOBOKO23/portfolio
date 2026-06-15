@@ -17,13 +17,19 @@ Duplicate active emails are rejected with 400 (unique constraint on EmailField).
 """
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import NewsletterIssue, NewsletterSubscriber
 from .serializers import NewsletterIssueSerializer, NewsletterSubscribeSerializer
 
 
+class NewsletterRateThrottle(AnonRateThrottle):
+    scope = 'newsletter'
+
+
 class NewsletterSubscribeView(generics.CreateAPIView):
     serializer_class = NewsletterSubscribeSerializer
+    throttle_classes = [NewsletterRateThrottle]
 
     def create(self, request, *args, **kwargs):
         # Handle resubscription of inactive subscriber
