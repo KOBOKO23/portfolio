@@ -1,3 +1,6 @@
+"""
+apps/contact/serializers.py — Contact form message serialization.
+"""
 from rest_framework import serializers
 
 from .models import ContactMessage

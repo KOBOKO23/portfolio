@@ -1,3 +1,6 @@
+"""
+apps/blog/serializers.py — Blog categories, article list/detail, comments, and image gallery.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

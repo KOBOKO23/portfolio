@@ -1,3 +1,6 @@
+"""
+apps/books/serializers.py — Book details, chapters, and reader testimonials.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

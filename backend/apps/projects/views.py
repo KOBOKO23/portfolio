@@ -1,3 +1,11 @@
+"""
+apps/projects/views.py — Portfolio project categories and project listing / detail.
+
+Endpoints (under /api/projects/)
+  GET  categories/       — all categories with project counts
+  GET  projects/         — project list; supports ?category__slug= ?is_featured= ?year= and ?search=
+  GET  projects/<slug>/  — full project detail with gallery images
+"""
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics
 

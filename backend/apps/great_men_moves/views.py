@@ -1,3 +1,11 @@
+"""
+apps/great_men_moves/views.py — Great Men Moves programme listings and volunteer applications.
+
+Endpoints (under /api/great-men-moves/)
+  GET   programs/   — active programmes
+  GET   goals/      — impact goals with progress percentages
+  POST  volunteer/  — submit a volunteer application (triggers admin notification email)
+"""
 import logging
 
 from django.conf import settings

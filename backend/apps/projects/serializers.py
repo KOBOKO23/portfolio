@@ -1,3 +1,6 @@
+"""
+apps/projects/serializers.py — Project categories, project list/detail, and gallery images.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

@@ -1,3 +1,10 @@
+"""
+apps/books/views.py — Book listing and per-book testimonials.
+
+Endpoints (under /api/books/)
+  GET  books/                    — all books with chapters and testimonials
+  GET  books/<id>/testimonials/  — testimonials for a specific book
+"""
 from rest_framework import generics
 
 from .models import Book, BookTestimonial

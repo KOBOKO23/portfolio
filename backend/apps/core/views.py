@@ -1,3 +1,13 @@
+"""
+apps/core/views.py — Health check, profile, skills, career timeline, and weather forecast.
+
+Endpoints (under /api/)
+  GET  health/            — DB connectivity health check; returns 503 if DB is unreachable
+  GET  profile/           — bio, social links, and skills for the About page
+  GET  skills/            — skills list (all categories)
+  GET  career/            — career timeline events in display order
+  GET  weather/forecast/  — 72-hour weather forecast proxied from OpenWeatherMap
+"""
 from django.db import connection
 from rest_framework import generics
 from rest_framework.response import Response

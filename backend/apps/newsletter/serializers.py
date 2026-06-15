@@ -1,3 +1,6 @@
+"""
+apps/newsletter/serializers.py — Newsletter subscriber signup and published issue listing.
+"""
 from rest_framework import serializers
 
 from .models import NewsletterIssue, NewsletterSubscriber

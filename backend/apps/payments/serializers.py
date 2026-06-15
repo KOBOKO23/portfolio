@@ -1,3 +1,6 @@
+"""
+apps/payments/serializers.py — PreOrder read serializer, M-Pesa STK Push input, and Stripe PaymentIntent input.
+"""
 from rest_framework import serializers
 
 from .models import PreOrder

@@ -1,3 +1,6 @@
+"""
+apps/great_men_moves/serializers.py — GMM programmes, impact goals, and volunteer applications.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

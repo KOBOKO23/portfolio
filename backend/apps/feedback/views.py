@@ -1,3 +1,10 @@
+"""
+apps/feedback/views.py — Site feedback widget: submit ratings and display approved entries.
+
+Endpoints (under /api/feedback/)
+  POST  create/  — submit a feedback rating and optional message
+  GET   list/    — approved feedback entries visible on the public site
+"""
 from rest_framework import generics, status
 from rest_framework.response import Response
 

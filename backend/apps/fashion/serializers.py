@@ -1,3 +1,6 @@
+"""
+apps/fashion/serializers.py — Fashion photography categories and image gallery entries.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

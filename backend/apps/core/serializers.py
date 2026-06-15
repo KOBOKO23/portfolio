@@ -1,3 +1,6 @@
+"""
+apps/core/serializers.py — Profile bio, skills list, and career timeline events.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

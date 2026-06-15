@@ -1,3 +1,10 @@
+"""
+apps/fashion/views.py — Fashion photography gallery categories and images.
+
+Endpoints (under /api/fashion/)
+  GET  categories/  — all categories with image counts
+  GET  images/      — gallery images; supports ?category__slug= and ?search=
+"""
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics
 

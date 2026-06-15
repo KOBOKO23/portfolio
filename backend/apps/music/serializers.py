@@ -1,3 +1,6 @@
+"""
+apps/music/serializers.py — Music track data including streaming platform links and cover art.
+"""
 from rest_framework import serializers
 
 from utils.media import media_url

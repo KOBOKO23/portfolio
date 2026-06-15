@@ -1,3 +1,6 @@
+"""
+apps/feedback/serializers.py — Full feedback (write) and public-safe feedback (read) representations.
+"""
 from rest_framework import serializers
 
 from .models import Feedback
