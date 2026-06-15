@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 
@@ -41,6 +42,8 @@ class Project(models.Model):
     year = models.PositiveIntegerField(blank=True, null=True)
     is_featured = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-is_featured', 'order', '-year']
