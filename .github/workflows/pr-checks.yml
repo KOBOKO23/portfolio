@@ -1,0 +1,58 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, development, test]
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Enforce conventional commit format on every commit in the PR
+  # ──────────────────────────────────────────────────────────────────────────
+  conventional-commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: webiny/action-conventional-commits@v1.3.0
+        with:
+          allowed-commit-types: "feat,fix,chore,docs,ci,refactor,test,perf,style,revert"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Warn when a PR changes more than 800 lines (encourages smaller PRs)
+  # ──────────────────────────────────────────────────────────────────────────
+  size-check:
+    name: PR Size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Count changed lines
+        run: |
+          ADDED=$(git diff --stat "origin/${{ github.base_ref }}...HEAD" \
+            | tail -1 | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+          DELETED=$(git diff --stat "origin/${{ github.base_ref }}...HEAD" \
+            | tail -1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
+          TOTAL=$((ADDED + DELETED))
+          echo "Lines changed: +${ADDED} -${DELETED} (total ${TOTAL})"
+          if [[ "$TOTAL" -gt 800 ]]; then
+            echo "::warning::This PR changes ${TOTAL} lines — consider splitting it into smaller pieces."
+          fi
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Auto-label PRs based on which paths changed
+  # Requires a .github/labeler.yml config file
+  # ──────────────────────────────────────────────────────────────────────────
+  label:
+    name: Auto Label
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          sync-labels: false

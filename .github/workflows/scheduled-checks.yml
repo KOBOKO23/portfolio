@@ -1,0 +1,88 @@
+name: Scheduled Checks
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"  # every Monday 07:00 UTC
+  workflow_dispatch:
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Audit Python dependencies for known CVEs
+  # ──────────────────────────────────────────────────────────────────────────
+  backend-audit:
+    name: Backend Dependency Audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: pip-audit
+        run: pip-audit -r requirements.txt
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Audit npm packages for known vulnerabilities
+  # ──────────────────────────────────────────────────────────────────────────
+  frontend-audit:
+    name: Frontend Dependency Audit
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # List branches with no commits in the last 30 days
+  # ──────────────────────────────────────────────────────────────────────────
+  stale-branches:
+    name: Stale Branch Report
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List branches inactive > 30 days
+        run: |
+          CUTOFF=$(date -d '30 days ago' +%Y-%m-%d 2>/dev/null \
+            || date -v-30d +%Y-%m-%d)
+          echo "Branches with no commits since $CUTOFF:"
+          git for-each-ref --sort=committerdate refs/remotes/origin \
+            --format='%(refname:short) %(committerdate:short)' \
+            | awk -v cutoff="$CUTOFF" \
+              '$2 < cutoff && $1 !~ /HEAD|main|production|development|test$/ {print $0}' \
+            | sort -k2 \
+            || echo "(none)"
