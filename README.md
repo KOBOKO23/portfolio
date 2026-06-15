@@ -114,8 +114,17 @@ See the individual `urls.py` in each `backend/apps/*/` directory.
 
 ---
 
-## Deployment
+## Documentation
 
-See [backend/README.md](backend/README.md) and [src/README.md](src/README.md) for environment variables and deploy steps.
-
-Branch workflow: [docs/branch-strategy.md](docs/branch-strategy.md)
+| Document | Description |
+|----------|-------------|
+| [docs/architecture.md](docs/architecture.md) | System design, data flows, infrastructure topology |
+| [docs/api-reference.md](docs/api-reference.md) | Complete REST API reference with request/response examples |
+| [docs/deployment.md](docs/deployment.md) | Production deployment guide — Render + Vercel, DNS, secrets |
+| [docs/development.md](docs/development.md) | Local development setup, tooling, IDE configuration |
+| [docs/testing.md](docs/testing.md) | Testing strategy, how to write backend + frontend + E2E tests |
+| [docs/branch-strategy.md](docs/branch-strategy.md) | Branch model, protection rules, conventional commits reference |
+| [docs/adr/](docs/adr/) | Architecture Decision Records — why key decisions were made |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute — standards, PR process, conventions |
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |

@@ -1,0 +1,68 @@
+name: Feature Request
+description: Propose a new feature or improvement
+labels: ["enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Please describe the problem you are trying to solve — not just the solution — so we can evaluate the best approach.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this feature solve? Who is affected?
+      placeholder: "As a visitor, I can't filter blog articles by language, so I have to scroll through all posts to find Swahili content."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the change you would like to see.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternative approaches? Why did you rule them out?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Frontend (React)
+        - Backend API (Django)
+        - Admin CMS
+        - Payments
+        - CI / GitHub Actions
+        - Documentation
+        - Performance
+        - Accessibility
+        - SEO
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Estimated priority
+      options:
+        - Critical — blocks a key user journey
+        - High — significant improvement to existing functionality
+        - Medium — useful but not urgent
+        - Low — nice to have
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, references to similar implementations, or any other context.

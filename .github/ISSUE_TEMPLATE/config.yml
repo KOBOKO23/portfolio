@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/KOBOKO23/portfolio/blob/main/SECURITY.md
+    about: Do not report security vulnerabilities as GitHub Issues. See SECURITY.md for the responsible disclosure process.
+  - name: General question / discussion
+    url: https://github.com/KOBOKO23/portfolio/discussions
+    about: For questions that are not bugs or feature requests, use GitHub Discussions.

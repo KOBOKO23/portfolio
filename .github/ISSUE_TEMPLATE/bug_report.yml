@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report a reproducible bug in the site or API
+labels: ["bug", "needs-triage"]
+assignees: ["KOBOKO23"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+
+        **Security vulnerabilities must not be reported here.** See [SECURITY.md](../SECURITY.md) for the responsible disclosure process.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear, concise description of what the bug is.
+      placeholder: "When I submit the contact form with a long message, I get a 500 error instead of a success response."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Step-by-step instructions to reproduce the behaviour.
+      value: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Observe '...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What actually happened? Include any error messages or stack traces.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area affected
+      options:
+        - Frontend (React / Vite)
+        - Backend API (Django)
+        - Admin CMS
+        - Payments (Stripe)
+        - Payments (M-Pesa)
+        - CI / GitHub Actions
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL (if applicable)
+      placeholder: "https://koboko.dev/contact"
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      value: |
+        - OS:
+        - Browser / version:
+        - Node.js version (if local):
+        - Python version (if local):
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Paste browser console errors, network responses, or Django tracebacks here.
+      render: shell
