@@ -28,6 +28,14 @@ export function Navigation() {
   };
 
   return (
+    <>
+      {/* Skip-to-content link — visually hidden until focused by keyboard */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#d4a574] focus:text-white focus:text-sm focus:font-medium"
+      >
+        Skip to content
+      </a>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-black/10">
       <div className="max-w-[1800px] mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
@@ -99,5 +107,6 @@ export function Navigation() {
         )}
       </AnimatePresence>
     </nav>
+    </>
   );
 }

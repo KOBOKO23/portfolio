@@ -31,7 +31,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navigation />
-      <main>
+      <main id="main-content">
         <Suspense fallback={<PageLoader />}>
           {children}
         </Suspense>
