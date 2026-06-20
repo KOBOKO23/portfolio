@@ -7,13 +7,19 @@ Endpoints (under /api/feedback/)
 """
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import Feedback
 from .serializers import FeedbackPublicSerializer, FeedbackSerializer
 
 
+class FeedbackRateThrottle(AnonRateThrottle):
+    scope = 'feedback'
+
+
 class FeedbackCreateView(generics.CreateAPIView):
     serializer_class = FeedbackSerializer
+    throttle_classes = [FeedbackRateThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -50,12 +50,15 @@ export function isValidPhone(phone: string): boolean {
 }
 
 /**
- * Sanitize HTML to prevent XSS
- * Note: For production, consider using DOMPurify library
+ * Escape a plain-text string so it is safe to insert as literal text content
+ * inside HTML (e.g. for display in a tooltip or error message built with
+ * innerHTML). This is an HTML *escaper*, not an HTML sanitizer — it converts
+ * every character to its entity form. Do NOT pass HTML you intend to render
+ * as markup through this function; use DOMPurify for that.
  */
-export function sanitizeHTML(html: string): string {
+export function escapeHTML(text: string): string {
   const div = document.createElement('div');
-  div.textContent = html;
+  div.textContent = text;
   return div.innerHTML;
 }
 

@@ -81,7 +81,10 @@ class OrderStatusAPITest(TestCase):
         resp = self.client.get(f'/api/payments/orders/{fake_id}/')
         self.assertEqual(resp.status_code, 404)
 
-    def test_patch_confirms_stripe_payment(self):
+    @patch('apps.payments.views.stripe.PaymentIntent.retrieve')
+    def test_patch_confirms_stripe_payment(self, mock_retrieve):
+        """PATCH should succeed when Stripe confirms the intent is succeeded."""
+        mock_retrieve.return_value = MagicMock(status='succeeded')
         stripe_order = make_order(
             payment_method='card',
             status='processing',
@@ -178,3 +181,121 @@ class StripeCreateIntentAPITest(TestCase):
         mock_pi.side_effect = stripe_lib.StripeError('card_declined')
         resp = self.client.post(self.url, self.valid_payload, format='json')
         self.assertEqual(resp.status_code, 502)
+
+
+# ── Security boundary tests ───────────────────────────────────────────────────
+
+class OrderStatusPatchSecurityTest(TestCase):
+    """Verify that PATCH /orders/<uuid>/ cannot self-approve a payment."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.order = make_order(
+            payment_method='card',
+            status='processing',
+            stripe_payment_intent_id='pi_test_sec_123',
+        )
+        self.url = f'/api/payments/orders/{self.order.id}/'
+
+    @patch('apps.payments.views.stripe.PaymentIntent.retrieve')
+    def test_patch_rejected_when_stripe_not_succeeded(self, mock_retrieve):
+        """PATCH must be rejected when Stripe reports the intent is not succeeded."""
+        mock_retrieve.return_value = MagicMock(status='requires_payment_method')
+        resp = self.client.patch(self.url, {}, format='json')
+        self.assertEqual(resp.status_code, 400)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'processing')
+
+    @patch('apps.payments.views.stripe.PaymentIntent.retrieve')
+    def test_patch_accepted_only_when_stripe_succeeded(self, mock_retrieve):
+        """PATCH must succeed only when Stripe confirms the intent succeeded."""
+        mock_retrieve.return_value = MagicMock(status='succeeded')
+        resp = self.client.patch(self.url, {}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'paid')
+
+    @patch('apps.payments.views.stripe.PaymentIntent.retrieve')
+    def test_patch_clears_client_secret_on_success(self, mock_retrieve):
+        """stripe_client_secret must be cleared after payment is confirmed."""
+        self.order.stripe_client_secret = 'pi_test_sec_123_secret_xyz'
+        self.order.save(update_fields=['stripe_client_secret'])
+        mock_retrieve.return_value = MagicMock(status='succeeded')
+        self.client.patch(self.url, {}, format='json')
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.stripe_client_secret, '')
+
+    def test_patch_without_payment_intent_id_returns_400(self):
+        """PATCH must fail if the order has no Stripe intent ID recorded."""
+        self.order.stripe_payment_intent_id = ''
+        self.order.save(update_fields=['stripe_payment_intent_id'])
+        resp = self.client.patch(self.url, {}, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+    @patch('apps.payments.views.stripe.PaymentIntent.retrieve')
+    def test_patch_already_paid_order_is_idempotent(self, mock_retrieve):
+        """PATCH on an already-paid order must not call Stripe again and just return 200."""
+        self.order.status = 'paid'
+        self.order.save(update_fields=['status'])
+        resp = self.client.patch(self.url, {}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        mock_retrieve.assert_not_called()
+
+
+class MpesaCallbackSecurityTest(TestCase):
+    """Verify the M-Pesa callback rejects fabricated or replayed payloads."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.order = make_order(
+            mpesa_merchant_request_id='MR-real-001',
+            mpesa_checkout_request_id='CO-real-001',
+        )
+        self.url = '/api/payments/mpesa/callback/'
+
+    def _callback(self, merchant_id='MR-real-001', checkout_id='CO-real-001', result_code=0):
+        return self.client.post(self.url, {
+            'Body': {'stkCallback': {
+                'MerchantRequestID': merchant_id,
+                'CheckoutRequestID': checkout_id,
+                'ResultCode': result_code,
+                'CallbackMetadata': {'Item': [
+                    {'Name': 'MpesaReceiptNumber', 'Value': 'RCP001'},
+                ]},
+            }},
+        }, format='json')
+
+    def test_valid_callback_marks_order_paid(self):
+        resp = self._callback()
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'paid')
+
+    def test_fabricated_merchant_id_does_not_change_status(self):
+        """Callback with wrong MerchantRequestID must not affect any order."""
+        resp = self._callback(merchant_id='MR-fake-999')
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'processing')
+
+    def test_fabricated_checkout_id_does_not_change_status(self):
+        """Callback with correct merchant ID but wrong CheckoutRequestID must be rejected."""
+        resp = self._callback(checkout_id='CO-fake-999')
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'processing')
+
+    def test_replay_of_success_callback_is_idempotent(self):
+        """A second success callback on an already-paid order must not error."""
+        self.order.status = 'paid'
+        self.order.save(update_fields=['status'])
+        resp = self._callback()
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'paid')
+
+    def test_failed_callback_marks_order_failed(self):
+        resp = self._callback(result_code=1032)
+        self.assertEqual(resp.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'failed')

@@ -17,9 +17,10 @@ POST articles/<slug>/share/<platform>/ — increment share counter for twitter|f
 Authentication: none — all endpoints are public.
 Rate limiting: inherits project-wide DRF throttle (200 req/hr anon).
 """
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, status
+from rest_framework import filters, generics, serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -73,7 +74,7 @@ class BlogArticleDetailView(generics.RetrieveAPIView):
 
     def get_object(self):
         obj = super().get_object()
-        BlogArticle.objects.filter(pk=obj.pk).update(views=obj.views + 1)
+        BlogArticle.objects.filter(pk=obj.pk).update(views=F('views') + 1)
         return obj
 
 
@@ -93,6 +94,11 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         article = get_object_or_404(BlogArticle, slug=self.kwargs['slug'], is_published=True)
+        parent = serializer.validated_data.get('parent')
+        if parent is not None and parent.article_id != article.pk:
+            raise serializers.ValidationError(
+                {'parent': 'Parent comment does not belong to this article.'}
+            )
         ip = _get_ip(self.request)
         serializer.save(article=article, ip_address=ip)
 

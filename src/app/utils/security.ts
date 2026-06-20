@@ -69,16 +69,10 @@ class RateLimiter {
 export const rateLimiter = new RateLimiter();
 
 /**
- * Prevent clickjacking attacks
+ * @deprecated No-op. Clickjacking is already prevented server-side via
+ * X-Frame-Options: DENY. JS framebusting is unreliable and redundant.
  */
-export function preventClickjacking(): void {
-  if (typeof window !== 'undefined') {
-    // Ensure we're not in an iframe
-    if (window.self !== window.top && window.top) {
-      window.top.location.href = window.self.location.href;
-    }
-  }
-}
+export function preventClickjacking(): void {}
 
 /**
  * Generate a random nonce for inline scripts (CSP)
@@ -197,79 +191,6 @@ export function constantTimeCompare(a: string, b: string): boolean {
   return result === 0;
 }
 
-/**
- * Encrypt sensitive data before storing in localStorage
- * Note: This is basic obfuscation. For real encryption, use Web Crypto API
- */
-export function obfuscate(data: string): string {
-  const key = generateSecureToken(16);
-  let result = '';
-  
-  for (let i = 0; i < data.length; i++) {
-    result += String.fromCharCode(
-      data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-    );
-  }
-  
-  return btoa(result + '::' + key);
-}
-
-/**
- * Decrypt obfuscated data
- */
-export function deobfuscate(encoded: string): string {
-  try {
-    const decoded = atob(encoded);
-    const [data, key] = decoded.split('::');
-    let result = '';
-    
-    for (let i = 0; i < data.length; i++) {
-      result += String.fromCharCode(
-        data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
-      );
-    }
-    
-    return result;
-  } catch {
-    return '';
-  }
-}
-
-/**
- * Secure data storage in localStorage with encryption
- */
-export const secureStorage = {
-  setItem(key: string, value: unknown): void {
-    try {
-      const serialized = JSON.stringify(value);
-      const obfuscated = obfuscate(serialized);
-      localStorage.setItem(key, obfuscated);
-    } catch (error) {
-      console.error('Secure storage set error:', error);
-    }
-  },
-
-  getItem<T>(key: string): T | null {
-    try {
-      const obfuscated = localStorage.getItem(key);
-      if (!obfuscated) return null;
-      
-      const deobfuscated = deobfuscate(obfuscated);
-      return JSON.parse(deobfuscated) as T;
-    } catch (error) {
-      console.error('Secure storage get error:', error);
-      return null;
-    }
-  },
-
-  removeItem(key: string): void {
-    localStorage.removeItem(key);
-  },
-
-  clear(): void {
-    localStorage.clear();
-  },
-};
 
 /**
  * Initialize security measures on app load

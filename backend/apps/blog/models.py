@@ -17,9 +17,13 @@ Fingerprint
 A UUID stored in the browser's localStorage (key "_fp") and sent as the
 X-Fingerprint header identifies anonymous interactions without requiring auth.
 """
+import hashlib
+from functools import lru_cache
+
 import bleach
 import markdown
 from django.db import models
+from django.db.models import Count
 from django.utils.text import slugify
 
 ALLOWED_TAGS = [
@@ -29,10 +33,23 @@ ALLOWED_TAGS = [
 ]
 ALLOWED_ATTRS = {
     'a': ['href', 'title', 'rel'],
-    'img': ['src', 'alt', 'width', 'height', 'class'],
+    'img': ['src', 'alt', 'width', 'height'],  # removed 'class' — no legitimate need, widens attack surface
     'figure': ['class'],
     'figcaption': ['class'],
 }
+# Explicit protocol allowlist for <a href> and <img src>.
+# Bleach 6.x strips javascript: hrefs by default, but being explicit is safer.
+ALLOWED_PROTOCOLS = ['http', 'https', 'mailto']
+
+
+@lru_cache(maxsize=256)
+def _render_markdown(content_hash: str, content: str) -> str:  # noqa: ARG001 — hash is the cache key
+    """Convert Markdown to sanitized HTML. Cached per unique content hash (process-level)."""
+    md = markdown.markdown(
+        content,
+        extensions=['extra', 'codehilite', 'toc', 'sane_lists'],
+    )
+    return bleach.clean(md, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS, protocols=ALLOWED_PROTOCOLS)
 
 LANGUAGE_CHOICES = [
     ('en', 'English'),
@@ -105,11 +122,8 @@ class BlogArticle(models.Model):
         return self.title
 
     def get_content_html(self):
-        md = markdown.markdown(
-            self.content,
-            extensions=['extra', 'codehilite', 'toc', 'sane_lists'],
-        )
-        return bleach.clean(md, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS)
+        content_hash = hashlib.md5(self.content.encode(), usedforsecurity=False).hexdigest()
+        return _render_markdown(content_hash, self.content)
 
     @property
     def like_count(self):
@@ -121,10 +135,10 @@ class BlogArticle(models.Model):
 
     @property
     def reaction_summary(self):
-        result = {}
-        for reaction_type, _ in REACTION_CHOICES:
-            result[reaction_type] = self.reactions.filter(reaction=reaction_type).count()
-        return result
+        counts = dict(
+            self.reactions.values('reaction').annotate(n=Count('id')).values_list('reaction', 'n')
+        )
+        return {rtype: counts.get(rtype, 0) for rtype, _ in REACTION_CHOICES}
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -160,7 +174,7 @@ class BlogComment(models.Model):
     author_name = models.CharField(max_length=100)
     author_email = models.EmailField()
     content = models.TextField()
-    is_approved = models.BooleanField(default=True)
+    is_approved = models.BooleanField(default=False)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     likes = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

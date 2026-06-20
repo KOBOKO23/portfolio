@@ -40,8 +40,8 @@ function getStripe(pk: string) {
 }
 
 // ── API helpers ────────────────────────────────────────────────────────────────
-interface MpesaResp { success: boolean; data?: { order_id: string; message: string }; error?: { message?: string } }
-interface OrderResp { data?: { status?: string } }
+interface MpesaResp { success: boolean; data?: { order_id: string; checkout_request_id: string; message: string }; error?: { message?: string } }
+interface OrderResp { success: boolean; data?: { id: string; status: string } }
 interface StripeResp { success: boolean; data?: { client_secret: string; publishable_key: string; order_id: string }; error?: { message?: string } }
 interface BookListResp { data?: BookData[] | { results?: BookData[] } }
 
@@ -57,7 +57,7 @@ async function initMpesa(data: { name: string; email: string; phone: string; amo
 async function pollOrderStatus(orderId: string) {
   const res  = await fetch(`${API}/payments/orders/${orderId}/`);
   const json = (await res.json()) as OrderResp;
-  return json?.data?.status ?? 'processing';
+  return json.success ? (json.data?.status ?? 'processing') : 'failed';
 }
 
 // ── Step indicator ─────────────────────────────────────────────────────────────
@@ -430,10 +430,14 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
     pollRef.current = setInterval(async () => {
       n++;
       const s = await pollOrderStatus(id);
-      if (s === 'paid')  { setStatus('paid'); stopPoll(); }
-      if (s === 'failed' || n > 24) {
+      if (s === 'paid') { setStatus('paid'); stopPoll(); return; }
+      if (s === 'failed' || s === 'cancelled' || n > 24) {
         setStatus('failed');
-        setErrMsg(s === 'failed' ? 'Payment was not completed on your phone.' : 'Request timed out. Please try again.');
+        setErrMsg(
+          s === 'failed'    ? 'Payment was not completed on your phone.' :
+          s === 'cancelled' ? 'Payment was cancelled.' :
+                              'Request timed out. Please try again.'
+        );
         stopPoll();
       }
     }, 5000);
@@ -447,7 +451,7 @@ function PaymentModal({ book, onClose }: { book: BookData; onClose: () => void }
     if (method === 'mpesa') {
       const phone = form.phone.replace(/\s/g, '');
       if (!phone) e.phone = 'M-Pesa number is required';
-      else if (!/^(07|01|\+?2547|\+?2541)\d{7,8}$/.test(phone))
+      else if (!/^(07|01|\+?2547|\+?2541)\d{8}$/.test(phone))
         e.phone = 'Enter a valid Safaricom number (e.g. 0712 345 678)';
     }
     setFieldErr(e);

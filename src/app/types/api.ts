@@ -31,6 +31,7 @@ export interface BlogCategory {
   slug: string;
   description: string;
   icon: string;
+  color: string;
   article_count: number;
 }
 
@@ -39,17 +40,31 @@ export interface BlogArticle {
   title: string;
   slug: string;
   excerpt: string;
-  content?: string;
-  featured_image: string | null;
-  category_name: string;
-  category_slug: string;
+  thumbnail: string | null;
+  thumbnail_alt: string;
+  category: BlogCategory | null;
+  tags: string[];
   author: string;
+  language: string;
   read_time: number;
   views: number;
+  like_count: number;
+  comment_count: number;
   is_featured: boolean;
   published_date: string;
-  created_at?: string;
-  updated_at?: string;
+}
+
+export interface BlogArticleDetail extends BlogArticle {
+  content: string;
+  content_html: string;
+  author_bio: string;
+  allow_comments: boolean;
+  reaction_summary: Record<string, number>;
+  share_counts: Record<string, number>;
+  user_liked: boolean;
+  user_reaction: string | null;
+  updated_at: string;
+  gallery: { id: number; image: string; alt_text: string; caption: string; order: number }[];
 }
 
 // Project types
@@ -227,6 +242,9 @@ export interface Profile {
   bio: string;
   profile_image: string;
   resume_pdf: string | null;
+  email: string;
+  phone: string;
+  location: string;
   linkedin_url: string;
   github_url: string;
   twitter_url: string;

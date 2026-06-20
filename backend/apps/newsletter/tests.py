@@ -10,6 +10,7 @@ Covers:
 
 from datetime import date
 
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -63,6 +64,7 @@ class NewsletterSubscribeAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.url = '/api/newsletter/subscribe/'
+        cache.clear()  # Reset DRF throttle counters so tests don't bleed rate-limit state
 
     def test_subscribe_new_email(self):
         resp = self.client.post(self.url, {'name': 'Alice', 'email': 'alice@test.com'}, format='json')

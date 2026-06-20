@@ -7,6 +7,11 @@ from .models import NewsletterIssue, NewsletterSubscriber
 
 
 class NewsletterSubscribeSerializer(serializers.ModelSerializer):
+    # Explicit declaration removes the auto-generated UniqueValidator so that
+    # inactive subscribers pass validation here and get reactivated in the view.
+    # Active-subscriber uniqueness is enforced by validate_email below.
+    email = serializers.EmailField()
+
     class Meta:
         model = NewsletterSubscriber
         fields = ['id', 'name', 'email', 'subscribed_at']

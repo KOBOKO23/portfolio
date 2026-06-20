@@ -27,7 +27,15 @@ class StandardRenderer(JSONRenderer):
 
         if status_code >= 400:
             if isinstance(data, dict):
-                msg = data.get('detail', data.get('message', str(data)))
+                msg = data.get('detail') or data.get('message')
+                if not msg:
+                    # DRF field-level validation errors — pull first readable message
+                    for v in data.values():
+                        if isinstance(v, list) and v and isinstance(v[0], str):
+                            msg = v[0]
+                            break
+                if not msg:
+                    msg = str(data)
             else:
                 msg = str(data)
             wrapped = {

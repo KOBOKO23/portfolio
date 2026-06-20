@@ -32,19 +32,27 @@ class NewsletterSubscribeView(generics.CreateAPIView):
     throttle_classes = [NewsletterRateThrottle]
 
     def create(self, request, *args, **kwargs):
-        # Handle resubscription of inactive subscriber
-        email = request.data.get('email', '')
+        # Validate first — catches missing email, bad format, and active-duplicate
+        # (all via the serializer). Inactive-email uniqueness is intentionally allowed
+        # through so the resubscription branch below can reactivate the subscriber.
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        name = serializer.validated_data.get('name', '')
+
         existing = NewsletterSubscriber.objects.filter(email=email, is_active=False).first()
         if existing:
             existing.is_active = True
-            existing.name = request.data.get('name', existing.name)
-            existing.save()
+            if name:
+                existing.name = name
+            existing.save(update_fields=['is_active', 'name'])
+            # Unified success message — callers cannot distinguish new from resubscribed
             return Response(
-                {'message': 'Welcome back! You have been resubscribed.'},
+                {'message': 'Thank you for subscribing!'},
                 status=status.HTTP_200_OK,
             )
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
         serializer.save()
         return Response(
             {'message': 'Thank you for subscribing!'},

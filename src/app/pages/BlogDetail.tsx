@@ -76,6 +76,7 @@ export default function BlogDetail() {
   const [commentForm, setCommentForm] = useState({ name: '', email: '', content: '', parent: null as number | null });
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentSuccess, setCommentSuccess] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const fp = getFingerprint();
@@ -186,6 +187,7 @@ export default function BlogDetail() {
     e.preventDefault();
     if (!slug) return;
     setCommentSubmitting(true);
+    setCommentError(null);
     try {
       const body: Record<string, unknown> = {
         author_name: commentForm.name,
@@ -198,7 +200,7 @@ export default function BlogDetail() {
         headers: { 'Content-Type': 'application/json', 'X-Fingerprint': fp },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { success: boolean };
+      const data = (await res.json()) as { success: boolean; error?: { message?: string; details?: Record<string, string[]> } };
       if (data.success) {
         setCommentSuccess(true);
         setCommentForm({ name: '', email: '', content: '', parent: null });
@@ -210,7 +212,14 @@ export default function BlogDetail() {
           const d = refreshData.data;
           setComments(Array.isArray(d) ? d : (d as { results?: Comment[] })?.results ?? []);
         }
+      } else {
+        const details = data.error?.details;
+        setCommentError(
+          details ? Object.values(details).flat().join(' ') : (data.error?.message ?? 'Could not post comment.')
+        );
       }
+    } catch {
+      setCommentError('Something went wrong. Please try again.');
     } finally { setCommentSubmitting(false); }
   }, [slug, commentForm, fp]);
 
@@ -417,6 +426,13 @@ export default function BlogDetail() {
                   className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-700">
                   <Check className="w-5 h-5" />
                   Your comment was posted! It may take a moment to appear.
+                </motion.div>
+              )}
+
+              {commentError && (
+                <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {commentError}
                 </motion.div>
               )}
 
