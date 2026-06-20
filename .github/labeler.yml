@@ -15,8 +15,6 @@ docs:
     - any-glob-to-any-file:
       - "*.md"
       - "docs/**"
-      - "backend/README.md"
-      - "src/README.md"
 
 scripts:
   - changed-files:

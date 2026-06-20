@@ -125,6 +125,8 @@ See the individual `urls.py` in each `backend/apps/*/` directory.
 | [docs/testing.md](docs/testing.md) | Testing strategy, how to write backend + frontend + E2E tests |
 | [docs/branch-strategy.md](docs/branch-strategy.md) | Branch model, protection rules, conventional commits reference |
 | [docs/adr/](docs/adr/) | Architecture Decision Records — why key decisions were made |
+| [docs/backend.md](docs/backend.md) | Backend setup — local dev, env vars, scripts |
+| [docs/frontend.md](docs/frontend.md) | Frontend setup — local dev, env vars, scripts |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute — standards, PR process, conventions |
 | [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |

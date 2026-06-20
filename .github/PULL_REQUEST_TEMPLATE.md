@@ -36,4 +36,4 @@
 - [ ] New environment variables are added to the relevant `.env.example`
 - [ ] Database migrations are included and reversible
 - [ ] No secrets, credentials, or `.env` files are committed
-- [ ] `CHANGELOG.md` updated under `[Unreleased]` if this is a user-facing change
+- [ ] `docs/CHANGELOG.md` updated under `[Unreleased]` if this is a user-facing change
