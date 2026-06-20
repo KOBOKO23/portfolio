@@ -207,7 +207,7 @@ describe('SEO', () => {
         <SEO title="Test Page" description="A test" />
       </MemoryRouter>
     );
-    expect(document.title).toBe('Test Page | Philip Oduya');
+    expect(document.title).toBe('Test Page | Philip Koboko');
   });
 });
 ```

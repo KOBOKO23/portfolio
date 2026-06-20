@@ -82,7 +82,7 @@ Returns the site owner's full profile including bio, social links, and skills.
 ```json
 {
   "id": 1,
-  "full_name": "Philip Oduya",
+  "full_name": "Philip Koboko",
   "tagline": "Meteorologist · Developer · Author",
   "bio": "...",
   "profile_image": "https://api.koboko.dev/media/profile/photo.jpg",

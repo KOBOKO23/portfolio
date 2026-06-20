@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-06-15  
-**Author:** Philip Oduya
+**Author:** Philip Koboko
 
 ---
 

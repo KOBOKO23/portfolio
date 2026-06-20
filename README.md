@@ -1,4 +1,4 @@
-# Philip Oduya — Portfolio
+# Philip Koboko — Portfolio
 
 Full-stack personal portfolio — **React 18 + TypeScript + Django REST Framework**.  
 Meteorologist · Developer · Mentor · Gospel Artist · Author · Nairobi, Kenya.
