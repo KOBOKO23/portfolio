@@ -10,6 +10,10 @@ services:
     startCommand: bash start_prod.sh
     healthCheckPath: /api/health/
     autoDeploy: true
+    disk:
+      name: koboko-media
+      mountPath: /data
+      sizeGB: 10
     envVars:
       - key: SECRET_KEY
         generateValue: true
@@ -44,19 +48,11 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false
       - key: DEFAULT_FROM_EMAIL
-        value: "Koboko Newsletter <noreply@koboko.dev>"
+        value: "Koboko Newsletter <kobokophilip@gmail.com>"
       - key: ADMIN_EMAIL
         sync: false
-      - key: USE_S3
-        value: "True"
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-      - key: AWS_STORAGE_BUCKET_NAME
-        sync: false
-      - key: AWS_S3_REGION_NAME
-        value: us-east-1
+      - key: MEDIA_ROOT
+        value: /data/media
       - key: STRIPE_PUBLISHABLE_KEY
         sync: false
       - key: STRIPE_SECRET_KEY

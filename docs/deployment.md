@@ -121,9 +121,7 @@ WhiteNoise serves `staticfiles/` at `/static/` directly from Gunicorn — no sep
 
 ### Media files
 
-Media uploads are stored on a **Render Disk** mounted at `/media/`. The disk persists across deploys and restarts.
-
-> **Note:** Render Disks are not replicated. For high-availability or large media libraries, configure S3 by setting `USE_S3=True` and the `AWS_*` variables. See the Environment Variables Reference below.
+Media uploads are stored on a **Render Disk** mounted at `/data/media/` and persist across deploys and restarts. The disk is provisioned in `render.yaml` at 10 GB — upgrade in the Render dashboard if you need more.
 
 ---
 
@@ -285,14 +283,10 @@ git push origin production
 | `EMAIL_USE_TLS` | Emails | `True` | Use STARTTLS |
 | `EMAIL_HOST_USER` | Emails | `kobokophilip@gmail.com` | SMTP username |
 | `EMAIL_HOST_PASSWORD` | Emails | — | Gmail App Password |
-| `DEFAULT_FROM_EMAIL` | Emails | `kobokophilip@gmail.com` | From address |
+| `DEFAULT_FROM_EMAIL` | Emails | `Koboko Newsletter <kobokophilip@gmail.com>` | From address |
 | `ADMIN_EMAIL` | Emails | `kobokophilip@gmail.com` | Notification recipient |
-| `USE_S3` | Media | `True` | Enable S3 media storage |
-| `AWS_ACCESS_KEY_ID` | S3 | — | AWS IAM access key |
-| `AWS_SECRET_ACCESS_KEY` | S3 | — | AWS IAM secret key |
-| `AWS_STORAGE_BUCKET_NAME` | S3 | `koboko-portfolio` | S3 bucket name |
-| `AWS_S3_REGION_NAME` | S3 | `af-south-1` | S3 bucket region |
-| `GUNICORN_WORKERS` | No | `4` | Number of Gunicorn worker processes |
+| `MEDIA_ROOT` | No | `/data/media` | Filesystem path for uploaded media (set automatically via render.yaml) |
+| `GUNICORN_WORKERS` | No | `2` | Number of Gunicorn worker processes |
 
 ### Frontend (Vercel or `src/.env`)
 
