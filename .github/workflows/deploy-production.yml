@@ -9,29 +9,101 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false  # never interrupt a deploy mid-flight
 
+permissions:
+  id-token: write   # required for AWS OIDC — no long-lived AWS keys are stored in this repo
+  contents: read
+
+env:
+  AWS_REGION: eu-west-1
+  ECR_REPOSITORY: koboko-backend
+  ECS_CLUSTER: koboko-cluster
+  ECS_SERVICE: koboko-backend-svc
+  ECS_TASK_FAMILY: koboko-backend
+  ECS_SUBNETS: subnet-0ea4fcfd65fc106cf,subnet-000bbaebabc881235,subnet-06135dbb543696392
+  ECS_SECURITY_GROUP: sg-0b87bb21ae845fb71
+
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # Backend — trigger Render deploy hook, then health-check
+  # Backend — build image, push to ECR, migrate, roll out new ECS deployment
   # ──────────────────────────────────────────────────────────────────────────
   deploy-backend:
-    name: Deploy Backend → Render
+    name: Deploy Backend → AWS ECS
     runs-on: ubuntu-latest
     environment: production
+    outputs:
+      backend_url: ${{ secrets.BACKEND_URL }}
 
     steps:
-      - name: Trigger Render deploy hook
-        run: |
-          curl -fsSL --retry 3 \
-            "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+      - uses: actions/checkout@v4
 
-      - name: Wait for Render to boot
-        run: sleep 90
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}"
+          docker build --platform linux/arm64 -t "$IMAGE" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" backend
+          docker push "$IMAGE"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Register new task definition revision
+        id: register
+        run: |
+          aws ecs describe-task-definition --task-definition "$ECS_TASK_FAMILY" --query 'taskDefinition' > task-def.json
+          jq --arg IMAGE "${{ steps.build.outputs.image }}" \
+            '.containerDefinitions[0].image = $IMAGE
+             | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+            task-def.json > new-task-def.json
+          NEW_REVISION=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json --query 'taskDefinition.revision' --output text)
+          echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
+
+      - name: Run database migrations
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition "$ECS_TASK_FAMILY:${{ steps.register.outputs.revision }}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNETS],securityGroups=[$ECS_SECURITY_GROUP],assignPublicIp=ENABLED}" \
+            --overrides "{\"containerOverrides\":[{\"name\":\"koboko-backend\",\"command\":[\"python\",\"manage.py\",\"migrate\",\"--noinput\"]}]}" \
+            --query 'tasks[0].taskArn' --output text)
+
+          aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[0].exitCode' --output text)
+
+          if [[ "$EXIT_CODE" != "0" ]]; then
+            echo "Migration task failed with exit code $EXIT_CODE"
+            aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
+            exit 1
+          fi
+          echo "Migrations applied successfully"
+
+      - name: Deploy new task definition to the service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "$ECS_TASK_FAMILY:${{ steps.register.outputs.revision }}" \
+            --force-new-deployment
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"
 
       - name: Health check
         run: |
           for i in $(seq 1 20); do
             STATUS=$(curl -sf "${{ secrets.BACKEND_URL }}/api/health/" \
-              | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "error")
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('data',{}).get('status',''))" 2>/dev/null || echo "error")
             if [[ "$STATUS" == "ok" ]]; then
               echo "Health check passed (attempt $i)"
               exit 0
@@ -64,23 +136,23 @@ jobs:
           cache: npm
           cache-dependency-path: src/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Build
+        run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
         env:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
           VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
           VITE_GITHUB_URL: ${{ secrets.VITE_GITHUB_URL }}
           VITE_TWITTER_HANDLE: ${{ secrets.VITE_TWITTER_HANDLE }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
-        run: npm run build
 
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: src
-          vercel-args: "--prod"
+        run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"

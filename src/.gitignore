@@ -45,3 +45,5 @@ build/
 # Playwright
 test-results/
 playwright-report/
+.vercel
+.env*
