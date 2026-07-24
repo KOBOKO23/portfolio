@@ -38,5 +38,8 @@ Log in at the admin URL in `CREDENTIALS.md` to add these.
 - Default admin password is a generated random string stored only in `CREDENTIALS.md` — consider rotating it periodically.
 
 ## CI/CD
-- Being implemented now (see commit history / `.github/workflows/deploy-production.yml`) — pushing to the `production` branch will build, push to ECR, and roll out a new ECS deployment, then deploy the frontend to Vercel.
+- `.github/workflows/deploy-production.yml` now deploys to AWS ECS/ECR + Vercel on push to `production` (or manual dispatch): builds & pushes the image, registers a new task definition, runs migrations as a one-off task, rolls out the ECS service, then builds/deploys the frontend.
+- AWS auth uses GitHub's OIDC provider + the `koboko-github-actions-deploy` IAM role — no static AWS keys stored in GitHub.
+- **`VERCEL_TOKEN` GitHub secret is still missing** — the Vercel CLI can't self-issue tokens for OAuth-device sessions, so this has to be created manually at https://vercel.com/account/tokens and added with `gh secret set VERCEL_TOKEN --env production --repo KOBOKO23/portfolio`. Until this is set, the frontend deploy job will fail.
 - `render.yaml` and the old Render-based deployment docs are still in the repo but unused — the project no longer deploys to Render.
+- The pipeline hasn't been tested end-to-end yet (nothing has been pushed to the `production` branch). First real run should be watched closely.
