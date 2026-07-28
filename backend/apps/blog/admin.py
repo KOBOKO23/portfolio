@@ -1,5 +1,12 @@
+from django import forms
 from django.contrib import admin
+from django.db.models import Max
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.urls import path
 from django.utils.html import format_html
+
+from utils.media import media_url
 
 from .models import BlogArticle, BlogCategory, BlogComment, BlogImage, BlogLike, BlogReaction
 
@@ -60,8 +67,22 @@ class CommentInline(admin.TabularInline):
     show_change_link = True
 
 
+class BlogArticleAdminForm(forms.ModelForm):
+    class Meta:
+        model = BlogArticle
+        fields = '__all__'
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'blog-content-editor', 'rows': 20}),
+        }
+
+    class Media:
+        css = {'all': ('blog/vendor/easymde.min.css',)}
+        js = ('blog/vendor/easymde.min.js', 'blog/admin_editor.js')
+
+
 @admin.register(BlogArticle)
 class BlogArticleAdmin(admin.ModelAdmin):
+    form = BlogArticleAdminForm
     list_display = [
         'thumbnail_preview', 'title', 'category', 'language', 'author',
         'is_featured', 'is_published', 'views', 'like_count', 'comment_count', 'published_date',
@@ -112,6 +133,32 @@ class BlogArticleAdmin(admin.ModelAdmin):
     def comment_count(self, obj):
         return obj.comment_count
     comment_count.short_description = '💬'
+
+    def get_urls(self):
+        custom = [
+            path(
+                '<int:article_id>/upload-editor-image/',
+                self.admin_site.admin_view(self.upload_editor_image),
+                name='blog_blogarticle_upload_editor_image',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def upload_editor_image(self, request, article_id):
+        """Image-editor toolbar upload target — used by admin_editor.js.
+
+        Saves the file as a BlogImage (so it also appears in the gallery /
+        image list like any other upload) and hands back its URL for the
+        editor to insert into the content at the cursor position.
+        """
+        if request.method != 'POST' or 'image' not in request.FILES:
+            return JsonResponse({'error': 'No image provided'}, status=400)
+        article = get_object_or_404(BlogArticle, pk=article_id)
+        next_order = (article.images.aggregate(Max('order'))['order__max'] or 0) + 1
+        image = BlogImage.objects.create(
+            article=article, image=request.FILES['image'], order=next_order
+        )
+        return JsonResponse({'url': media_url(request, image.image)})
 
 
 @admin.register(BlogComment)
