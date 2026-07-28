@@ -203,7 +203,10 @@ if USE_S3:
         'AWS_S3_CUSTOM_DOMAIN',
         f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com",
     )
-    AWS_DEFAULT_ACL = 'public-read'
+    # Bucket has ACLs disabled (BucketOwnerEnforced) and a bucket policy granting
+    # public GetObject instead — per-object ACLs would be rejected by S3's Block
+    # Public ACLs setting, so leave default_acl unset (None) everywhere.
+    AWS_DEFAULT_ACL = None
     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_FILE_OVERWRITE = False  # keep original filenames, never silently overwrite
@@ -214,7 +217,7 @@ if USE_S3:
             'OPTIONS': {
                 'location': 'media',           # all uploads go to bucket/media/...
                 'file_overwrite': False,
-                'default_acl': 'public-read',
+                'default_acl': None,
             },
         },
         'staticfiles': {

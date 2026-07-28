@@ -11,9 +11,14 @@ The site is live and functional end-to-end (frontend ↔ backend ↔ database al
 - Backend is running with `EMAIL_BACKEND=console`, meaning contact form / newsletter / notification emails are logged, not actually sent.
 - To enable real email: generate a Gmail App Password for `kobokophilip@gmail.com`, put it in the `EMAIL_HOST_PASSWORD` field of the `koboko/backend` secret, and switch `EMAIL_BACKEND` (in the ECS task definition's plain env vars) to `django.core.mail.backends.smtp.EmailBackend`.
 
-## No custom domain
-- Site is reachable only via the CloudFront/Vercel default URLs — `koboko.dev` isn't wired up.
-- When ready: request an ACM certificate for `koboko.dev`/`api.koboko.dev`, attach it + an alternate domain name to the existing CloudFront distribution, add `koboko.dev` in the Vercel project, and point DNS (CNAMEs) at both. No infrastructure needs to be rebuilt for this.
+## Custom domain — done
+- `koboko.co.ke` (registered at Truehost Kenya) is now live: root + `www` → Vercel frontend, `api.koboko.co.ke` → AWS backend via CloudFront, with a valid ACM certificate.
+- DNS for the domain was moved from Truehost to Vercel's nameservers, since Truehost's panel had no per-record zone editor for this domain — see `CREDENTIALS.md` for the full record list and how to manage them via `vercel dns`.
+- The old `koboko.dev` references in `render.yaml`/`docs/deployment.md` are stale — the real production domain is `koboko.co.ke`.
+
+## Admin static files — fixed
+- The Django admin was rendering unstyled (no CSS/JS) because `collectstatic` runs at Docker *build* time, before `USE_S3` is set, so assets never made it to S3. Fixed by running `collectstatic` as a one-off ECS task against the real production config, and by changing `backend/config/settings.py` to stop setting per-object S3 ACLs (`AWS_DEFAULT_ACL = None`) since the bucket uses `BucketOwnerEnforced` + a public-read bucket policy instead of ACLs.
+- Any time new static assets are added (new admin customizations, new Jazzmin config, etc.), `collectstatic` needs to be re-run as a one-off ECS task — see `CREDENTIALS.md` for the exact command. It does not happen automatically on deploy.
 
 ## No content seeded
 The admin/CMS has no real content yet. Minimum to make the site look "real":
@@ -43,3 +48,4 @@ Log in at the admin URL in `CREDENTIALS.md` to add these.
 - **`VERCEL_TOKEN` GitHub secret is still missing** — the Vercel CLI can't self-issue tokens for OAuth-device sessions, so this has to be created manually at https://vercel.com/account/tokens and added with `gh secret set VERCEL_TOKEN --env production --repo KOBOKO23/portfolio`. Until this is set, the frontend deploy job will fail.
 - `render.yaml` and the old Render-based deployment docs are still in the repo but unused — the project no longer deploys to Render.
 - The pipeline hasn't been tested end-to-end yet (nothing has been pushed to the `production` branch). First real run should be watched closely.
+- **Known gotcha for future deploys**: `ALLOWED_HOSTS` must stay `*` in the task definition. Scoping it to a specific host list breaks the ALB health check (it probes using the task's private IP as `Host`), which silently crash-loops the ECS service. This regressed once already during the domain cutover — see the warning in `CREDENTIALS.md`.
