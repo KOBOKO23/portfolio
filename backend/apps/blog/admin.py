@@ -40,6 +40,7 @@ class BlogImageInline(admin.StackedInline):
         return format_html(
             '<div style="{style}">'
             '<p style="margin:0 0 8px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;">📋 Copy a snippet and paste it into your content at the desired position</p>'
+            '<p style="margin:0 0 8px;font-size:11px;color:#aaa;">If you don\'t paste any snippet for this image, it will still be shown automatically in a gallery at the end of the article.</p>'
             '{full}{right}{left}{center}'
             '</div>',
             style=style,
@@ -73,14 +74,17 @@ class BlogArticleAdmin(admin.ModelAdmin):
     list_display_links = ['title']
     inlines = [BlogImageInline, CommentInline]
     fieldsets = (
-        ('Publishing', {
-            'fields': ('is_featured', 'is_published', 'allow_comments'),
-        }),
+        # "Content" is listed first so it's the tab that opens by default —
+        # title/category/body are what an author needs immediately, not the
+        # publishing toggles.
         ('Content', {
             'fields': ('title', 'slug', 'category', 'excerpt', 'content', 'tags'),
         }),
         ('Media', {
             'fields': ('thumbnail', 'thumbnail_alt'),
+        }),
+        ('Publishing', {
+            'fields': ('is_featured', 'is_published', 'allow_comments'),
         }),
         ('Authorship & Language', {
             'fields': ('author', 'author_bio', 'language', 'read_time'),

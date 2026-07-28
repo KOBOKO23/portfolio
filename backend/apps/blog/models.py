@@ -31,9 +31,23 @@ ALLOWED_TAGS = [
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre', 'hr', 'img',
     'table', 'thead', 'tbody', 'tr', 'th', 'td', 'figure', 'figcaption',
 ]
+# Only these exact classes survive sanitization on <img> — enough for the
+# admin's copy-paste placement snippets (full/left/right/centred) to work,
+# without opening up arbitrary class injection.
+SAFE_IMG_CLASSES = {'img-left', 'img-right', 'img-center'}
+
+
+def _img_attr_filter(_tag, name, value):
+    if name in ('src', 'alt', 'width', 'height'):
+        return True
+    if name == 'class':
+        return value in SAFE_IMG_CLASSES
+    return False
+
+
 ALLOWED_ATTRS = {
     'a': ['href', 'title', 'rel'],
-    'img': ['src', 'alt', 'width', 'height'],  # removed 'class' — no legitimate need, widens attack surface
+    'img': _img_attr_filter,
     'figure': ['class'],
     'figcaption': ['class'],
 }
@@ -97,7 +111,15 @@ class BlogArticle(models.Model):
     title = models.CharField(max_length=300)
     slug = models.SlugField(unique=True, max_length=320)
     excerpt = models.TextField()
-    content = models.TextField(help_text='Supports Markdown')
+    content = models.TextField(
+        help_text=(
+            'Supports Markdown. To place an uploaded image at an exact point in the article '
+            '(instead of it only appearing in the gallery), scroll to the Images section below, '
+            'save once so the snippet fields populate, then copy the snippet for the placement '
+            'you want (full width / float left / float right / centred) and paste it into the '
+            'content at that point.'
+        )
+    )
     thumbnail = models.ImageField(upload_to='blog/thumbnails/', blank=True, null=True)
     thumbnail_alt = models.CharField(max_length=200, blank=True)
     category = models.ForeignKey(
