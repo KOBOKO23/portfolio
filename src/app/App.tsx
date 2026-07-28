@@ -15,6 +15,7 @@ import WeatherForecast from './pages/WeatherForecast';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { FeedbackWidget } from './components/FeedbackWidget';
+import { ScrollToTop } from './components/ScrollToTop';
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />

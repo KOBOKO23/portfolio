@@ -9,16 +9,20 @@ const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 interface Article { id: number; title: string; slug: string; excerpt: string; category: { name: string; color: string } | null; read_time: number; published_date: string; }
 interface Project { id: number; title: string; description: string; technologies: string[]; github_url: string; live_url: string; }
 interface ApprovedFeedback { id: number; rating: number; message: string; created_at: string; }
+interface ImpactGoal { id: number; number: string; label: string; progress: number; icon: string }
+interface Profile { full_name: string; profile_image: string | null }
 
 interface Resp<T> { success: boolean; data?: T }
 type PagResp<T> = Resp<{ results?: T[]; count?: number } | T[]>;
 
 const fadeUp = { initial: { opacity: 0, y: 28 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } };
 
+const DEFAULT_GMM_STAT = '35+ men mentored';
+
 const PILLARS = [
   { icon: Cloud, label: 'Meteorology', sub: 'Kenya Met Department', href: '/weather-forecast', color: '#0ea5e9' },
   { icon: Code, label: 'Software', sub: 'Django · React · APIs', href: '/projects', color: '#d4a574' },
-  { icon: Users, label: 'Great Men Moves', sub: '500+ men mentored', href: '/great-men-moves', color: '#10b981' },
+  { icon: Users, label: 'Great Men Moves', sub: DEFAULT_GMM_STAT, href: '/great-men-moves', color: '#10b981', dynamic: true },
   { icon: BookOpen, label: 'Broken Souls', sub: 'Book — coming soon', href: '/book', color: '#8b5cf6' },
   { icon: Music, label: 'Gospel Music', sub: 'Worship ministry', href: '/music', color: '#ec4899' },
   { icon: Shirt, label: 'Fashion', sub: 'Intentional style', href: '/fashion', color: '#f59e0b' },
@@ -28,6 +32,8 @@ export function Home() {
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
   const [featuredProject, setFeaturedProject] = useState<Project | null>(null);
   const [approvedFeedback, setApprovedFeedback] = useState<ApprovedFeedback[]>([]);
+  const [gmmStat, setGmmStat] = useState(DEFAULT_GMM_STAT);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterName, setNewsletterName] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
@@ -60,6 +66,23 @@ export function Home() {
           setApprovedFeedback(items.slice(0, 6));
         }
       })
+      .catch(() => {});
+
+    // Great Men Moves pillar card pulls its live figure straight from the
+    // Impact Goals CMS instead of a number baked into the code.
+    fetch(`${API}/great-men-moves/impact-goals/`)
+      .then(r => r.json() as Promise<Resp<ImpactGoal[] | { results?: ImpactGoal[] }>>)
+      .then(data => {
+        if (!data.success || !data.data) return;
+        const goals = Array.isArray(data.data) ? data.data : data.data.results ?? [];
+        const mentored = goals.find(g => /mentor/i.test(g.label)) ?? goals[0];
+        if (mentored) setGmmStat(`${mentored.number} ${mentored.label.toLowerCase()}`);
+      })
+      .catch(() => {});
+
+    fetch(`${API}/profile/`)
+      .then(r => r.json() as Promise<Resp<Profile>>)
+      .then(res => { if (res.success && res.data) setProfile(res.data); })
       .catch(() => {});
   }, []);
 
@@ -134,18 +157,28 @@ export function Home() {
             <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
             <h2 className="text-xs uppercase tracking-[0.3em] text-black/40">Six Disciplines, One Calling</h2>
           </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-black/6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {PILLARS.map((p, i) => (
-              <motion.div key={p.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.6 }}>
+              <motion.div key={p.label} initial={{ opacity: 0, y: 16, boxShadow: `0 0 0 0 ${p.color}00` }}
+                whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.6 }}
+                whileHover={{ y: -6, boxShadow: `0 16px 32px -8px ${p.color}55`, transition: { duration: 0.4 } }}
+                className="rounded-2xl">
                 <Link to={p.href}
-                  className="group flex flex-col items-center text-center p-8 bg-white hover:bg-black transition-colors duration-500 h-full">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-colors duration-500"
-                    style={{ background: p.color + '18' }}>
-                    <p.icon className="w-5 h-5 transition-colors duration-500" style={{ color: p.color }} />
+                  className="group relative flex flex-col items-center text-center p-7 rounded-2xl bg-black overflow-hidden h-full border border-white/5">
+                  {/* live color fill — sweeps in from the center on hover */}
+                  <div className="absolute inset-0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-2xl"
+                    style={{ background: `radial-gradient(circle at 50% 30%, ${p.color}35 0%, transparent 70%)` }} />
+                  {/* constant top accent so each card pops even before hover */}
+                  <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: p.color }} />
+
+                  <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110"
+                    style={{ background: p.color, boxShadow: `0 8px 24px -6px ${p.color}80` }}>
+                    <p.icon className="w-6 h-6 text-white" strokeWidth={2} />
                   </div>
-                  <span className="font-semibold text-sm text-black group-hover:text-white transition-colors duration-500 mb-1">{p.label}</span>
-                  <span className="text-[11px] text-black/40 group-hover:text-white/40 transition-colors duration-500">{p.sub}</span>
+                  <span className="relative font-semibold text-sm text-white mb-1.5">{p.label}</span>
+                  <span className="relative text-[11px] text-white/45 group-hover:text-white/70 transition-colors duration-500">
+                    {p.dynamic ? gmmStat : p.sub}
+                  </span>
                 </Link>
               </motion.div>
             ))}
@@ -156,8 +189,22 @@ export function Home() {
       {/* ── Introduction ─────────────────────────────────────────────────── */}
       <section className="py-36 lg:py-48 px-6 lg:px-16 bg-[#fafafa]">
         <div className="max-w-6xl mx-auto">
-          <motion.div {...fadeUp} className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-16">
-            <div className="pt-3">
+          <motion.div {...fadeUp} className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-16">
+            <div>
+              {/* Profile photo — falls back to a monogram until one is uploaded in the admin */}
+              <div className="relative w-full max-w-[220px] mb-8">
+                <div className="aspect-[4/5] overflow-hidden bg-black">
+                  {profile?.profile_image ? (
+                    <img src={profile.profile_image} alt={profile.full_name}
+                      className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="font-serif text-white/15 text-7xl">{(profile?.full_name || 'K')[0]}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute -right-3 -bottom-3 w-full h-full border border-[#d4a574]/40 -z-10" />
+              </div>
               <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
               <p className="text-xs uppercase tracking-[0.3em] text-black/40">Introduction</p>
             </div>

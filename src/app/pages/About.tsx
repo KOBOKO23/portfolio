@@ -15,6 +15,12 @@ import {
   Wrench,
   Palette,
   Server,
+  Download,
+  Linkedin,
+  Github,
+  Twitter,
+  Instagram,
+  Mail,
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -23,6 +29,11 @@ interface Resp<T> { success: boolean; data?: T }
 
 interface Skill { id: number; name: string; category: string; proficiency: number; icon: string; }
 interface CareerEvent { id: number; year: string; title: string; organization: string; description: string; is_current: boolean; order: number; }
+interface Profile {
+  full_name: string; tagline: string; profile_image: string | null; resume_pdf: string | null;
+  email: string; linkedin_url: string; github_url: string; twitter_url: string; instagram_url: string;
+  years_experience: number; projects_completed: number;
+}
 
 const CATEGORY_META: Record<string, { label: string; Icon: React.ElementType; desc: string }> = {
   meteorology: { label: 'Meteorology', Icon: Cloud, desc: 'Atmospheric science and weather forecasting expertise' },
@@ -47,6 +58,7 @@ function proficiencyLabel(p: number) {
 export function About() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [careerEvents, setCareerEvents] = useState<CareerEvent[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     fetch(`${API}/skills/`)
@@ -57,7 +69,19 @@ export function About() {
       .then(r => r.json() as Promise<Resp<CareerEvent[]>>)
       .then(data => setCareerEvents(data.success && data.data ? data.data : []))
       .catch(() => {});
+    fetch(`${API}/profile/`)
+      .then(r => r.json() as Promise<Resp<Profile>>)
+      .then(data => { if (data.success && data.data) setProfile(data.data); })
+      .catch(() => {});
   }, []);
+
+  const socialLinks = profile ? [
+    { Icon: Linkedin, url: profile.linkedin_url },
+    { Icon: Github, url: profile.github_url },
+    { Icon: Twitter, url: profile.twitter_url },
+    { Icon: Instagram, url: profile.instagram_url },
+    { Icon: Mail, url: profile.email ? `mailto:${profile.email}` : '' },
+  ].filter(s => s.url) : [];
 
   const groupedSkills = CATEGORY_ORDER
     .map(cat => ({
@@ -101,24 +125,35 @@ export function About() {
             backgroundSize: '60px 60px',
           }}
         />
-        {/* Abstract portrait silhouette */}
-        <div className="absolute right-12 lg:right-24 bottom-0 w-[40vw] max-w-[520px] h-[80vh] pointer-events-none hidden lg:block">
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(170deg, #d4a57412 0%, #d4a57406 40%, transparent 75%)',
-              clipPath: 'ellipse(48% 50% at 50% 50%)',
-            }}
-          />
-          <div
-            className="absolute inset-x-8 top-0 bottom-0"
-            style={{
-              background:
-                'linear-gradient(180deg, #d4a57420 0%, #d4a57408 60%, transparent 100%)',
-              clipPath: 'polygon(30% 0%, 70% 0%, 90% 30%, 85% 100%, 15% 100%, 10% 30%)',
-            }}
-          />
+        {/* Portrait — real photo once uploaded in the admin, abstract art until then */}
+        <div className="absolute right-12 lg:right-24 bottom-0 w-[40vw] max-w-[520px] h-[80vh] hidden lg:block">
+          {profile?.profile_image ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.3 }}
+              className="absolute inset-x-8 top-8 bottom-0 overflow-hidden">
+              <img src={profile.profile_image} alt={profile.full_name}
+                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, #0a0a0a 0%, transparent 30%)' }} />
+            </motion.div>
+          ) : (
+            <div className="pointer-events-none">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(170deg, #d4a57412 0%, #d4a57406 40%, transparent 75%)',
+                  clipPath: 'ellipse(48% 50% at 50% 50%)',
+                }}
+              />
+              <div
+                className="absolute inset-x-8 top-0 bottom-0"
+                style={{
+                  background:
+                    'linear-gradient(180deg, #d4a57420 0%, #d4a57408 60%, transparent 100%)',
+                  clipPath: 'polygon(30% 0%, 70% 0%, 90% 30%, 85% 100%, 15% 100%, 10% 30%)',
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="relative z-20 px-6 lg:px-12 max-w-[1800px] mx-auto w-full">
@@ -137,9 +172,47 @@ export function About() {
               Purpose &<br />
               Precision
             </h1>
-            <p className="text-[clamp(1.25rem,2vw,1.75rem)] text-white/80 leading-relaxed max-w-2xl">
+            <p className="text-[clamp(1.25rem,2vw,1.75rem)] text-white/80 leading-relaxed max-w-2xl mb-10">
               Meteorologist. Backend Developer. Data Scientist. Mentor. Gospel Artist. Author.
             </p>
+
+            {/* Resume, socials, stats — sourced from the Profile record in the admin */}
+            <div className="flex flex-wrap items-center gap-8">
+              {profile?.resume_pdf && (
+                <a href={profile.resume_pdf} target="_blank" rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all duration-500 text-sm font-semibold uppercase tracking-wide">
+                  <Download className="w-4 h-4" /> Download Resume
+                </a>
+              )}
+
+              {socialLinks.length > 0 && (
+                <div className="flex items-center gap-4">
+                  {socialLinks.map(({ Icon, url }, i) => (
+                    <a key={i} href={url} target={url.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer"
+                      className="text-white/50 hover:text-[#d4a574] transition-colors">
+                      <Icon className="w-5 h-5" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {(!!profile?.years_experience || !!profile?.projects_completed) && (
+              <div className="flex gap-12 mt-12 pt-8 border-t border-white/10 max-w-md">
+                {!!profile.years_experience && (
+                  <div>
+                    <p className="font-serif text-4xl text-[#d4a574]">{profile.years_experience}+</p>
+                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">Years Experience</p>
+                  </div>
+                )}
+                {!!profile.projects_completed && (
+                  <div>
+                    <p className="font-serif text-4xl text-[#d4a574]">{profile.projects_completed}+</p>
+                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">Projects Completed</p>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>

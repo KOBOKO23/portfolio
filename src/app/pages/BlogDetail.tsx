@@ -5,7 +5,7 @@ import { SEO } from '../components/SEO';
 import {
   ArrowLeft, Clock, Eye, Calendar, Heart, MessageCircle,
   Twitter, Linkedin, Facebook, Link2, Check, ChevronUp, Tag,
-  Send, Globe,
+  Send, Globe, Images,
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -43,6 +43,10 @@ function formatNumber(n: number): string {
   return String(n);
 }
 
+interface GalleryImage {
+  id: number; image: string; alt_text: string; caption: string; order: number;
+}
+
 interface Article {
   id: number; title: string; slug: string; excerpt: string;
   thumbnail: string | null; thumbnail_alt: string; category: { name: string; slug: string; color: string } | null;
@@ -51,7 +55,7 @@ interface Article {
   is_featured: boolean; published_date: string; content: string; content_html: string;
   allow_comments: boolean; reaction_summary: Record<string, number>;
   share_counts: Record<string, number>; user_liked: boolean; user_reaction: string | null;
-  updated_at: string;
+  updated_at: string; gallery: GalleryImage[];
 }
 
 interface Comment {
@@ -245,6 +249,12 @@ export default function BlogDetail() {
 
   const totalReactions = Object.values(reactions).reduce((a, b) => a + b, 0);
 
+  // Any uploaded image whose snippet wasn't manually pasted into the article
+  // body still needs to be visible — shown here instead of silently dropped.
+  const unplacedGallery = (article.gallery ?? [])
+    .filter(img => !article.content_html.includes(img.image))
+    .sort((a, b) => a.order - b.order);
+
   return (
     <div className="min-h-screen bg-white">
       <SEO
@@ -343,6 +353,33 @@ export default function BlogDetail() {
               [&_.clearfix]:clear-both"
             dangerouslySetInnerHTML={{ __html: article.content_html }}
           />
+
+          {/* Gallery — images uploaded for this article that weren't manually
+              placed at a specific point in the text above. */}
+          {unplacedGallery.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.6 }}
+              className="mt-12 pt-8 border-t border-black/8">
+              <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-black/40 mb-6">
+                <Images className="w-4 h-4" /> Gallery
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {unplacedGallery.map((img, i) => (
+                  <motion.figure key={img.id} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.5 }}
+                    className="group overflow-hidden rounded-xl bg-black/5">
+                    <div className="overflow-hidden">
+                      <img src={img.image} alt={img.alt_text || article.title}
+                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                    {img.caption && (
+                      <figcaption className="px-4 py-3 text-sm text-black/50">{img.caption}</figcaption>
+                    )}
+                  </motion.figure>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Tags */}
           {article.tags?.length > 0 && (
