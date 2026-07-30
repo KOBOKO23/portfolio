@@ -7,9 +7,10 @@ The site is live and functional end-to-end (frontend ↔ backend ↔ database al
 - Stripe webhook endpoint (`https://<backend-url>/api/payments/stripe/webhook/`) is not registered in the Stripe dashboard — checkout will work but payment confirmation won't.
 - **M-Pesa (Daraja)**: consumer key/secret are placeholders. Register a sandbox app at [developer.safaricom.co.ke](https://developer.safaricom.co.ke) and update the secret.
 
-## Email — not sending
-- Backend is running with `EMAIL_BACKEND=console`, meaning contact form / newsletter / notification emails are logged, not actually sent.
-- To enable real email: generate a Gmail App Password for `kobokophilip@gmail.com`, put it in the `EMAIL_HOST_PASSWORD` field of the `koboko/backend` secret, and switch `EMAIL_BACKEND` (in the ECS task definition's plain env vars) to `django.core.mail.backends.smtp.EmailBackend`.
+## Email — done
+- Real sending is enabled via Gmail SMTP (`EMAIL_BACKEND=smtp`, `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` = an app password for `kobokophilip@gmail.com` in the `koboko/backend` secret). Verified with a direct `send_mail()` test and a real contact-form submission — both succeeded.
+- `ADMIN_EMAIL` and `DEFAULT_FROM_EMAIL` both point at `kobokophilip@gmail.com`, so contact form, volunteer application, and newsletter notifications all land there — there's no separate `info@koboko.co.ke` mailbox yet since Truehost's offering for that hasn't been confirmed. Revisit once/if a domain mailbox exists; until then this is the intended permanent-ish routing, not a placeholder.
+- Contact form notifications use `fail_silently=True` (`apps/contact/views.py`), so a `201` response doesn't by itself prove the email sent — if delivery ever seems to stop working, check via a direct `send_mail()` one-off task rather than trusting the form's success response alone.
 
 ## Custom domain — done
 - `koboko.co.ke` (registered at Truehost Kenya) is now live: root + `www` → Vercel frontend, `api.koboko.co.ke` → AWS backend via CloudFront, with a valid ACM certificate.
