@@ -62,7 +62,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link to="/fashion"         className="text-white/70 hover:text-[#d4a574] transition-colors">Fashion</Link></li>
               <li><Link to="/music"           className="text-white/70 hover:text-[#d4a574] transition-colors">Music</Link></li>
-              <li><Link to="/book"            className="text-white/70 hover:text-[#d4a574] transition-colors">Broken Souls</Link></li>
+              <li><Link to="/book"            className="text-white/70 hover:text-[#d4a574] transition-colors">The Jar You Left Behind</Link></li>
               <li><Link to="/great-men-moves" className="text-white/70 hover:text-[#d4a574] transition-colors">Great Men Moves</Link></li>
             </ul>
           </div>

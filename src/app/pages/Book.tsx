@@ -982,6 +982,13 @@ export function Book() {
   const [showPayment, setShowPayment] = useState(false);
   const [showNotify, setShowNotify]   = useState(false);
 
+  const [testimonialForm, setTestimonialForm] = useState({ name: '', title: '', email: '', quote: '' });
+  const [testimonialRating, setTestimonialRating] = useState(0);
+  const [testimonialHover, setTestimonialHover] = useState(0);
+  const [testimonialSubmitting, setTestimonialSubmitting] = useState(false);
+  const [testimonialSubmitted, setTestimonialSubmitted] = useState(false);
+  const [testimonialError, setTestimonialError] = useState('');
+
   useEffect(() => {
     fetch(`${API}/books/`)
       .then(r => r.json() as Promise<BookListResp>)
@@ -1011,6 +1018,35 @@ export function Book() {
 
   const isPublished = book.is_published;
   const hasAmazon   = isPublished && !!book.amazon_url;
+
+  const submitTestimonial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testimonialForm.quote.trim() || !testimonialForm.name.trim()) return;
+    setTestimonialSubmitting(true);
+    setTestimonialError('');
+    try {
+      const res = await fetch(`${API}/books/${book.id}/testimonials/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote: testimonialForm.quote,
+          author_name: testimonialForm.name,
+          author_title: testimonialForm.title,
+          email: testimonialForm.email,
+          rating: testimonialRating || 5,
+        }),
+      });
+      const data = (await res.json()) as { success: boolean; error?: { message?: string } };
+      if (!res.ok || !data.success) throw new Error(data.error?.message ?? 'Failed');
+      setTestimonialSubmitted(true);
+      setTestimonialForm({ name: '', title: '', email: '', quote: '' });
+      setTestimonialRating(0);
+    } catch {
+      setTestimonialError('Something went wrong. Please try again.');
+    } finally {
+      setTestimonialSubmitting(false);
+    }
+  };
 
   const themes = [
     { icon: Heart,    title: 'Redemption', description: 'The journey from brokenness to wholeness through divine grace' },
@@ -1162,13 +1198,14 @@ export function Book() {
       )}
 
       {/* ── Testimonials ──────────────────────────────────────────────── */}
-      {book.testimonials.length > 0 && (
-        <section className="py-24 lg:py-32 bg-black text-white">
-          <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
-            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
-              <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>What People Say</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <section className="py-24 lg:py-32 bg-black text-white">
+        <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
+            <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>What People Say</h2>
+
+            {book.testimonials.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
                 {book.testimonials.map((t, i) => (
                   <motion.div key={t.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -1193,10 +1230,70 @@ export function Book() {
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
-          </div>
-        </section>
-      )}
+            )}
+
+            {/* Share a testimonial */}
+            <div className="max-w-xl mx-auto border-t border-white/10 pt-16">
+              {testimonialSubmitted ? (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-4 text-[#d4a574]" />
+                  <h3 className="text-2xl mb-2" style={{ fontFamily: 'var(--font-serif)' }}>Thank You!</h3>
+                  <p className="text-white/60">Your testimonial has been received and will appear here once approved.</p>
+                </motion.div>
+              ) : (
+                <>
+                  <h3 className="text-2xl mb-2 text-center" style={{ fontFamily: 'var(--font-serif)' }}>Share Your Thoughts</h3>
+                  <p className="text-white/50 text-sm text-center mb-8">Read an early copy or have thoughts on the book? Leave a testimonial.</p>
+                  <form onSubmit={submitTestimonial} className="space-y-5">
+                    <div>
+                      <p className="text-sm text-white/70 mb-3">Your rating</p>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button key={star} type="button"
+                            onClick={() => setTestimonialRating(star)}
+                            onMouseEnter={() => setTestimonialHover(star)}
+                            onMouseLeave={() => setTestimonialHover(0)}
+                            className="transition-transform hover:scale-110">
+                            <Star size={28}
+                              className={(testimonialHover || testimonialRating) >= star
+                                ? 'text-[#d4a574] fill-[#d4a574]' : 'text-white/20'} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <textarea required rows={4} placeholder="What did you think? *"
+                      value={testimonialForm.quote}
+                      onChange={e => setTestimonialForm(f => ({ ...f, quote: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/15 focus:border-[#d4a574] outline-none transition-colors resize-none text-white placeholder:text-white/30" />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <input required placeholder="Your name *" value={testimonialForm.name}
+                        onChange={e => setTestimonialForm(f => ({ ...f, name: e.target.value }))}
+                        className="px-4 py-3 bg-white/5 border border-white/15 focus:border-[#d4a574] outline-none transition-colors text-white placeholder:text-white/30" />
+                      <input placeholder="Title / role (optional)" value={testimonialForm.title}
+                        onChange={e => setTestimonialForm(f => ({ ...f, title: e.target.value }))}
+                        className="px-4 py-3 bg-white/5 border border-white/15 focus:border-[#d4a574] outline-none transition-colors text-white placeholder:text-white/30" />
+                    </div>
+
+                    <input type="email" placeholder="Email (optional, not published)" value={testimonialForm.email}
+                      onChange={e => setTestimonialForm(f => ({ ...f, email: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/5 border border-white/15 focus:border-[#d4a574] outline-none transition-colors text-white placeholder:text-white/30" />
+
+                    {testimonialError && <p className="text-red-400 text-sm">{testimonialError}</p>}
+
+                    <button type="submit" disabled={testimonialSubmitting}
+                      className="w-full px-6 py-4 bg-[#d4a574] text-black hover:bg-white transition-all duration-300 font-medium disabled:opacity-60">
+                      {testimonialSubmitting ? 'Submitting…' : 'Submit Testimonial'}
+                    </button>
+                    <p className="text-xs text-white/35 text-center">Testimonials are reviewed before appearing publicly.</p>
+                  </form>
+                </>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* ── Reserve Your Copy CTA ─────────────────────────────────────── */}
       <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto">

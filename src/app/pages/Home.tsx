@@ -23,7 +23,7 @@ const PILLARS = [
   { icon: Cloud, label: 'Meteorology', sub: 'Kenya Met Department', href: '/weather-forecast', color: '#0ea5e9' },
   { icon: Code, label: 'Software', sub: 'Django · React · APIs', href: '/projects', color: '#d4a574' },
   { icon: Users, label: 'Great Men Moves', sub: DEFAULT_GMM_STAT, href: '/great-men-moves', color: '#10b981', dynamic: true },
-  { icon: BookOpen, label: 'Broken Souls', sub: 'Book — coming soon', href: '/book', color: '#8b5cf6' },
+  { icon: BookOpen, label: 'The Jar You Left Behind', sub: 'Book — coming soon', href: '/book', color: '#8b5cf6' },
   { icon: Music, label: 'Gospel Music', sub: 'Worship ministry', href: '/music', color: '#ec4899' },
   { icon: Shirt, label: 'Fashion', sub: 'Intentional style', href: '/fashion', color: '#f59e0b' },
 ];
@@ -213,7 +213,7 @@ export function Home() {
                 I am a modern African polymath — combining meteorological science, software engineering, and data-driven innovation with unwavering faith and creative expression.
               </p>
               <p className="text-[17px] text-black/60 leading-[1.85] max-w-3xl">
-                At Kenya's Meteorological Department I work in the Numerical Weather Prediction section, forecasting atmospheric patterns that shape lives across East Africa. As a backend developer, I architect scalable systems with Python and Django. As a data scientist, I transform information into insight. Through Great Men Moves I mentor the next generation of purpose-driven men. Through gospel music I worship. Through my upcoming book "Broken Souls" I tell stories of redemption. This is where purpose transcends profession.
+                At Kenya's Meteorological Department I work in the Numerical Weather Prediction section, forecasting atmospheric patterns that shape lives across East Africa. As a backend developer, I architect scalable systems with Python and Django. As a data scientist, I transform information into insight. Through Great Men Moves I mentor the next generation of purpose-driven men. Through gospel music I worship. Through my upcoming book "The Jar You Left Behind" I tell stories of redemption. This is where purpose transcends profession.
               </p>
               <Link to="/about" className="inline-flex items-center gap-2 mt-8 text-[#d4a574] text-sm font-medium hover:gap-4 transition-all">
                 Read my full story <ArrowRight className="w-4 h-4" />
@@ -353,7 +353,7 @@ export function Home() {
           <div className="relative">
             <div className="w-8 h-[2px] bg-[#8b5cf6] mb-6" />
             <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-4">Debut Book · Coming Soon</p>
-            <h2 className="font-serif text-[clamp(2rem,4vw,3rem)] leading-[1.1] mb-4">Broken Souls</h2>
+            <h2 className="font-serif text-[clamp(2rem,4vw,3rem)] leading-[1.1] mb-4">The Jar You Left Behind</h2>
             <p className="text-white/55 text-[15px] leading-relaxed max-w-sm italic">
               "Finding Wholeness in a Fractured World" — a journey through pain, faith, and redemption.
             </p>

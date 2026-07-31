@@ -27,7 +27,7 @@ const SUBJECTS = [
   { value: 'donation',    label: 'Donation / Sponsorship' },
   { value: 'mentorship',  label: 'Mentorship — Great Men Moves' },
   { value: 'music',       label: 'Gospel Music' },
-  { value: 'book',        label: 'Book — Broken Souls' },
+  { value: 'book',        label: 'Book — The Jar You Left Behind' },
   { value: 'other',       label: 'Other' },
 ];
 
@@ -186,7 +186,7 @@ export function Contact() {
               <p className="text-xs uppercase tracking-widest text-black/40 mb-4">Quick Links</p>
               {[
                 { label: 'Donate to Great Men Moves', href: '/great-men-moves#donate' },
-                { label: 'Pre-order Broken Souls',    href: '/book' },
+                { label: 'Pre-order The Jar You Left Behind',    href: '/book' },
                 { label: 'Join the Newsletter',       href: '/newsletter' },
               ].map(l => (
                 <Link key={l.label} to={l.href}

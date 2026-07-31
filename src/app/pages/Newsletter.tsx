@@ -34,7 +34,7 @@ const CONTENT_TYPES = [
   { icon: BookOpen,   title: 'Weekly Insights',          description: 'Thoughtful reflections on technology, faith, creativity, and personal growth.' },
   { icon: TrendingUp, title: 'Project Updates',          description: 'Behind-the-scenes looks at ongoing work in meteorology, software, and mentorship.' },
   { icon: Heart,      title: 'Curated Recommendations',  description: 'Books, music, tools, and resources that inspire excellence and intentional living.' },
-  { icon: Sparkles,   title: 'Exclusive Content',        description: 'Early access to articles, music releases, and updates on "Broken Souls."' },
+  { icon: Sparkles,   title: 'Exclusive Content',        description: 'Early access to articles, music releases, and updates on "The Jar You Left Behind."' },
 ];
 
 const BENEFITS = [

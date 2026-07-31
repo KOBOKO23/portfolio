@@ -22,7 +22,7 @@ vi.stubGlobal('fetch', mockFetch);
 
 const BOOK = {
   id: 1,
-  title: 'Broken Souls',
+  title: 'The Jar You Left Behind',
   subtitle: 'Finding Wholeness in a Fractured World',
   description: 'A journey through pain, faith, and redemption.',
   cover_image: null, author: 'Koboko Philip', page_count: 240,
@@ -64,7 +64,7 @@ describe('Book page', () => {
   it('shows book title after data loads', async () => {
     renderBook();
     await waitFor(() => {
-      expect(screen.getByText('Broken Souls')).toBeTruthy();
+      expect(screen.getByText('The Jar You Left Behind')).toBeTruthy();
     });
   });
 

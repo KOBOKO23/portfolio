@@ -266,7 +266,7 @@ export function About() {
                   <p>
                     Faith is the foundation of everything I do. As a gospel artist, I use music to worship,
                     inspire, and communicate truths that transcend human understanding. My upcoming book,{' '}
-                    <em>"Broken Souls,"</em> explores themes of redemption, healing, and divine restoration.
+                    <em>"The Jar You Left Behind,"</em> explores themes of redemption, healing, and divine restoration.
                   </p>
                   <p className="text-black text-xl pt-4" style={{ fontFamily: 'var(--font-serif)' }}>
                     This is my journey. This is Koboko.
