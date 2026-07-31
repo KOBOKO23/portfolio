@@ -47,7 +47,11 @@ class BookTestimonial(models.Model):
     author_name = models.CharField(max_length=200)
     author_title = models.CharField(max_length=200, blank=True)
     author_photo = models.ImageField(upload_to='books/testimonials/', blank=True, null=True)
+    email = models.EmailField(blank=True, help_text='Not shown publicly — for following up with the reader')
     rating = models.PositiveSmallIntegerField(default=5)
+    # Testimonials added directly in the admin are trusted by default (True).
+    # Public submissions explicitly override this to False in the create view.
+    is_approved = models.BooleanField(default=True, db_index=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:

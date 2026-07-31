@@ -19,6 +19,15 @@ class BookTestimonialSerializer(serializers.ModelSerializer):
         return media_url(self.context.get('request'), obj.author_photo)
 
 
+class BookTestimonialCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookTestimonial
+        fields = ['quote', 'author_name', 'author_title', 'email', 'rating']
+        extra_kwargs = {
+            'rating': {'min_value': 1, 'max_value': 5},
+        }
+
+
 class BookChapterSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookChapter

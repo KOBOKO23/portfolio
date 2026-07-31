@@ -10,7 +10,7 @@ class ContactMessage(models.Model):
         ('donation', 'Donation / Sponsorship'),
         ('mentorship', 'Mentorship — Great Men Moves'),
         ('music', 'Gospel Music'),
-        ('book', 'Book — Broken Souls'),
+        ('book', 'Book — The Jar You Left Behind'),
         ('other', 'Other'),
     ]
 

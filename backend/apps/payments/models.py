@@ -2,7 +2,7 @@
 apps/payments/models.py
 ───────────────────────
 Single-model payment layer supporting M-Pesa (Daraja STK Push) and
-Stripe (PaymentIntent) pre-orders for the book "Broken Souls".
+Stripe (PaymentIntent) pre-orders for the book "The Jar You Left Behind".
 
 PreOrder lifecycle
 ------------------
@@ -42,7 +42,7 @@ class PreOrder(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True, help_text='E.164 format: 254XXXXXXXXX')
-    product_name = models.CharField(max_length=300, default='Broken Souls — Pre-Order')
+    product_name = models.CharField(max_length=300, default='The Jar You Left Behind — Pre-Order')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='KES')
 

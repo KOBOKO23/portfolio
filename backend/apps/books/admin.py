@@ -12,6 +12,7 @@ class ChapterInline(admin.TabularInline):
 class TestimonialInline(admin.TabularInline):
     model = BookTestimonial
     extra = 1
+    fields = ['quote', 'author_name', 'author_title', 'author_photo', 'rating', 'is_approved', 'order']
 
 
 @admin.register(Book)
@@ -46,5 +47,15 @@ class BookChapterAdmin(admin.ModelAdmin):
 
 @admin.register(BookTestimonial)
 class BookTestimonialAdmin(admin.ModelAdmin):
-    list_display = ['author_name', 'book', 'rating', 'order']
-    list_filter = ['book', 'rating']
+    list_display = ['author_name', 'book', 'rating', 'is_approved', 'order']
+    list_filter = ['book', 'rating', 'is_approved']
+    search_fields = ['author_name', 'quote', 'email']
+    actions = ['approve_testimonials', 'reject_testimonials']
+
+    def approve_testimonials(self, request, queryset):
+        queryset.update(is_approved=True)
+    approve_testimonials.short_description = 'Approve selected testimonials'
+
+    def reject_testimonials(self, request, queryset):
+        queryset.update(is_approved=False)
+    reject_testimonials.short_description = 'Reject selected testimonials'

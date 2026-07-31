@@ -214,7 +214,7 @@ class Command(BaseCommand):
                 'faith, and creativity are not competing forces but complementary ones. '
                 'At the Kenya Meteorological Department, I work in the Numerical Weather Prediction section. '
                 'I build backend systems with Python and Django, mentor young men through Great Men Moves, '
-                'create gospel music, and am writing my debut book "Broken Souls." '
+                'create gospel music, and am writing my debut book "The Jar You Left Behind." '
                 'Every discipline I practice is an act of service.'
             ),
             linkedin_url='https://linkedin.com/in/msizi',
@@ -415,7 +415,7 @@ class Command(BaseCommand):
             },
             {
                 'title': 'Broken Made Whole',
-                'description': 'Companion piece to the book "Broken Souls." A song about the redemption that meets us in our most fractured places.',
+                'description': 'Companion piece to the book "The Jar You Left Behind." A song about the redemption that meets us in our most fractured places.',
                 'duration': '3:58',
                 'is_featured': True,
             },
@@ -445,10 +445,10 @@ class Command(BaseCommand):
         Book.objects.all().delete()
 
         book = Book.objects.create(
-            title='Broken Souls',
+            title='The Jar You Left Behind',
             subtitle='Finding Wholeness in a Fractured World',
             description=(
-                '"Broken Souls" is a book about the hidden wounds that men carry — '
+                '"The Jar You Left Behind" is a book about the hidden wounds that men carry — '
                 'the silent suffering of those who were never taught to speak their pain, '
                 'and the quiet heroism of those who sought healing anyway. '
                 'Through raw testimonies, scriptural reflection, and hard-won personal insight, '
@@ -468,7 +468,7 @@ class Command(BaseCommand):
                 'Pastor James Kariuki', 'Lead Pastor, Restoration Church Nairobi', 5
             ),
             (
-                'Raw, honest, and deeply therapeutic. "Broken Souls" fills a gap in the literature on African male psychology that I have wanted filled for years.',
+                'Raw, honest, and deeply therapeutic. "The Jar You Left Behind" fills a gap in the literature on African male psychology that I have wanted filled for years.',
                 'Dr. Sarah Mwangi', 'Clinical Psychologist, Nairobi', 5
             ),
             (

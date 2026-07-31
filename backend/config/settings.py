@@ -258,6 +258,7 @@ REST_FRAMEWORK = {
         'contact': '5/hour',       # tighter: prevent spam
         'newsletter': '5/hour',    # tighter: prevent abuse
         'feedback': '10/hour',
+        'book_testimonial': '10/hour',
         'payment': '10/hour',      # tighter: prevent STK push harassment / Stripe abuse
     },
 }
