@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
+import { NewsletterForm } from '../components/NewsletterForm';
 import {
   ArrowLeft, Clock, Eye, Calendar, Heart, MessageCircle,
   Twitter, Linkedin, Facebook, Link2, Check, ChevronUp, Tag,
@@ -405,6 +406,23 @@ export default function BlogDetail() {
               </div>
             </motion.div>
           )}
+
+          {/* Newsletter CTA */}
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="mt-12 p-8 md:p-10 bg-black text-white rounded-2xl">
+            <p className="text-xs uppercase tracking-widest text-white/40 mb-3">Stay in the loop</p>
+            <h3 className="font-serif text-2xl md:text-3xl mb-3">Enjoyed this? Get more like it.</h3>
+            <p className="text-white/60 text-sm mb-6 max-w-lg leading-relaxed">
+              Insights on technology, meteorology, faith, leadership, and creativity — delivered with intention.
+            </p>
+            <NewsletterForm
+              idPrefix="blog-newsletter"
+              inputClassName="flex-1 px-5 py-3.5 bg-white/10 border border-white/15 text-white placeholder:text-white/35 focus:outline-none focus:border-[#d4a574]/60 rounded-xl text-sm"
+              buttonClassName="px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all rounded-xl text-sm font-semibold whitespace-nowrap disabled:opacity-60"
+              successClassName="bg-white/10 rounded-2xl p-6"
+              helperText="No spam. Unsubscribe anytime."
+            />
+          </motion.div>
 
           {/* Mobile Share */}
           <div className="mt-10 p-6 border border-black/8 rounded-2xl lg:hidden">

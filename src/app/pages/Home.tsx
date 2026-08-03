@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Cloud, Code, Users, BookOpen, Music, Shirt, Star } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SEO } from '../components/SEO';
+import { NewsletterForm } from '../components/NewsletterForm';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -34,9 +35,6 @@ export function Home() {
   const [approvedFeedback, setApprovedFeedback] = useState<ApprovedFeedback[]>([]);
   const [gmmStat, setGmmStat] = useState(DEFAULT_GMM_STAT);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterName, setNewsletterName] = useState('');
-  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
 
   useEffect(() => {
     void fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
@@ -85,21 +83,6 @@ export function Home() {
       .then(res => { if (res.success && res.data) setProfile(res.data); })
       .catch(() => {});
   }, []);
-
-  const subscribeNewsletter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail || !newsletterName) return;
-    setNewsletterStatus('sending');
-    try {
-      const res = await fetch(`${API}/newsletter/subscribe/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newsletterName, email: newsletterEmail }),
-      });
-      const data = (await res.json()) as { success: boolean };
-      setNewsletterStatus(data.success ? 'done' : 'error');
-    } catch { setNewsletterStatus('error'); }
-  };
 
   return (
     <div className="min-h-screen">
@@ -405,32 +388,7 @@ export function Home() {
               Insights on technology, meteorology, faith, leadership, and creativity — delivered with intention.
             </p>
 
-            {newsletterStatus === 'done' ? (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                className="bg-black text-white rounded-2xl p-8">
-                <p className="font-serif text-2xl mb-2">You're in. ✓</p>
-                <p className="text-white/60">Look out for the next issue in your inbox.</p>
-              </motion.div>
-            ) : (
-              <form onSubmit={subscribeNewsletter} className="flex flex-col sm:flex-row gap-3">
-                <input type="text" required placeholder="Your name" value={newsletterName}
-                  onChange={e => setNewsletterName(e.target.value)}
-                  className="flex-1 px-5 py-4 bg-black/10 border border-black/20 text-black placeholder:text-black/40 focus:outline-none focus:border-black/50 rounded-xl text-sm"
-                />
-                <input type="email" required placeholder="Your email" value={newsletterEmail}
-                  onChange={e => setNewsletterEmail(e.target.value)}
-                  className="flex-1 px-5 py-4 bg-black/10 border border-black/20 text-black placeholder:text-black/40 focus:outline-none focus:border-black/50 rounded-xl text-sm"
-                />
-                <button type="submit" disabled={newsletterStatus === 'sending'}
-                  className="px-8 py-4 bg-black text-white hover:bg-white hover:text-black transition-all rounded-xl text-sm font-semibold whitespace-nowrap disabled:opacity-60">
-                  {newsletterStatus === 'sending' ? 'Subscribing…' : 'Subscribe'}
-                </button>
-              </form>
-            )}
-            {newsletterStatus === 'error' && (
-              <p className="text-red-900 text-sm mt-3">Something went wrong. Please try again.</p>
-            )}
-            <p className="text-black/40 text-xs mt-4">No spam. No noise. Unsubscribe anytime.</p>
+            <NewsletterForm idPrefix="home-newsletter" />
           </motion.div>
         </div>
       </section>
