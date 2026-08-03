@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<meta name="description" content="{{ description }}">
+<link rel="canonical" href="{{ url }}">
+
+<meta property="og:site_name" content="Koboko">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:image" content="{{ image }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="{{ url }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:locale" content="en_KE">
+{% for prop, value in extra_og_properties %}<meta property="{{ prop }}" content="{{ value }}">
+{% endfor %}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ description }}">
+<meta name="twitter:image" content="{{ image }}">
+{% if twitter_handle %}<meta name="twitter:creator" content="@{{ twitter_handle }}">
+<meta name="twitter:site" content="@{{ twitter_handle }}">
+{% endif %}
+
+<script type="application/ld+json">{{ json_ld|safe }}</script>
+</head>
+<body>
+<!-- Rendered for crawlers/link-unfurlers only (see Vercel edge middleware) — human
+     visitors are proxied here only if they arrive with a bot User-Agent by mistake. -->
+<p><a href="{{ url }}">{{ title }}</a></p>
+</body>
+</html>

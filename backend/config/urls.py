@@ -1,8 +1,11 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.syndication.views import Feed
 from django.http import HttpResponse
 from django.urls import include, path
+
+from apps.core import views_meta
 
 SITE_URL = getattr(settings, 'SITE_URL', 'https://koboko.dev')
 
@@ -65,12 +68,64 @@ def sitemap_xml(request):
     return HttpResponse('\n'.join(lines), content_type='application/xml')
 
 
+class LatestArticlesFeed(Feed):
+    """RSS 2.0 feed of published blog articles.
+
+    Uses Django's syndication framework (not django.contrib.sites — that app
+    isn't installed — so Django derives the feed's own self-URL from the
+    actual request host, e.g. api.koboko.co.ke). `link`/`item_link` are
+    absolute frontend URLs and are left untouched by Django's domain-adding
+    logic since they already start with https://.
+    """
+    title = 'Koboko — Blog'
+    link = f'{SITE_URL}/blog'
+    description = (
+        'Insights on meteorology, backend development, data science, '
+        'faith, and mentorship — from Koboko.'
+    )
+
+    def items(self):
+        from apps.blog.models import BlogArticle
+        return BlogArticle.objects.filter(is_published=True).order_by('-published_date')[:20]
+
+    def item_title(self, item):
+        return item.title
+
+    def item_description(self, item):
+        return item.excerpt
+
+    def item_link(self, item):
+        return f'{SITE_URL}/blog/{item.slug}'
+
+    def item_guid(self, item):
+        return f'{SITE_URL}/blog/{item.slug}'
+
+    def item_guid_is_permalink(self, item):
+        return True
+
+    def item_pubdate(self, item):
+        return item.published_date
+
+    def item_updateddate(self, item):
+        return item.updated_at
+
+    def item_author_name(self, item):
+        return item.author
+
+    def item_categories(self, item):
+        return [item.category.name] if item.category else []
+
+
 _admin_url = getattr(settings, 'ADMIN_URL', 'admin/')
 
 urlpatterns = [
     path(_admin_url, admin.site.urls),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_xml),
+    path('feed/', LatestArticlesFeed()),
+    path('meta/blog/<slug:slug>/', views_meta.blog_article_meta),
+    path('meta/projects/<slug:slug>/', views_meta.project_meta),
+    path('meta/book/', views_meta.book_meta),
     path('api/blog/', include('apps.blog.urls')),
     path('api/projects/', include('apps.projects.urls')),
     path('api/fashion/', include('apps.fashion.urls')),

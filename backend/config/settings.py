@@ -355,6 +355,10 @@ LOGGING = {
 
 # ─── Site ─────────────────────────────────────────────────────────────────────
 SITE_URL = os.getenv('SITE_URL', 'https://koboko.dev')
+# Used for the meta/* server-rendered OG/Twitter/JSON-LD pages — should mirror
+# the frontend's VITE_GITHUB_URL / VITE_TWITTER_HANDLE (see docs/deployment.md).
+GITHUB_URL = os.getenv('GITHUB_URL', 'https://github.com/KOBOKO23')
+TWITTER_HANDLE = os.getenv('TWITTER_HANDLE', 'kobokophilip')
 
 # ─── Weather (Open-Meteo — free, no API key required) ────────────────────────
 DEFAULT_WEATHER_CITY = os.getenv('DEFAULT_WEATHER_CITY', 'Nairobi,KE')
