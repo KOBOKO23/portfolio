@@ -71,14 +71,16 @@ def sitemap_xml(request):
 class LatestArticlesFeed(Feed):
     """RSS 2.0 feed of published blog articles.
 
-    Uses Django's syndication framework (not django.contrib.sites — that app
-    isn't installed — so Django derives the feed's own self-URL from the
-    actual request host, e.g. api.koboko.co.ke). `link`/`item_link` are
-    absolute frontend URLs and are left untouched by Django's domain-adding
-    logic since they already start with https://.
+    django.contrib.sites isn't installed, so Django would otherwise derive
+    the feed's own self-URL (<atom:link rel="self">) from the request host
+    and request.is_secure(). Behind CloudFront -> ALB, that scheme detection
+    isn't reliable, so feed_url is pinned explicitly via BACKEND_URL instead.
+    `link`/`item_link` are absolute frontend URLs and are left untouched by
+    Django's domain-adding logic since they already start with https://.
     """
     title = 'Koboko — Blog'
     link = f'{SITE_URL}/blog'
+    feed_url = f'{getattr(settings, "BACKEND_URL", "https://api.koboko.co.ke")}/feed/'
     description = (
         'Insights on meteorology, backend development, data science, '
         'faith, and mentorship — from Koboko.'
