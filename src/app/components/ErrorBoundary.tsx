@@ -4,7 +4,6 @@
  */
 import type { ReactNode, ErrorInfo } from 'react';
 import { Component } from 'react';
-import { errorMonitor } from '../utils/monitoring';
 
 interface Props {
   children: ReactNode;
@@ -36,16 +35,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error to monitoring service
-    errorMonitor.logError({
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack ?? undefined,
-      timestamp: Date.now(),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-    });
-
     // Update state with error info
     this.setState({
       errorInfo,
