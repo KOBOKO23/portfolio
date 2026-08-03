@@ -1,17 +1,30 @@
-"""Newsletter email dispatch helpers."""
+"""Newsletter email dispatch helpers.
+
+Bulk newsletter sends always go through AWS SES explicitly, via a dedicated
+connection — independent of settings.EMAIL_BACKEND, which stays on SMTP for
+transactional mail (contact form, admin notifications). SPF/DKIM/DMARC are
+only configured for the newsletter's sending domain (koboko.co.ke), so
+transactional mail is deliberately left untouched.
+"""
 import logging
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
+from django.urls import reverse
 
 from .models import NewsletterIssue, NewsletterSubscriber
 
 logger = logging.getLogger(__name__)
 
 
+def _unsubscribe_url(subscriber: NewsletterSubscriber) -> str:
+    path = reverse('newsletter-unsubscribe', args=[subscriber.unsubscribe_token])
+    return f'{settings.BACKEND_URL}{path}'
+
+
 def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
     """
-    Send a newsletter issue to all active subscribers.
+    Send a newsletter issue to all active subscribers via SES.
     Returns (sent_count, failed_count).
     """
     subscribers = NewsletterSubscriber.objects.filter(is_active=True)
@@ -19,22 +32,25 @@ def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
     failed = 0
 
     subject = f'📬 Issue #{issue.number}: {issue.title}'
-    text_body = _build_text_body(issue)
-    html_body = _build_html_body(issue)
-
-    from_email = settings.DEFAULT_FROM_EMAIL
+    from_email = settings.NEWSLETTER_FROM_EMAIL
+    connection = get_connection(backend='django_ses.SESBackend')
 
     for subscriber in subscribers:
-        unsubscribe_note = (
-            f'\n\nYou are receiving this because you subscribed with {subscriber.email}.\n'
-            'Reply UNSUBSCRIBE to stop receiving emails.'
-        )
+        unsubscribe_url = _unsubscribe_url(subscriber)
+        text_body = _build_text_body(issue, unsubscribe_url)
+        html_body = _build_html_body(issue, unsubscribe_url)
         try:
             msg = EmailMultiAlternatives(
                 subject=subject,
-                body=text_body + unsubscribe_note,
+                body=text_body,
                 from_email=from_email,
                 to=[subscriber.email],
+                connection=connection,
+                headers={
+                    # RFC 2369 + RFC 8058 one-click unsubscribe.
+                    'List-Unsubscribe': f'<{unsubscribe_url}>',
+                    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                },
             )
             msg.attach_alternative(html_body, 'text/html')
             msg.send()
@@ -46,7 +62,7 @@ def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
     return sent, failed
 
 
-def _build_text_body(issue: NewsletterIssue) -> str:
+def _build_text_body(issue: NewsletterIssue, unsubscribe_url: str) -> str:
     topics = ', '.join(issue.topics_list) if issue.topics_list else ''
     return f"""
 Issue #{issue.number} — {issue.title}
@@ -58,11 +74,12 @@ Published: {issue.published_date}
 {issue.content}
 
 —
-Koboko Newsletter · koboko.dev
+Koboko Newsletter · koboko.co.ke
+Unsubscribe: {unsubscribe_url}
 """.strip()
 
 
-def _build_html_body(issue: NewsletterIssue) -> str:
+def _build_html_body(issue: NewsletterIssue, unsubscribe_url: str) -> str:
     topics_html = ''
     if issue.topics_list:
         pills = ''.join(
@@ -110,8 +127,11 @@ def _build_html_body(issue: NewsletterIssue) -> str:
         <!-- Footer -->
         <tr>
           <td style="background:#0a0a0a;padding:24px 40px;text-align:center;">
+            <p style="color:#666;font-size:12px;margin:0 0 8px;">
+              Koboko Newsletter · <a href="https://koboko.co.ke" style="color:#d4a574;">koboko.co.ke</a>
+            </p>
             <p style="color:#666;font-size:12px;margin:0;">
-              Koboko Newsletter · <a href="https://koboko.dev" style="color:#d4a574;">koboko.dev</a>
+              <a href="{unsubscribe_url}" style="color:#999;">Unsubscribe</a>
             </p>
           </td>
         </tr>

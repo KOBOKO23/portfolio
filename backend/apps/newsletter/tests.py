@@ -34,6 +34,15 @@ class NewsletterSubscriberModelTest(TestCase):
         with self.assertRaises(Exception):
             NewsletterSubscriber.objects.create(name='Second', email='dup@test.com')
 
+    def test_unsubscribe_token_is_auto_generated(self):
+        sub = NewsletterSubscriber.objects.create(name='Alice', email='token@test.com')
+        self.assertTrue(sub.unsubscribe_token)
+
+    def test_unsubscribe_tokens_are_unique_per_subscriber(self):
+        sub1 = NewsletterSubscriber.objects.create(name='A', email='a@test.com')
+        sub2 = NewsletterSubscriber.objects.create(name='B', email='b@test.com')
+        self.assertNotEqual(sub1.unsubscribe_token, sub2.unsubscribe_token)
+
 
 class NewsletterIssueModelTest(TestCase):
     def test_str_includes_number_and_title(self):
@@ -126,3 +135,33 @@ class NewsletterIssuesAPITest(TestCase):
         resp = self.client.get('/api/newsletter/issues/')
         results = resp.json()['data'].get('results', resp.json()['data'])
         self.assertEqual(results[0]['number'], 2)
+
+
+class NewsletterUnsubscribeAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.sub = NewsletterSubscriber.objects.create(name='Alice', email='alice@test.com', is_active=True)
+        self.url = f'/api/newsletter/unsubscribe/{self.sub.unsubscribe_token}/'
+
+    def test_get_deactivates_subscriber(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.sub.refresh_from_db()
+        self.assertFalse(self.sub.is_active)
+
+    def test_post_deactivates_subscriber(self):
+        resp = self.client.post(self.url, data='List-Unsubscribe=One-Click', content_type='text/plain')
+        self.assertEqual(resp.status_code, 200)
+        self.sub.refresh_from_db()
+        self.assertFalse(self.sub.is_active)
+
+    def test_get_is_idempotent(self):
+        self.client.get(self.url)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        self.sub.refresh_from_db()
+        self.assertFalse(self.sub.is_active)
+
+    def test_unknown_token_returns_404(self):
+        resp = self.client.get('/api/newsletter/unsubscribe/does-not-exist/')
+        self.assertEqual(resp.status_code, 404)

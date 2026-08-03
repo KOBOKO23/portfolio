@@ -285,6 +285,19 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Koboko Newsletter <noreply@koboko.dev>')
 ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', '')
 
+# ─── Newsletter mailer (AWS SES) ───────────────────────────────────────────────
+# Deliberately separate from EMAIL_BACKEND above, which stays on SMTP for
+# transactional mail (contact form, admin notifications). Bulk newsletter sends
+# always go through SES explicitly (see apps/newsletter/email.py) regardless of
+# EMAIL_BACKEND, using a `newsletter@koboko.co.ke` sender — SPF/DKIM/DMARC are
+# only configured for that domain, not for the gmail.com transactional sender.
+AWS_SES_REGION_NAME = os.getenv('AWS_SES_REGION_NAME', 'eu-west-1')
+AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+NEWSLETTER_FROM_EMAIL = os.getenv('NEWSLETTER_FROM_EMAIL', 'Koboko Newsletter <newsletter@koboko.co.ke>')
+# Used to build absolute unsubscribe links from email.py, which runs outside
+# any request context (management command / admin action).
+BACKEND_URL = os.getenv('BACKEND_URL', 'https://api.koboko.co.ke')
+
 # ─── Stripe ───────────────────────────────────────────────────────────────────
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
