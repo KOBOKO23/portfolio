@@ -228,7 +228,7 @@ export function Blog() {
       {/* ── Filter Bar ───────────────────────────────────────────────────── */}
       <div className="sticky top-[79px] z-30 bg-white/98 backdrop-blur-md border-b border-black/6">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-3 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto w-full sm:w-auto min-w-0 pb-0.5">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button onClick={() => setSelectedCategory('')}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all ${
                 !selectedCategory ? 'bg-black text-white' : 'text-black/50 hover:text-black hover:bg-black/5'

@@ -4,13 +4,3 @@
 @import 'tw-animate-css';
 
 @plugin '@tailwindcss/typography';
-
-/* Hides the scrollbar on horizontally-scrollable strips (e.g. mobile
-   category filter chips) while keeping the element natively scrollable. */
-@utility no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
