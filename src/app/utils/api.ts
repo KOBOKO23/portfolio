@@ -67,10 +67,7 @@ async function fetchWithTimeout(
 /**
  * Generic API request handler
  */
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<APIResponse<T>> {
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     const response = await fetchWithTimeout(url, {
@@ -131,7 +128,7 @@ export async function apiRequestWithRetry<T>(
 
     // Wait before retrying (exponential backoff)
     if (i < maxRetries - 1) {
-      await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
     }
   }
 
@@ -144,10 +141,7 @@ export async function apiRequestWithRetry<T>(
 /**
  * GET request
  */
-export async function get<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<APIResponse<T>> {
+export async function get<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
   return apiRequest<T>(endpoint, {
     method: 'GET',
     ...options,
@@ -187,10 +181,7 @@ export async function put<T>(
 /**
  * DELETE request
  */
-export async function del<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<APIResponse<T>> {
+export async function del<T>(endpoint: string, options: RequestInit = {}): Promise<APIResponse<T>> {
   return apiRequest<T>(endpoint, {
     method: 'DELETE',
     ...options,
@@ -205,12 +196,12 @@ export async function uploadFile(
   file: File,
   onProgress?: (progress: number) => void
 ): Promise<APIResponse<unknown>> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
     formData.append('file', file);
 
-    xhr.upload.addEventListener('progress', (e) => {
+    xhr.upload.addEventListener('progress', e => {
       if (e.lengthComputable && onProgress) {
         const progress = (e.loaded / e.total) * 100;
         onProgress(progress);

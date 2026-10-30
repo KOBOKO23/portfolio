@@ -1,6 +1,7 @@
 """
 apps/newsletter/serializers.py — Newsletter subscriber signup and published issue listing.
 """
+
 from rest_framework import serializers
 
 from .models import NewsletterIssue, NewsletterSubscriber
@@ -14,12 +15,12 @@ class NewsletterSubscribeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NewsletterSubscriber
-        fields = ['id', 'name', 'email', 'subscribed_at']
-        read_only_fields = ['id', 'subscribed_at']
+        fields = ["id", "name", "email", "subscribed_at"]
+        read_only_fields = ["id", "subscribed_at"]
 
     def validate_email(self, value):
         if NewsletterSubscriber.objects.filter(email=value, is_active=True).exists():
-            raise serializers.ValidationError('This email is already subscribed.')
+            raise serializers.ValidationError("This email is already subscribed.")
         return value
 
 
@@ -28,4 +29,13 @@ class NewsletterIssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NewsletterIssue
-        fields = ['id', 'number', 'title', 'excerpt', 'content', 'published_date', 'topics', 'topics_list']
+        fields = [
+            "id",
+            "number",
+            "title",
+            "excerpt",
+            "content",
+            "published_date",
+            "topics",
+            "topics_list",
+        ]

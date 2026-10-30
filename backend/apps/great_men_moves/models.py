@@ -7,13 +7,13 @@ class GreatMenProgram(models.Model):
     location = models.CharField(max_length=300)
     description = models.TextField()
     spots = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to='gmm/programs/', blank=True, null=True)
+    image = models.ImageField(upload_to="gmm/programs/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['date']
-        verbose_name = 'Great Men Program'
+        ordering = ["date"]
+        verbose_name = "Great Men Program"
 
     def __str__(self):
         return self.title
@@ -22,13 +22,13 @@ class GreatMenProgram(models.Model):
 class ImpactGoal(models.Model):
     number = models.CharField(max_length=20, help_text='Display value e.g. "500+" or "12"')
     label = models.CharField(max_length=200)
-    progress = models.PositiveSmallIntegerField(default=0, help_text='0-100 percentage')
+    progress = models.PositiveSmallIntegerField(default=0, help_text="0-100 percentage")
     icon = models.CharField(max_length=50, blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['order']
-        verbose_name = 'Impact Goal'
+        ordering = ["order"]
+        verbose_name = "Impact Goal"
 
     def __str__(self):
         return self.label
@@ -44,8 +44,8 @@ class VolunteerApplication(models.Model):
     is_reviewed = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Volunteer Application'
+        ordering = ["-created_at"]
+        verbose_name = "Volunteer Application"
 
     def __str__(self):
-        return f'{self.full_name} ({self.email})'
+        return f"{self.full_name} ({self.email})"

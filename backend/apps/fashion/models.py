@@ -7,8 +7,8 @@ class FashionCategory(models.Model):
     slug = models.SlugField(unique=True)
 
     class Meta:
-        verbose_name_plural = 'Fashion Categories'
-        ordering = ['name']
+        verbose_name_plural = "Fashion Categories"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -25,9 +25,9 @@ class FashionCategory(models.Model):
 
 class FashionImage(models.Model):
     title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='fashion/')
+    image = models.ImageField(upload_to="fashion/")
     category = models.ForeignKey(
-        FashionCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='images'
+        FashionCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="images"
     )
     description = models.TextField(blank=True)
     location = models.CharField(max_length=200, blank=True)
@@ -36,7 +36,7 @@ class FashionImage(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['order', '-date_taken']
+        ordering = ["order", "-date_taken"]
 
     def __str__(self):
         return self.title

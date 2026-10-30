@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -74,9 +73,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "proficiency",
-                    models.PositiveSmallIntegerField(
-                        default=80, help_text="0-100 percentage"
-                    ),
+                    models.PositiveSmallIntegerField(default=80, help_text="0-100 percentage"),
                 ),
                 ("icon", models.CharField(blank=True, max_length=50)),
                 ("order", models.PositiveIntegerField(default=0)),

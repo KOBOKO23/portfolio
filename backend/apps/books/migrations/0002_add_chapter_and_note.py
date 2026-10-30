@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("books", "0001_initial"),
     ]
@@ -21,9 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="book",
             name="price_kes",
-            field=models.PositiveIntegerField(
-                default=1500, help_text="Pre-order price in KES"
-            ),
+            field=models.PositiveIntegerField(default=1500, help_text="Pre-order price in KES"),
         ),
         migrations.AddField(
             model_name="book",
@@ -59,9 +56,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "excerpt",
-                    models.TextField(
-                        blank=True, help_text="Short preview shown on the book page"
-                    ),
+                    models.TextField(blank=True, help_text="Short preview shown on the book page"),
                 ),
                 ("order", models.PositiveIntegerField(default=0)),
                 (

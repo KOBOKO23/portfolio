@@ -1,7 +1,17 @@
 import { useState, useEffect, type ElementType } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ExternalLink, Github, Cloud, Code, Database, Gauge, Terminal, Globe, ArrowRight } from 'lucide-react';
+import {
+  ExternalLink,
+  Github,
+  Cloud,
+  Code,
+  Database,
+  Gauge,
+  Terminal,
+  Globe,
+  ArrowRight,
+} from 'lucide-react';
 import { SEO } from '../components/SEO';
 
 interface ProjectCategory {
@@ -39,7 +49,8 @@ const FALLBACK_PROJECTS: Project[] = [
     id: 1,
     title: 'Numerical Weather Prediction System',
     slug: 'nwp-system',
-    description: 'Advanced weather forecasting system using numerical models to predict atmospheric conditions for Kenya and East Africa.',
+    description:
+      'Advanced weather forecasting system using numerical models to predict atmospheric conditions for Kenya and East Africa.',
     category: { id: 1, name: 'Meteorology', color: '#1a4a6e', icon: 'cloud' },
     technologies: ['Python', 'Atmospheric Science', 'Data Visualization', 'Meteorological Models'],
   },
@@ -47,7 +58,8 @@ const FALLBACK_PROJECTS: Project[] = [
     id: 2,
     title: 'Django REST API Framework',
     slug: 'django-api',
-    description: 'Scalable REST API built with Django and PostgreSQL for enterprise-level applications, featuring authentication and comprehensive documentation.',
+    description:
+      'Scalable REST API built with Django and PostgreSQL for enterprise-level applications, featuring authentication and comprehensive documentation.',
     category: { id: 2, name: 'Backend Development', color: '#2d5a2d', icon: 'code' },
     technologies: ['Python', 'Django', 'PostgreSQL', 'REST APIs', 'JWT Auth'],
     github_url: '#',
@@ -56,7 +68,8 @@ const FALLBACK_PROJECTS: Project[] = [
     id: 3,
     title: 'Database Architecture Design',
     slug: 'db-architecture',
-    description: 'Comprehensive database solutions implementing both SQL and NoSQL architectures for optimal data storage and retrieval performance.',
+    description:
+      'Comprehensive database solutions implementing both SQL and NoSQL architectures for optimal data storage and retrieval performance.',
     category: { id: 3, name: 'Database Management', color: '#4a2d6e', icon: 'database' },
     technologies: ['PostgreSQL', 'MongoDB', 'Redis', 'Query Optimization'],
     github_url: '#',
@@ -65,7 +78,8 @@ const FALLBACK_PROJECTS: Project[] = [
     id: 4,
     title: 'Real-Time Data Processing Pipeline',
     slug: 'data-pipeline',
-    description: 'High-performance data pipeline for processing and analyzing meteorological data in real-time, supporting decision-making processes.',
+    description:
+      'High-performance data pipeline for processing and analyzing meteorological data in real-time, supporting decision-making processes.',
     category: { id: 4, name: 'Data Science', color: '#6e3a1a', icon: 'gauge' },
     technologies: ['Python', 'Pandas', 'NumPy', 'Data Analysis', 'Visualization'],
   },
@@ -97,8 +111,14 @@ function ProjectVisual({ project }: { project: Project }) {
         />
         {/* Gold corner accent */}
         <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none">
-          <div className="absolute top-0 left-0 w-16 h-[2px]" style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }} />
-          <div className="absolute top-0 left-0 h-16 w-[2px]" style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }} />
+          <div
+            className="absolute top-0 left-0 w-16 h-[2px]"
+            style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }}
+          />
+          <div
+            className="absolute top-0 left-0 h-16 w-[2px]"
+            style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }}
+          />
         </div>
       </div>
     );
@@ -111,7 +131,9 @@ function ProjectVisual({ project }: { project: Project }) {
     >
       <div
         className="absolute inset-0"
-        style={{ background: `radial-gradient(ellipse 60% 60% at 30% 40%, ${color}44 0%, transparent 70%)` }}
+        style={{
+          background: `radial-gradient(ellipse 60% 60% at 30% 40%, ${color}44 0%, transparent 70%)`,
+        }}
       />
       <div
         className="absolute inset-0 opacity-[0.05]"
@@ -132,8 +154,14 @@ function ProjectVisual({ project }: { project: Project }) {
       </div>
       {/* Gold corner accent */}
       <div className="absolute top-0 left-0 w-16 h-16 pointer-events-none">
-        <div className="absolute top-0 left-0 w-16 h-[2px]" style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }} />
-        <div className="absolute top-0 left-0 h-16 w-[2px]" style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }} />
+        <div
+          className="absolute top-0 left-0 w-16 h-[2px]"
+          style={{ background: 'linear-gradient(90deg, #d4a574, transparent)' }}
+        />
+        <div
+          className="absolute top-0 left-0 h-16 w-[2px]"
+          style={{ background: 'linear-gradient(180deg, #d4a574, transparent)' }}
+        />
       </div>
     </div>
   );
@@ -147,10 +175,10 @@ export function Projects() {
   useEffect(() => {
     const apiBase = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
     fetch(`${apiBase}/projects/`)
-      .then((r) => r.json() as Promise<{ data?: Project[] | { results?: Project[] } }>)
-      .then((body) => {
+      .then(r => r.json() as Promise<{ data?: Project[] | { results?: Project[] } }>)
+      .then(body => {
         const d = body.data;
-        const items: Project[] = Array.isArray(d) ? d : (d)?.results ?? [];
+        const items: Project[] = Array.isArray(d) ? d : (d?.results ?? []);
         if (items.length > 0) setProjects(items);
         else setUsingFallback(true);
       })
@@ -192,7 +220,7 @@ export function Projects() {
         )}
         {loading ? (
           <div className="space-y-24">
-            {[1, 2, 3].map((n) => (
+            {[1, 2, 3].map(n => (
               <div key={n} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="aspect-[4/3] bg-black/5 animate-pulse" />
                 <div className="space-y-4">
@@ -229,17 +257,27 @@ export function Projects() {
                     </p>
                   )}
                   <Link to={`/projects/${project.slug}`}>
-                    <h2 className="text-3xl md:text-4xl mb-4 hover:text-[#d4a574] transition-colors" style={{ fontFamily: 'var(--font-serif)' }}>
+                    <h2
+                      className="text-3xl md:text-4xl mb-4 hover:text-[#d4a574] transition-colors"
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
                       {project.title}
                     </h2>
                   </Link>
-                  <p className="text-lg text-black/70 leading-relaxed mb-6">{project.description}</p>
+                  <p className="text-lg text-black/70 leading-relaxed mb-6">
+                    {project.description}
+                  </p>
 
                   <div className="mb-6">
-                    <h3 className="text-sm uppercase tracking-wide mb-3 text-black/60">Technologies</h3>
+                    <h3 className="text-sm uppercase tracking-wide mb-3 text-black/60">
+                      Technologies
+                    </h3>
                     <div className="flex flex-wrap gap-2">
-                      {(project.technologies_list ?? project.technologies).map((tech) => (
-                        <span key={tech} className="px-3 py-1 bg-[#f5f5f0] text-sm border border-black/10">
+                      {(project.technologies_list ?? project.technologies).map(tech => (
+                        <span
+                          key={tech}
+                          className="px-3 py-1 bg-[#f5f5f0] text-sm border border-black/10"
+                        >
                           {tech}
                         </span>
                       ))}
@@ -247,20 +285,32 @@ export function Projects() {
                   </div>
 
                   <div className="flex flex-wrap gap-4 items-center">
-                    <Link to={`/projects/${project.slug}`}
-                      className="inline-flex items-center gap-2 text-sm font-medium text-[#d4a574] hover:gap-3 transition-all">
+                    <Link
+                      to={`/projects/${project.slug}`}
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#d4a574] hover:gap-3 transition-all"
+                    >
                       Read More <ArrowRight size={16} />
                     </Link>
                     {project.github_url && project.github_url !== '#' && (
-                      <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors">
-                        <Github size={18} /><span>View Code</span>
+                      <a
+                        href={project.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors"
+                      >
+                        <Github size={18} />
+                        <span>View Code</span>
                       </a>
                     )}
                     {project.live_url && project.live_url !== '#' && (
-                      <a href={project.live_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors">
-                        <ExternalLink size={18} /><span>Live Demo</span>
+                      <a
+                        href={project.live_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-black/50 hover:text-black transition-colors"
+                      >
+                        <ExternalLink size={18} />
+                        <span>Live Demo</span>
                       </a>
                     )}
                   </div>
@@ -274,9 +324,17 @@ export function Projects() {
       {/* Tech Stack */}
       <section className="py-24 lg:py-32 bg-black text-white">
         <div className="px-6 lg:px-12 max-w-[1400px] mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="w-12 h-[2px] bg-[#d4a574] mb-6 mx-auto" />
-            <h2 className="text-4xl md:text-5xl mb-16 text-center" style={{ fontFamily: 'var(--font-serif)' }}>
+            <h2
+              className="text-4xl md:text-5xl mb-16 text-center"
+              style={{ fontFamily: 'var(--font-serif)' }}
+            >
               Technical Stack
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -300,12 +358,23 @@ export function Projects() {
 
       {/* CTA */}
       <section className="py-24 lg:py-32 px-6 lg:px-12 max-w-[1400px] mx-auto">
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center">
-          <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>Let's Build Something</h2>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <h2 className="text-4xl md:text-5xl mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
+            Let's Build Something
+          </h2>
           <p className="text-lg text-black/60 max-w-2xl mx-auto mb-8">
             Interested in collaboration or new opportunities? Let's talk.
           </p>
-          <a href="/contact" className="inline-block px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300">
+          <a
+            href="/contact"
+            className="inline-block px-8 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300"
+          >
             Get In Touch
           </a>
         </motion.div>

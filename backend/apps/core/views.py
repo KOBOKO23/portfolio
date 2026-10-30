@@ -8,6 +8,7 @@ Endpoints (under /api/)
   GET  career/            — career timeline events in display order
   GET  weather/forecast/  — 72-hour weather forecast proxied from OpenWeatherMap
 """
+
 from django.db import connection
 from rest_framework import generics
 from rest_framework.response import Response
@@ -26,15 +27,15 @@ class HealthCheckView(APIView):
         except Exception:
             db_ok = False
         status = 200 if db_ok else 503
-        return Response({'status': 'ok' if db_ok else 'degraded', 'db': db_ok}, status=status)
+        return Response({"status": "ok" if db_ok else "degraded", "db": db_ok}, status=status)
 
 
 class ProfileView(APIView):
     def get(self, request):
         profile = Profile.objects.first()
         if not profile:
-            return Response({'detail': 'Profile not configured yet.'}, status=404)
-        serializer = ProfileSerializer(profile, context={'request': request})
+            return Response({"detail": "Profile not configured yet."}, status=404)
+        serializer = ProfileSerializer(profile, context={"request": request})
         return Response(serializer.data)
 
 

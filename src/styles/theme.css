@@ -4,7 +4,7 @@
   --font-size: 16px;
   --font-serif: 'Playfair Display', serif;
   --font-sans: 'Inter', sans-serif;
-  
+
   /* Editorial color palette: Black, white, warm earth tones, gold accents */
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -19,7 +19,7 @@
   --earth-tone-1: #8b7355;
   --earth-tone-2: #a67c52;
   --gold-accent: #d4a574;
-  
+
   --card: #ffffff;
   --card-foreground: #0a0a0a;
   --popover: #ffffff;
@@ -149,7 +149,9 @@
     font-size: var(--font-size);
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: var(--font-serif);
   }
 

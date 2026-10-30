@@ -5,6 +5,7 @@ Endpoints (under /api/feedback/)
   POST  create/  — submit a feedback rating and optional message
   GET   list/    — approved feedback entries visible on the public site
 """
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
@@ -14,7 +15,7 @@ from .serializers import FeedbackPublicSerializer, FeedbackSerializer
 
 
 class FeedbackRateThrottle(AnonRateThrottle):
-    scope = 'feedback'
+    scope = "feedback"
 
 
 class FeedbackCreateView(generics.CreateAPIView):
@@ -25,7 +26,7 @@ class FeedbackCreateView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'message': 'Thank you for your feedback!'}, status=status.HTTP_201_CREATED)
+        return Response({"message": "Thank you for your feedback!"}, status=status.HTTP_201_CREATED)
 
 
 class FeedbackListView(generics.ListAPIView):

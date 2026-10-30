@@ -84,15 +84,12 @@ export class ErrorBoundary extends Component<Props, State> {
                   />
                 </svg>
               </div>
-              <h1
-                className="text-4xl lg:text-5xl mb-4"
-                style={{ fontFamily: 'var(--font-serif)' }}
-              >
+              <h1 className="text-4xl lg:text-5xl mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
                 Something Went Wrong
               </h1>
               <p className="text-xl text-black/70 leading-relaxed mb-8">
-                We apologize for the inconvenience. An unexpected error occurred while
-                processing your request.
+                We apologize for the inconvenience. An unexpected error occurred while processing
+                your request.
               </p>
             </div>
 
@@ -107,9 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   </p>
                   {this.state.error.stack && (
                     <details className="text-red-700">
-                      <summary className="cursor-pointer font-semibold">
-                        Stack Trace
-                      </summary>
+                      <summary className="cursor-pointer font-semibold">Stack Trace</summary>
                       <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs">
                         {this.state.error.stack}
                       </pre>
@@ -117,9 +112,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   )}
                   {this.state.errorInfo?.componentStack && (
                     <details className="text-red-700">
-                      <summary className="cursor-pointer font-semibold">
-                        Component Stack
-                      </summary>
+                      <summary className="cursor-pointer font-semibold">Component Stack</summary>
                       <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -147,12 +140,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="px-8 py-3 text-black hover:text-[#d4a574] transition-colors inline-flex items-center gap-2"
               >
                 Report Issue
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

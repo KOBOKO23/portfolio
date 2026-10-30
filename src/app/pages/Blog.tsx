@@ -1,35 +1,76 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Clock, Eye, Heart, MessageCircle, ArrowRight, Globe, X, WifiOff } from 'lucide-react';
+import {
+  Search,
+  Clock,
+  Eye,
+  Heart,
+  MessageCircle,
+  ArrowRight,
+  Globe,
+  X,
+  WifiOff,
+} from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { FALLBACK_LIST_ARTICLES } from '../data/blogFallback';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-interface Resp<T> { success: boolean; data?: T }
+interface Resp<T> {
+  success: boolean;
+  data?: T;
+}
 
-interface Category { id: number; name: string; slug: string; icon: string; color: string; article_count: number; }
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string;
+  color: string;
+  article_count: number;
+}
 interface Article {
-  id: number; title: string; slug: string; excerpt: string;
-  thumbnail: string | null; category: Category | null;
-  tags: string[]; author: string; language: string;
-  read_time: number; views: number; like_count: number; comment_count: number;
-  is_featured: boolean; published_date: string;
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string;
+  thumbnail: string | null;
+  category: Category | null;
+  tags: string[];
+  author: string;
+  language: string;
+  read_time: number;
+  views: number;
+  like_count: number;
+  comment_count: number;
+  is_featured: boolean;
+  published_date: string;
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
-function formatNum(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n); }
+function formatNum(n: number) {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
 
 function categoryGradient(color: string) {
   return `linear-gradient(135deg, ${color}28 0%, ${color}08 60%, transparent 100%)`;
 }
 
 const ICON_MAP: Record<string, string> = {
-  code: '{ }', cloud: '⛅', heart: '♡', music: '♪',
-  users: '⊕', 'bar-chart': '▦', shirt: '◈',
+  code: '{ }',
+  cloud: '⛅',
+  heart: '♡',
+  music: '♪',
+  users: '⊕',
+  'bar-chart': '▦',
+  shirt: '◈',
 };
 
 function ArticleSkeleton() {
@@ -61,19 +102,24 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
       className={`group cursor-pointer flex flex-col ${featured ? 'md:flex-row gap-8 lg:gap-12 items-start' : ''}`}
     >
       {/* Thumbnail */}
-      <div className={`block overflow-hidden rounded-2xl flex-shrink-0 ${featured ? 'md:w-1/2' : 'w-full'}`}>
+      <div
+        className={`block overflow-hidden rounded-2xl flex-shrink-0 ${featured ? 'md:w-1/2' : 'w-full'}`}
+      >
         <div
           className={`relative overflow-hidden ${featured ? 'aspect-[4/3]' : 'aspect-[16/9]'}`}
           style={{ background: article.thumbnail ? '#000' : categoryGradient(color) }}
         >
           {article.thumbnail ? (
             <img
-              src={article.thumbnail} alt={article.title}
+              src={article.thumbnail}
+              alt={article.title}
               className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-700"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center select-none">
-              <span className="text-7xl opacity-15 font-light" style={{ color }}>{iconChar}</span>
+              <span className="text-7xl opacity-15 font-light" style={{ color }}>
+                {iconChar}
+              </span>
             </div>
           )}
 
@@ -110,14 +156,19 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
           {article.title}
         </Link>
 
-        <p className={`text-black/55 leading-relaxed mb-5 ${featured ? 'text-[15px]' : 'text-[13px] line-clamp-3'}`}>
+        <p
+          className={`text-black/55 leading-relaxed mb-5 ${featured ? 'text-[15px]' : 'text-[13px] line-clamp-3'}`}
+        >
           {article.excerpt}
         </p>
 
         {article.tags?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-5">
             {article.tags.slice(0, 3).map(t => (
-              <span key={t} className="px-2.5 py-0.5 bg-black/[0.04] text-black/45 text-[11px] rounded-full font-medium">
+              <span
+                key={t}
+                className="px-2.5 py-0.5 bg-black/[0.04] text-black/45 text-[11px] rounded-full font-medium"
+              >
                 {t}
               </span>
             ))}
@@ -127,12 +178,27 @@ function ArticleCard({ article, featured = false }: { article: Article; featured
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-black/35 mt-auto pt-4 border-t border-black/6">
           <span className="text-black/55 font-semibold">{article.author}</span>
           <span>{formatDate(article.published_date)}</span>
-          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{article.read_time}m</span>
-          <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatNum(article.views)}</span>
-          <span className="flex items-center gap-1 text-red-400"><Heart className="w-3 h-3" />{formatNum(article.like_count)}</span>
-          <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{article.comment_count}</span>
+          <span className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            {article.read_time}m
+          </span>
+          <span className="flex items-center gap-1">
+            <Eye className="w-3 h-3" />
+            {formatNum(article.views)}
+          </span>
+          <span className="flex items-center gap-1 text-red-400">
+            <Heart className="w-3 h-3" />
+            {formatNum(article.like_count)}
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="w-3 h-3" />
+            {article.comment_count}
+          </span>
           {article.language !== 'en' && (
-            <span className="flex items-center gap-1 text-[#d4a574]"><Globe className="w-3 h-3" />{article.language.toUpperCase()}</span>
+            <span className="flex items-center gap-1 text-[#d4a574]">
+              <Globe className="w-3 h-3" />
+              {article.language.toUpperCase()}
+            </span>
           )}
         </div>
       </div>
@@ -157,34 +223,54 @@ export function Blog() {
   useEffect(() => {
     void fetch(`${API}/blog/categories/`)
       .then(r => r.json() as Promise<Resp<Category[]>>)
-      .then(res => { if (res.success && res.data) setCategories(res.data); });
+      .then(res => {
+        if (res.success && res.data) setCategories(res.data);
+      });
   }, []);
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(1); }, 350);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 350);
     return () => clearTimeout(debounceRef.current);
   }, [searchQuery]);
 
-  useEffect(() => { setPage(1); }, [selectedCategory]);
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory]);
 
   useEffect(() => {
     setLoading(true);
     setFetchError(false);
     setIsFallback(false);
-    const params = new URLSearchParams({ page: String(page), page_size: '9', ordering: '-published_date' });
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: '9',
+      ordering: '-published_date',
+    });
     if (selectedCategory) params.set('category__slug', selectedCategory);
     if (debouncedSearch) params.set('search', debouncedSearch);
 
     fetch(`${API}/blog/articles/?${params}`)
-      .then(r => r.json() as Promise<Resp<{ results?: Article[]; count?: number; next?: string | null } | Article[]>>)
+      .then(
+        r =>
+          r.json() as Promise<
+            Resp<{ results?: Article[]; count?: number; next?: string | null } | Article[]>
+          >
+      )
       .then(res => {
         if (res.success && res.data) {
           const d = res.data;
-          const results: Article[] = Array.isArray(d) ? d : (d as { results?: Article[] }).results ?? [];
-          setArticles(prev => page === 1 ? results : [...prev, ...results]);
-          setTotalCount(Array.isArray(d) ? results.length : ((d as { count?: number }).count ?? results.length));
-          setHasMore(!Array.isArray(d) && !!((d as { next?: string | null }).next));
+          const results: Article[] = Array.isArray(d)
+            ? d
+            : ((d as { results?: Article[] }).results ?? []);
+          setArticles(prev => (page === 1 ? results : [...prev, ...results]));
+          setTotalCount(
+            Array.isArray(d) ? results.length : ((d as { count?: number }).count ?? results.length)
+          );
+          setHasMore(!Array.isArray(d) && !!(d as { next?: string | null }).next);
         }
       })
       .catch(() => {
@@ -204,7 +290,9 @@ export function Blog() {
 
   const isFiltered = !!(selectedCategory || debouncedSearch);
   const featuredArticle = !isFiltered && page === 1 ? articles.find(a => a.is_featured) : null;
-  const gridArticles = featuredArticle ? articles.filter(a => a.id !== featuredArticle.id) : articles;
+  const gridArticles = featuredArticle
+    ? articles.filter(a => a.id !== featuredArticle.id)
+    : articles;
 
   return (
     <div className="min-h-screen bg-white">
@@ -215,18 +303,30 @@ export function Blog() {
       />
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative bg-black py-36 lg:py-52 px-6 lg:px-16 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 70% 50% at 50% -10%, rgba(212,165,116,0.12), transparent)' }} />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 50% at 50% -10%, rgba(212,165,116,0.12), transparent)',
+          }}
+        />
         {/* Decorative lines */}
         <div className="absolute right-0 top-0 bottom-0 w-px bg-white/5" />
         <div className="absolute left-[20%] top-0 bottom-0 w-px bg-white/3" />
 
-        <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-4xl mx-auto text-center relative">
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-4xl mx-auto text-center relative"
+        >
           <div className="w-10 h-[2px] bg-[#d4a574] mx-auto mb-8" />
-          <h1 className="font-serif leading-[0.92] text-white mb-6"
-            style={{ fontSize: 'clamp(3.5rem,9vw,8rem)' }}>
-            Ideas &<br /><em className="not-italic text-[#d4a574]">Insights</em>
+          <h1
+            className="font-serif leading-[0.92] text-white mb-6"
+            style={{ fontSize: 'clamp(3.5rem,9vw,8rem)' }}
+          >
+            Ideas &<br />
+            <em className="not-italic text-[#d4a574]">Insights</em>
           </h1>
           <p className="text-white/50 text-[clamp(1rem,2vw,1.2rem)] max-w-lg mx-auto leading-relaxed">
             Dispatches from the intersection of meteorology, software, faith, and African identity.
@@ -243,18 +343,27 @@ export function Blog() {
       <div className="sticky top-[79px] z-30 bg-white/98 backdrop-blur-md border-b border-black/6">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-3 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <button onClick={() => setSelectedCategory('')}
+            <button
+              onClick={() => setSelectedCategory('')}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all ${
-                !selectedCategory ? 'bg-black text-white' : 'text-black/50 hover:text-black hover:bg-black/5'
-              }`}>
+                !selectedCategory
+                  ? 'bg-black text-white'
+                  : 'text-black/50 hover:text-black hover:bg-black/5'
+              }`}
+            >
               All
             </button>
             {categories.map(c => (
-              <button key={c.slug} onClick={() => setSelectedCategory(c.slug === selectedCategory ? '' : c.slug)}
+              <button
+                key={c.slug}
+                onClick={() => setSelectedCategory(c.slug === selectedCategory ? '' : c.slug)}
                 className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all ${
-                  selectedCategory === c.slug ? 'text-white shadow-sm' : 'text-black/50 hover:text-black hover:bg-black/5'
+                  selectedCategory === c.slug
+                    ? 'text-white shadow-sm'
+                    : 'text-black/50 hover:text-black hover:bg-black/5'
                 }`}
-                style={selectedCategory === c.slug ? { background: c.color } : {}}>
+                style={selectedCategory === c.slug ? { background: c.color } : {}}
+              >
                 {c.name}
                 <span className="opacity-50">({c.article_count})</span>
               </button>
@@ -263,12 +372,18 @@ export function Blog() {
 
           <div className="relative flex-shrink-0 w-full sm:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/30" />
-            <input type="text" placeholder="Search…" value={searchQuery}
+            <input
+              type="text"
+              placeholder="Search…"
+              value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-8 py-2 bg-black/[0.04] text-sm rounded-xl border border-transparent focus:outline-none focus:border-black/12 focus:bg-white transition-all placeholder:text-black/25"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
                 <X className="w-3 h-3 text-black/30 hover:text-black transition-colors" />
               </button>
             )}
@@ -283,15 +398,25 @@ export function Blog() {
         {isFallback && !loading && (
           <div className="flex items-center gap-2 justify-center text-center bg-[#d4a574]/15 border border-[#d4a574]/30 text-black/70 text-sm rounded-xl px-6 py-3 mb-10">
             <WifiOff className="w-4 h-4 flex-shrink-0" />
-            Showing a saved snapshot — search and filtering are temporarily limited while we perform maintenance.
+            Showing a saved snapshot — search and filtering are temporarily limited while we perform
+            maintenance.
           </div>
         )}
 
         {/* Result label */}
         {isFiltered && !loading && (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-black/35 mb-10 uppercase tracking-widest">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-xs text-black/35 mb-10 uppercase tracking-widest"
+          >
             {totalCount} result{totalCount !== 1 ? 's' : ''}
-            {debouncedSearch && <> · "<span className="text-black/55">{debouncedSearch}</span>"</>}
+            {debouncedSearch && (
+              <>
+                {' '}
+                · "<span className="text-black/55">{debouncedSearch}</span>"
+              </>
+            )}
           </motion.p>
         )}
 
@@ -301,61 +426,87 @@ export function Blog() {
             <span className="text-6xl text-black/10 font-serif block mb-5">◈</span>
             <p className="text-black/50 text-lg mb-2">Could not load articles</p>
             <p className="text-black/30 text-sm mb-6">Check your connection and try again.</p>
-            <button onClick={() => { setFetchError(false); setPage(1); }}
-              className="text-[#d4a574] text-sm hover:underline">
+            <button
+              onClick={() => {
+                setFetchError(false);
+                setPage(1);
+              }}
+              className="text-[#d4a574] text-sm hover:underline"
+            >
               Retry
             </button>
           </div>
         )}
 
         {/* Skeleton / articles */}
-        {!fetchError && (loading && page === 1 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {Array.from({ length: 6 }).map((_, i) => <ArticleSkeleton key={i} />)}
-          </div>
-        ) : articles.length === 0 ? (
-          <div className="text-center py-36">
-            <span className="text-6xl text-black/10 font-serif block mb-5">◈</span>
-            <p className="text-black/35 text-lg">No articles found</p>
-            {isFiltered && (
-              <button onClick={() => { setSelectedCategory(''); setSearchQuery(''); }}
-                className="mt-5 text-[#d4a574] text-sm hover:underline">
-                Clear filters
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            {/* Featured */}
-            {featuredArticle && (
-              <section className="mb-16 pb-16 border-b border-black/6">
-                <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#d4a574] mb-7">Editor's Pick</p>
-                <ArticleCard article={featuredArticle} featured />
-              </section>
-            )}
-
-            {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
-              <AnimatePresence mode="popLayout">
-                {gridArticles.map(a => <ArticleCard key={a.id} article={a} />)}
-              </AnimatePresence>
+        {!fetchError &&
+          (loading && page === 1 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ArticleSkeleton key={i} />
+              ))}
             </div>
-
-            {/* Load More */}
-            {hasMore && (
-              <div className="text-center mt-20">
-                <button onClick={() => setPage(p => p + 1)} disabled={loading}
-                  className="group px-12 py-4 border border-black text-black text-sm uppercase tracking-widest font-medium hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-40 flex items-center gap-3 mx-auto">
-                  {loading ? (
-                    <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Loading</>
-                  ) : (
-                    <>Load More <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
-                  )}
+          ) : articles.length === 0 ? (
+            <div className="text-center py-36">
+              <span className="text-6xl text-black/10 font-serif block mb-5">◈</span>
+              <p className="text-black/35 text-lg">No articles found</p>
+              {isFiltered && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory('');
+                    setSearchQuery('');
+                  }}
+                  className="mt-5 text-[#d4a574] text-sm hover:underline"
+                >
+                  Clear filters
                 </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Featured */}
+              {featuredArticle && (
+                <section className="mb-16 pb-16 border-b border-black/6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-[#d4a574] mb-7">
+                    Editor's Pick
+                  </p>
+                  <ArticleCard article={featuredArticle} featured />
+                </section>
+              )}
+
+              {/* Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
+                <AnimatePresence mode="popLayout">
+                  {gridArticles.map(a => (
+                    <ArticleCard key={a.id} article={a} />
+                  ))}
+                </AnimatePresence>
               </div>
-            )}
-          </>
-        ))}
+
+              {/* Load More */}
+              {hasMore && (
+                <div className="text-center mt-20">
+                  <button
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={loading}
+                    className="group px-12 py-4 border border-black text-black text-sm uppercase tracking-widest font-medium hover:bg-black hover:text-white transition-all duration-300 disabled:opacity-40 flex items-center gap-3 mx-auto"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />{' '}
+                        Loading
+                      </>
+                    ) : (
+                      <>
+                        Load More{' '}
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          ))}
       </div>
     </div>
   );

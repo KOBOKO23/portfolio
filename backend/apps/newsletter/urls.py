@@ -3,11 +3,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('subscribe/', views.NewsletterSubscribeView.as_view(), name='newsletter-subscribe'),
-    path('issues/', views.NewsletterIssueListView.as_view(), name='newsletter-issues'),
+    path("subscribe/", views.NewsletterSubscribeView.as_view(), name="newsletter-subscribe"),
+    path("issues/", views.NewsletterIssueListView.as_view(), name="newsletter-issues"),
     path(
-        'unsubscribe/<str:token>/',
+        "unsubscribe/<str:token>/",
         views.NewsletterUnsubscribeView.as_view(),
-        name='newsletter-unsubscribe',
+        name="newsletter-unsubscribe",
     ),
 ]

@@ -1,13 +1,10 @@
-import { defineConfig } from 'vitest/config'
-import path from 'path'
-import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config';
+import path from 'path';
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './app'),
@@ -18,10 +15,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react':  ['react', 'react-dom', 'react-router-dom'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-motion': ['motion/react'],
           'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
-          'vendor-icons':  ['lucide-react'],
+          'vendor-icons': ['lucide-react'],
         },
       },
     },
@@ -42,4 +39,4 @@ export default defineConfig({
       exclude: ['app/components/ui/**', 'app/types/**'],
     },
   },
-})
+});

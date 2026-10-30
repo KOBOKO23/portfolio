@@ -1,6 +1,7 @@
 """
 apps/fashion/serializers.py — Fashion photography categories and image gallery entries.
 """
+
 from rest_framework import serializers
 
 from utils.media import media_url
@@ -13,7 +14,7 @@ class FashionCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FashionCategory
-        fields = ['id', 'name', 'slug', 'image_count']
+        fields = ["id", "name", "slug", "image_count"]
 
     def get_image_count(self, obj):
         return obj.image_count
@@ -25,7 +26,16 @@ class FashionImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FashionImage
-        fields = ['id', 'title', 'image', 'category', 'description', 'location', 'photographer', 'date_taken']
+        fields = [
+            "id",
+            "title",
+            "image",
+            "category",
+            "description",
+            "location",
+            "photographer",
+            "date_taken",
+        ]
 
     def get_image(self, obj):
-        return media_url(self.context.get('request'), obj.image)
+        return media_url(self.context.get("request"), obj.image)

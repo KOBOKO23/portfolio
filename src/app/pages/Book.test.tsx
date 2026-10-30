@@ -9,12 +9,12 @@ vi.mock('../components/SEO', () => ({ SEO: () => null }));
 
 vi.mock('@stripe/stripe-js', () => ({ loadStripe: vi.fn(() => Promise.resolve(null)) }));
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements:          ({ children }: any) => <>{children}</>,
+  Elements: ({ children }: any) => <>{children}</>,
   CardNumberElement: () => <input aria-label="Card number" />,
   CardExpiryElement: () => <input aria-label="Expiry" />,
-  CardCvcElement:    () => <input aria-label="CVC" />,
-  useStripe:         () => null,
-  useElements:       () => null,
+  CardCvcElement: () => <input aria-label="CVC" />,
+  useStripe: () => null,
+  useElements: () => null,
 }));
 
 const mockFetch = vi.fn();
@@ -25,13 +25,25 @@ const BOOK = {
   title: 'The Jar You Left Behind',
   subtitle: 'Finding Wholeness in a Fractured World',
   description: 'A journey through pain, faith, and redemption.',
-  cover_image: null, author: 'Koboko Philip', page_count: 240,
-  release_date: '2026-12-01', publisher: 'Self-published',
-  amazon_url: '', preview_pdf: null,
+  cover_image: null,
+  author: 'Koboko Philip',
+  page_count: 240,
+  release_date: '2026-12-01',
+  publisher: 'Self-published',
+  amazon_url: '',
+  preview_pdf: null,
   authors_note: 'This book is my testimony.',
-  price_kes: 1200, price_usd: '9.99', is_published: false,
+  price_kes: 1200,
+  price_usd: '9.99',
+  is_published: false,
   chapters: [
-    { id: 1, number: 1, title: 'The Fracture', theme: 'Pain', excerpt: 'Every soul has a breaking point.' },
+    {
+      id: 1,
+      number: 1,
+      title: 'The Fracture',
+      theme: 'Pain',
+      excerpt: 'Every soul has a breaking point.',
+    },
   ],
   testimonials: [],
   stripe_publishable_key: 'pk_test_placeholder',

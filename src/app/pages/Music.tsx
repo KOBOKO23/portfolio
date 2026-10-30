@@ -51,27 +51,43 @@ function WaveBar({ h, delay }: { h: number; delay: number }) {
   );
 }
 
-function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: string; onClose: () => void }) {
+function YouTubeModal({
+  videoId,
+  title,
+  onClose,
+}: {
+  videoId: string;
+  title: string;
+  onClose: () => void;
+}) {
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [onClose]);
 
   return (
     <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 lg:p-12"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.92, opacity: 0 }} transition={{ duration: 0.25 }}
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.92, opacity: 0 }}
+        transition={{ duration: 0.25 }}
         className="w-full max-w-4xl"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <p className="text-white text-lg" style={{ fontFamily: 'var(--font-serif)' }}>{title}</p>
+          <p className="text-white text-lg" style={{ fontFamily: 'var(--font-serif)' }}>
+            {title}
+          </p>
           <button onClick={onClose} className="text-white/60 hover:text-white transition-colors">
             <X size={28} />
           </button>
@@ -81,7 +97,9 @@ function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: str
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
             title={title}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen className="w-full h-full" style={{ border: 'none' }}
+            allowFullScreen
+            className="w-full h-full"
+            style={{ border: 'none' }}
           />
         </div>
       </motion.div>
@@ -89,13 +107,21 @@ function YouTubeModal({ videoId, title, onClose }: { videoId: string; title: str
   );
 }
 
-function TrackCard({ track, index, onPlay, onWatch }: {
-  track: Track; index: number;
-  onPlay: () => void; onWatch: (id: string) => void;
+function TrackCard({
+  track,
+  index,
+  onPlay,
+  onWatch,
+}: {
+  track: Track;
+  index: number;
+  onPlay: () => void;
+  onWatch: (id: string) => void;
 }) {
   const ytId = extractYouTubeId(track.youtube_url);
   const hasVideo = !!ytId;
-  const thumbnail = (track.cover_image ?? '') || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
+  const thumbnail =
+    (track.cover_image ?? '') || (ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null);
   const meta = [track.duration, formatYear(track.release_date)].filter(Boolean).join(' · ');
 
   return (
@@ -123,7 +149,11 @@ function TrackCard({ track, index, onPlay, onWatch }: {
         >
           {thumbnail ? (
             <>
-              <img src={thumbnail} alt={track.title} className="absolute inset-0 w-full h-full object-cover" />
+              <img
+                src={thumbnail}
+                alt={track.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                 <div className="w-9 h-9 rounded-full bg-white/15 border border-white/30 flex items-center justify-center group-hover:bg-[#d4a574] group-hover:border-[#d4a574] transition-all">
                   <Play size={14} fill="white" className="text-white ml-0.5" />
@@ -164,14 +194,24 @@ function TrackCard({ track, index, onPlay, onWatch }: {
                 </button>
               )}
               {track.spotify_url && (
-                <a href={track.spotify_url} target="_blank" rel="noopener noreferrer"
-                  className="p-2 text-black/25 hover:text-[#1db954] transition-colors" aria-label="Spotify">
+                <a
+                  href={track.spotify_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-black/25 hover:text-[#1db954] transition-colors"
+                  aria-label="Spotify"
+                >
                   <ExternalLink size={16} />
                 </a>
               )}
               {track.apple_music_url && (
-                <a href={track.apple_music_url} target="_blank" rel="noopener noreferrer"
-                  className="p-2 text-black/25 hover:text-[#fc3c44] transition-colors" aria-label="Apple Music">
+                <a
+                  href={track.apple_music_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-black/25 hover:text-[#fc3c44] transition-colors"
+                  aria-label="Apple Music"
+                >
                   <MusicIcon size={16} />
                 </a>
               )}
@@ -199,7 +239,7 @@ export function Music() {
       .then(r => r.json() as Promise<{ data?: Track[] | { results?: Track[] } }>)
       .then(body => {
         const d = body.data;
-        const items: Track[] = Array.isArray(d) ? d : (d)?.results ?? [];
+        const items: Track[] = Array.isArray(d) ? d : (d?.results ?? []);
         setTracks(items);
       })
       .catch(() => {})
@@ -212,7 +252,10 @@ export function Music() {
 
   const handlePlay = (track: Track) => {
     const vid = extractYouTubeId(track.youtube_url);
-    if (vid) { setPlayingVideo({ id: vid, title: track.title }); return; }
+    if (vid) {
+      setPlayingVideo({ id: vid, title: track.title });
+      return;
+    }
     if (track.spotify_url) window.open(track.spotify_url, '_blank', 'noopener');
   };
 
@@ -226,16 +269,41 @@ export function Music() {
 
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-[#0a0a0a] pt-20">
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 90% 80% at 50% 60%, #1a0a2e 0%, #0a0a0a 65%)' }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 40% 40% at 50% 50%, #d4a57415 0%, transparent 70%)' }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse 90% 80% at 50% 60%, #1a0a2e 0%, #0a0a0a 65%)',
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 40% 40% at 50% 50%, #d4a57415 0%, transparent 70%)',
+          }}
+        />
         {/* Rings */}
         {[1, 2, 3, 4, 5].map(n => (
-          <div key={n} className="absolute rounded-full border border-[#d4a574] pointer-events-none"
-            style={{ width: `${n * 14}vw`, height: `${n * 14}vw`, opacity: 0.02 + n * 0.01, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
+          <div
+            key={n}
+            className="absolute rounded-full border border-[#d4a574] pointer-events-none"
+            style={{
+              width: `${n * 14}vw`,
+              height: `${n * 14}vw`,
+              opacity: 0.02 + n * 0.01,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
         ))}
 
         <div className="relative z-10 text-center text-white px-6 max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          >
             {/* Animated waveform */}
             <div className="flex items-end justify-center gap-1 mb-10 h-10">
               {[12, 20, 28, 16, 32, 20, 14, 28, 18, 24, 12, 20, 28].map((h, i) => (
@@ -244,8 +312,13 @@ export function Music() {
             </div>
 
             <div className="w-16 h-[2px] bg-[#d4a574] mx-auto mb-8" />
-            <h1 className="leading-[0.92] tracking-tight text-white mb-6" style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(3.5rem, 9vw, 8rem)' }}>
-              Gospel<br /><span className="text-[#d4a574]">Music</span>
+            <h1
+              className="leading-[0.92] tracking-tight text-white mb-6"
+              style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(3.5rem, 9vw, 8rem)' }}
+            >
+              Gospel
+              <br />
+              <span className="text-[#d4a574]">Music</span>
             </h1>
             <p className="text-white/60 text-[clamp(1rem,2vw,1.3rem)] max-w-xl mx-auto leading-relaxed">
               Faith-driven melodies from Nairobi — worship, testimony, and ministry in sound.
@@ -264,7 +337,12 @@ export function Music() {
       {!loading && featured && (
         <section className="py-24 px-6 lg:px-16 bg-black text-white">
           <div className="max-w-6xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+            >
               <div className="w-10 h-[2px] bg-[#d4a574] mb-6" />
               <p className="text-xs uppercase tracking-[0.3em] text-white/40 mb-10">
                 {featured.is_featured ? 'Featured Track' : 'Latest Track'}
@@ -279,7 +357,10 @@ export function Music() {
                       className="relative w-full aspect-video overflow-hidden block focus:outline-none"
                     >
                       <img
-                        src={(featured.cover_image ?? '') || `https://img.youtube.com/vi/${featuredYtId}/maxresdefault.jpg`}
+                        src={
+                          (featured.cover_image ?? '') ||
+                          `https://img.youtube.com/vi/${featuredYtId}/maxresdefault.jpg`
+                        }
                         alt={featured.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       />
@@ -292,7 +373,11 @@ export function Music() {
                     </button>
                   ) : featured.cover_image ? (
                     <div className="relative w-full aspect-video overflow-hidden">
-                      <img src={featured.cover_image} alt={featured.title} className="w-full h-full object-cover" />
+                      <img
+                        src={featured.cover_image}
+                        alt={featured.title}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#d4a574]" />
                     </div>
                   ) : (
@@ -304,16 +389,24 @@ export function Music() {
 
                 {/* Info */}
                 <div>
-                  <h2 className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.05] mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+                  <h2
+                    className="text-[clamp(2rem,4vw,3.5rem)] leading-[1.05] mb-4"
+                    style={{ fontFamily: 'var(--font-serif)' }}
+                  >
                     {featured.title}
                   </h2>
-                  {[featured.duration, formatYear(featured.release_date)].filter(Boolean).length > 0 && (
+                  {[featured.duration, formatYear(featured.release_date)].filter(Boolean).length >
+                    0 && (
                     <p className="text-white/35 text-sm mb-6 tracking-wide">
-                      {[featured.duration, formatYear(featured.release_date)].filter(Boolean).join(' · ')}
+                      {[featured.duration, formatYear(featured.release_date)]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </p>
                   )}
                   {featured.description && (
-                    <p className="text-white/65 text-[17px] leading-[1.85] mb-8">{featured.description}</p>
+                    <p className="text-white/65 text-[17px] leading-[1.85] mb-8">
+                      {featured.description}
+                    </p>
                   )}
                   <div className="flex flex-wrap gap-3">
                     {featuredYtId && (
@@ -325,8 +418,12 @@ export function Music() {
                       </button>
                     )}
                     {featured.spotify_url && (
-                      <a href={featured.spotify_url} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-6 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all">
+                      <a
+                        href={featured.spotify_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-6 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all"
+                      >
                         <ExternalLink size={16} /> Spotify
                       </a>
                     )}
@@ -341,7 +438,12 @@ export function Music() {
       {/* ── Track List ────────────────────────────────────────────────── */}
       <section className="py-24 lg:py-32 px-6 lg:px-16 bg-[#f5f5f0]">
         <div className="max-w-3xl mx-auto">
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="flex items-center gap-4 mb-12">
               <div className="w-10 h-[2px] bg-[#d4a574]" />
               <h2 className="text-3xl" style={{ fontFamily: 'var(--font-serif)' }}>
@@ -352,7 +454,10 @@ export function Music() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="bg-white h-[88px] flex items-center gap-4 px-4 animate-pulse">
+                  <div
+                    key={i}
+                    className="bg-white h-[88px] flex items-center gap-4 px-4 animate-pulse"
+                  >
                     <div className="w-20 h-full bg-black/6 flex-shrink-0" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 bg-black/6 rounded w-1/2" />
@@ -375,7 +480,7 @@ export function Music() {
                     track={track}
                     index={index}
                     onPlay={() => handlePlay(track)}
-                    onWatch={(id) => setPlayingVideo({ id, title: track.title })}
+                    onWatch={id => setPlayingVideo({ id, title: track.title })}
                   />
                 ))}
               </div>
@@ -386,21 +491,33 @@ export function Music() {
 
       {/* ── CTA ──────────────────────────────────────────────────────── */}
       <section className="py-24 lg:py-32 px-6 lg:px-16 bg-black text-white text-center">
-        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="w-10 h-[2px] bg-[#d4a574] mx-auto mb-8" />
-          <h2 className="text-[clamp(2rem,5vw,4rem)] mb-4" style={{ fontFamily: 'var(--font-serif)' }}>
+          <h2
+            className="text-[clamp(2rem,5vw,4rem)] mb-4"
+            style={{ fontFamily: 'var(--font-serif)' }}
+          >
             Stay Connected
           </h2>
           <p className="text-white/50 max-w-md mx-auto mb-10 leading-relaxed">
             Get notified about new releases, live performances, and ministry events.
           </p>
           <div className="flex justify-center gap-4 flex-wrap">
-            <Link to="/newsletter"
-              className="px-8 py-3 bg-[#d4a574] text-white text-sm font-medium hover:bg-white hover:text-black transition-all">
+            <Link
+              to="/newsletter"
+              className="px-8 py-3 bg-[#d4a574] text-white text-sm font-medium hover:bg-white hover:text-black transition-all"
+            >
               Subscribe
             </Link>
-            <Link to="/contact"
-              className="px-8 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all">
+            <Link
+              to="/contact"
+              className="px-8 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all"
+            >
               Get in Touch
             </Link>
           </div>
@@ -410,7 +527,11 @@ export function Music() {
       {/* YouTube modal */}
       <AnimatePresence>
         {playingVideo && (
-          <YouTubeModal videoId={playingVideo.id} title={playingVideo.title} onClose={() => setPlayingVideo(null)} />
+          <YouTubeModal
+            videoId={playingVideo.id}
+            title={playingVideo.title}
+            onClose={() => setPlayingVideo(null)}
+          />
         )}
       </AnimatePresence>
     </div>

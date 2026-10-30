@@ -37,17 +37,17 @@ class RateLimiter {
   isRateLimited(key: string, maxAttempts = 5, windowMs = 60000): boolean {
     const now = Date.now();
     const attempts = this.attempts.get(key) ?? [];
-    
+
     // Remove old attempts outside the time window
     const recentAttempts = attempts.filter(time => now - time < windowMs);
-    
+
     if (recentAttempts.length >= maxAttempts) {
       return true;
     }
-    
+
     recentAttempts.push(now);
     this.attempts.set(key, recentAttempts);
-    
+
     return false;
   }
 
@@ -127,16 +127,16 @@ export function createCSPMetaTag(): HTMLMetaElement | null {
 
   const meta = document.createElement('meta');
   meta.httpEquiv = 'Content-Security-Policy';
-  
+
   const cspString = Object.entries(CSP_DIRECTIVES)
     .map(([key, values]) => {
       const directive = key.replace(/([A-Z])/g, '-$1').toLowerCase();
       return `${directive} ${values.join(' ')}`;
     })
     .join('; ');
-  
+
   meta.content = cspString;
-  
+
   return meta;
 }
 
@@ -146,7 +146,9 @@ export function createCSPMetaTag(): HTMLMetaElement | null {
 export function generateSecureToken(length = 32): string {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(36)).join('').slice(0, length);
+  return Array.from(array, byte => byte.toString(36))
+    .join('')
+    .slice(0, length);
 }
 
 /**
@@ -155,20 +157,20 @@ export function generateSecureToken(length = 32): string {
 export function isSafeURL(url: string): boolean {
   try {
     const parsed = new URL(url, window.location.origin);
-    
+
     // Only allow http, https, and mailto protocols
     const safeProtocols = ['http:', 'https:', 'mailto:'];
     if (!safeProtocols.includes(parsed.protocol)) {
       return false;
     }
-    
+
     // Check for common phishing patterns
     const suspiciousPatterns = [
       /[а-яА-Я]/, // Cyrillic characters (homograph attack)
-      /\.\./,     // Path traversal
-      /\s/,       // Whitespace (unusual in URLs)
+      /\.\./, // Path traversal
+      /\s/, // Whitespace (unusual in URLs)
     ];
-    
+
     return !suspiciousPatterns.some(pattern => pattern.test(url));
   } catch {
     return false;
@@ -182,15 +184,14 @@ export function constantTimeCompare(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  
+
   let result = 0;
   for (let i = 0; i < a.length; i++) {
     result |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
-  
+
   return result === 0;
 }
-
 
 /**
  * Initialize security measures on app load
@@ -216,10 +217,7 @@ export function initializeSecurity(): void {
   // Detect and warn about console usage in production
   if (import.meta.env.MODE === 'production') {
     const consoleWarning = () => {
-      console.log(
-        '%cStop!',
-        'color: red; font-size: 60px; font-weight: bold;'
-      );
+      console.log('%cStop!', 'color: red; font-size: 60px; font-weight: bold;');
       console.log(
         '%cThis is a browser feature intended for developers. Do not paste any code here.',
         'font-size: 18px;'

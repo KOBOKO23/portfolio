@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -38,9 +37,7 @@ class Migration(migrations.Migration):
                 ("amazon_url", models.URLField(blank=True)),
                 (
                     "preview_pdf",
-                    models.FileField(
-                        blank=True, null=True, upload_to="books/previews/"
-                    ),
+                    models.FileField(blank=True, null=True, upload_to="books/previews/"),
                 ),
                 ("is_published", models.BooleanField(default=False)),
                 ("order", models.PositiveIntegerField(default=0)),
@@ -66,9 +63,7 @@ class Migration(migrations.Migration):
                 ("author_title", models.CharField(blank=True, max_length=200)),
                 (
                     "author_photo",
-                    models.ImageField(
-                        blank=True, null=True, upload_to="books/testimonials/"
-                    ),
+                    models.ImageField(blank=True, null=True, upload_to="books/testimonials/"),
                 ),
                 ("rating", models.PositiveSmallIntegerField(default=5)),
                 ("order", models.PositiveIntegerField(default=0)),

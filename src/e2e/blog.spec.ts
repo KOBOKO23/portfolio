@@ -11,8 +11,15 @@ test.describe('Blog', () => {
   test('shows search/filter controls', async ({ page }) => {
     await page.goto('/blog');
     // Search input or category filter should be present
-    const hasSearch = await page.getByPlaceholder(/search/i).isVisible().catch(() => false);
-    const hasFilter = await page.locator('[class*="category"]').first().isVisible().catch(() => false);
+    const hasSearch = await page
+      .getByPlaceholder(/search/i)
+      .isVisible()
+      .catch(() => false);
+    const hasFilter = await page
+      .locator('[class*="category"]')
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasSearch || hasFilter).toBeTruthy();
   });
 
@@ -26,7 +33,10 @@ test.describe('Blog', () => {
     await page.goto('/newsletter');
     const emailInput = page.getByPlaceholder(/email/i).first();
     await emailInput.fill('not-an-email');
-    await page.getByRole('button', { name: /subscribe|join/i }).first().click();
+    await page
+      .getByRole('button', { name: /subscribe|join/i })
+      .first()
+      .click();
     // Form should not disappear (validation prevents submit)
     await expect(emailInput).toBeVisible();
   });

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -29,9 +28,7 @@ class Migration(migrations.Migration):
                 ("icon", models.CharField(blank=True, max_length=50)),
                 (
                     "color",
-                    models.CharField(
-                        blank=True, help_text="Hex color e.g. #d4a574", max_length=20
-                    ),
+                    models.CharField(blank=True, help_text="Hex color e.g. #d4a574", max_length=20),
                 ),
             ],
             options={

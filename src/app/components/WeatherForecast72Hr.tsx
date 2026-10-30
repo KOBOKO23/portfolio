@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
 import {
-  Cloud, Wind, Droplets, Eye, Gauge, CloudRain,
-  CloudSnow, Sun, CloudSun, CloudDrizzle, Zap,
-  ChevronLeft, ChevronRight, Calendar, RefreshCw,
+  Cloud,
+  Wind,
+  Droplets,
+  Eye,
+  Gauge,
+  CloudRain,
+  CloudSnow,
+  Sun,
+  CloudSun,
+  CloudDrizzle,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  RefreshCw,
 } from 'lucide-react';
 
 interface ForecastData {
@@ -81,7 +93,7 @@ interface OpenMeteoHourly {
 }
 
 // ── Open-Meteo ECMWF IFS fetch ───────────────────────────────────────────────
-const LAT = 1.2921;  // Nairobi
+const LAT = 1.2921; // Nairobi
 const LON = 36.8219;
 
 async function fetchECMWF(): Promise<ForecastData[]> {
@@ -123,7 +135,7 @@ async function fetchECMWF(): Promise<ForecastData[]> {
       windSpeed: Math.round(h.windspeed_10m[i] ?? 0),
       windDirection: degToCompass(h.winddirection_10m[i] ?? 0),
       pressure: Math.round(h.pressure_msl[i] ?? 1013),
-      visibility: Math.round(((h.visibility[i] ?? null) ?? 10000) / 1000),
+      visibility: Math.round((h.visibility[i] ?? null ?? 10000) / 1000),
       precipitation: Math.round((h.precipitation[i] ?? 0) * 10) / 10,
       condition: wmoToCondition(wmo),
       cloudCover: Math.round(h.cloudcover[i] ?? 0),
@@ -155,10 +167,12 @@ export function WeatherForecast72Hr() {
     }
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
-  const goToNext = () => setCurrentIndex((p) => Math.min(p + 1, forecastData.length - 1));
-  const goToPrevious = () => setCurrentIndex((p) => Math.max(p - 1, 0));
+  const goToNext = () => setCurrentIndex(p => Math.min(p + 1, forecastData.length - 1));
+  const goToPrevious = () => setCurrentIndex(p => Math.max(p - 1, 0));
 
   const formatTime = (d: Date) =>
     d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -166,8 +180,12 @@ export function WeatherForecast72Hr() {
     d.toLocaleDateString('en-KE', { weekday: 'short', month: 'short', day: 'numeric' });
   const formatFullDateTime = (d: Date) =>
     d.toLocaleString('en-KE', {
-      weekday: 'long', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true,
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     });
 
   // ── Loading / Error states ──────────────────────────────────────────────────
@@ -204,13 +222,12 @@ export function WeatherForecast72Hr() {
   const WeatherIcon = weatherIcons[current.condition] ?? Cloud;
   const hoursFromNow = currentIndex * 3;
 
-  const maxTemp = Math.max(...forecastData.map((f) => f.temperature));
-  const minTemp = Math.min(...forecastData.map((f) => f.temperature));
+  const maxTemp = Math.max(...forecastData.map(f => f.temperature));
+  const minTemp = Math.min(...forecastData.map(f => f.temperature));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a] text-white py-20 px-6">
       <div className="max-w-7xl mx-auto">
-
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-[#d4a574]/10 px-4 py-2 mb-6">
@@ -241,13 +258,14 @@ export function WeatherForecast72Hr() {
 
         {/* Current Forecast Display */}
         <div className="bg-white/5 border border-white/10 p-8 lg:p-12 mb-8">
-
           {/* Time Info */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8 pb-6 border-b border-white/10">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Calendar className="w-5 h-5 text-[#d4a574]" />
-                <span className="text-sm uppercase tracking-wider text-white/60">Forecast Time</span>
+                <span className="text-sm uppercase tracking-wider text-white/60">
+                  Forecast Time
+                </span>
               </div>
               <h2 className="text-3xl lg:text-4xl mb-1" style={{ fontFamily: 'var(--font-serif)' }}>
                 {formatFullDateTime(current.time)}
@@ -258,7 +276,9 @@ export function WeatherForecast72Hr() {
             </div>
             <div className="mt-4 lg:mt-0 text-right">
               <div className="text-sm text-white/60 mb-1">Step</div>
-              <div className="text-2xl font-bold">{currentIndex + 1} / {forecastData.length}</div>
+              <div className="text-2xl font-bold">
+                {currentIndex + 1} / {forecastData.length}
+              </div>
             </div>
           </div>
 
@@ -269,7 +289,10 @@ export function WeatherForecast72Hr() {
                 <WeatherIcon className="w-20 h-20 text-[#d4a574]" strokeWidth={1.5} />
               </div>
               <div>
-                <div className="text-7xl lg:text-8xl mb-2" style={{ fontFamily: 'var(--font-serif)' }}>
+                <div
+                  className="text-7xl lg:text-8xl mb-2"
+                  style={{ fontFamily: 'var(--font-serif)' }}
+                >
                   {current.temperature}°
                 </div>
                 <div className="text-xl text-white/70">Feels like {current.feelsLike}°C</div>
@@ -280,7 +303,12 @@ export function WeatherForecast72Hr() {
             <div className="grid grid-cols-2 gap-4">
               {[
                 { icon: Droplets, label: 'Humidity', value: `${current.humidity}%`, sub: '' },
-                { icon: Wind, label: 'Wind', value: `${current.windSpeed}`, sub: `km/h ${current.windDirection}` },
+                {
+                  icon: Wind,
+                  label: 'Wind',
+                  value: `${current.windSpeed}`,
+                  sub: `km/h ${current.windDirection}`,
+                },
                 { icon: Gauge, label: 'Pressure', value: `${current.pressure}`, sub: 'hPa' },
                 { icon: Eye, label: 'Visibility', value: `${current.visibility}`, sub: 'km' },
               ].map(({ icon: Icon, label, value, sub }) => (
@@ -334,7 +362,7 @@ export function WeatherForecast72Hr() {
 
           {/* Day-jump buttons */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
-            {[0, 4, 8, 12, 16, 20, 23].map((step) => {
+            {[0, 4, 8, 12, 16, 20, 23].map(step => {
               if (step >= forecastData.length) return null;
               const f = forecastData[step];
               const active = currentIndex === step;
@@ -378,7 +406,9 @@ export function WeatherForecast72Hr() {
                   }`}
                 >
                   <div className="text-xs text-white/60 mb-1">{formatTime(f.time)}</div>
-                  <FIcon className={`w-6 h-6 mx-auto mb-1 ${active ? 'text-[#d4a574]' : 'text-white/70'}`} />
+                  <FIcon
+                    className={`w-6 h-6 mx-auto mb-1 ${active ? 'text-[#d4a574]' : 'text-white/70'}`}
+                  />
                   <div className="text-lg font-bold">{f.temperature}°</div>
                   <div className="text-xs text-white/60">{f.windSpeed} km/h</div>
                 </button>
@@ -392,9 +422,10 @@ export function WeatherForecast72Hr() {
           <h3 className="text-xl font-bold mb-6">72-Hour Temperature Trend</h3>
           <div className="relative h-48 flex items-end justify-between gap-1">
             {forecastData.map((f, idx) => {
-              const height = maxTemp === minTemp
-                ? 50
-                : ((f.temperature - minTemp) / (maxTemp - minTemp)) * 85 + 10;
+              const height =
+                maxTemp === minTemp
+                  ? 50
+                  : ((f.temperature - minTemp) / (maxTemp - minTemp)) * 85 + 10;
               const active = currentIndex === idx;
               return (
                 <button
@@ -404,7 +435,9 @@ export function WeatherForecast72Hr() {
                   style={{ height: `${height}%` }}
                   title={`${formatTime(f.time)}: ${f.temperature}°C`}
                 >
-                  <div className={`absolute inset-0 rounded-t transition-all ${active ? 'bg-[#d4a574]' : 'bg-white/20'}`} />
+                  <div
+                    className={`absolute inset-0 rounded-t transition-all ${active ? 'bg-[#d4a574]' : 'bg-white/20'}`}
+                  />
                   {active && (
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#d4a574] text-black px-2 py-1 text-xs font-bold whitespace-nowrap">
                       {f.temperature}°C
@@ -433,11 +466,10 @@ export function WeatherForecast72Hr() {
               className="text-[#d4a574] hover:underline"
             >
               Open-Meteo
-            </a>
-            {' '}· Nairobi, Kenya (1.2921°N, 36.8219°E) · {lastUpdated?.toLocaleString('en-KE')}
+            </a>{' '}
+            · Nairobi, Kenya (1.2921°N, 36.8219°E) · {lastUpdated?.toLocaleString('en-KE')}
           </p>
         </div>
-
       </div>
     </div>
   );

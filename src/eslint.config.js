@@ -46,20 +46,26 @@ export default tseslint.config(
 
       // Accessibility
       ...jsxA11y.configs.recommended.rules,
-      'jsx-a11y/anchor-is-valid': 'off',       // react-router Link handles this
-      'jsx-a11y/anchor-has-content': 'warn',   // icon-only links need aria-label; warn not block
+      'jsx-a11y/anchor-is-valid': 'off', // react-router Link handles this
+      'jsx-a11y/anchor-has-content': 'warn', // icon-only links need aria-label; warn not block
 
       // Prose — apostrophes and quotes in JSX text are readable and safe; HTML escaping is pedantic
       'react/no-unescaped-entities': 'off',
 
       // TypeScript — enforce correctness, relax style rules needing large refactors
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       '@typescript-eslint/no-non-null-assertion': 'warn',
 
       // Async event handlers are valid React patterns — allow void return in JSX attrs
-      '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { attributes: false } }],
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        { checksVoidReturn: { attributes: false } },
+      ],
 
       // Empty arrow functions are common for noop props
       '@typescript-eslint/no-empty-function': ['warn', { allow: ['arrowFunctions'] }],
@@ -115,5 +121,5 @@ export default tseslint.config(
       'coverage/**',
       'app/components/ui/**', // shadcn/ui generated components — not hand-edited
     ],
-  },
+  }
 );

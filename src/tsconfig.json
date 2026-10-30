@@ -18,6 +18,14 @@
       "@/*": ["./app/*"]
     }
   },
-  "include": ["app", "__mocks__", "test-setup.ts", "main.tsx", "vite-env.d.ts", "e2e", "middleware.ts"],
+  "include": [
+    "app",
+    "__mocks__",
+    "test-setup.ts",
+    "main.tsx",
+    "vite-env.d.ts",
+    "e2e",
+    "middleware.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
