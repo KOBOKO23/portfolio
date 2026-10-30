@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
+from utils.images import is_new_upload, shrink_image
+
 
 class ProjectCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -58,6 +60,8 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if is_new_upload(self.image):
+            self.image = shrink_image(self.image.file, max_px=2000)
         super().save(*args, **kwargs)
 
 
@@ -72,3 +76,8 @@ class ProjectImage(models.Model):
 
     def __str__(self):
         return f"{self.project.title} — image {self.order}"
+
+    def save(self, *args, **kwargs):
+        if is_new_upload(self.image):
+            self.image = shrink_image(self.image.file, max_px=2000)
+        super().save(*args, **kwargs)

@@ -23,6 +23,7 @@ class FashionCategorySerializer(serializers.ModelSerializer):
 class FashionImageSerializer(serializers.ModelSerializer):
     category = FashionCategorySerializer(read_only=True)
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = FashionImage
@@ -30,6 +31,7 @@ class FashionImageSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "image",
+            "thumbnail",
             "category",
             "description",
             "location",
@@ -39,3 +41,7 @@ class FashionImageSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         return media_url(self.context.get("request"), obj.image)
+
+    def get_thumbnail(self, obj):
+        # Images uploaded before thumbnails existed fall back to the full image.
+        return media_url(self.context.get("request"), obj.thumbnail or obj.image)

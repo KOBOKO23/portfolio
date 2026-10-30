@@ -22,6 +22,8 @@ interface FashionImage {
   id: number;
   title: string;
   image: string;
+  /** 600 px copy for the grid; the lightbox uses the full image. */
+  thumbnail?: string | null;
   category: FashionCategory | null;
   description: string;
   location: string;
@@ -45,8 +47,10 @@ function ImageTile({ img, onClick }: { img: FashionImage; onClick: () => void })
         <div className="absolute inset-0 bg-[#111] animate-pulse" style={{ minHeight: 240 }} />
       )}
       <img
-        src={img.image}
+        src={img.thumbnail ?? img.image}
         alt={img.title}
+        loading="lazy"
+        decoding="async"
         onLoad={() => setLoaded(true)}
         className={`w-full object-cover transition-all duration-700 group-hover:scale-[1.04] ${loaded ? 'opacity-100' : 'opacity-0'}`}
       />

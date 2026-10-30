@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.text import slugify
 
+from utils.images import is_new_upload, shrink_image
+
 
 class FashionCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -26,6 +28,8 @@ class FashionCategory(models.Model):
 class FashionImage(models.Model):
     title = models.CharField(max_length=200)
     image = models.ImageField(upload_to="fashion/")
+    # Generated from ``image`` on upload; the gallery grid loads this instead.
+    thumbnail = models.ImageField(upload_to="fashion/thumbs/", blank=True, editable=False)
     category = models.ForeignKey(
         FashionCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="images"
     )
@@ -40,3 +44,10 @@ class FashionImage(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if is_new_upload(self.image):
+            original = self.image.file
+            self.image = shrink_image(original, max_px=2000)
+            self.thumbnail = shrink_image(original, max_px=600, quality=78)
+        super().save(*args, **kwargs)
