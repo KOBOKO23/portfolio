@@ -97,7 +97,7 @@ describe('Contact page', () => {
     expect(screen.queryByText(/\+254/)).toBeNull();
     await user.click(screen.getByRole('button', { name: /request a call back/i }));
 
-    expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('callback');
+    expect(screen.getByRole<HTMLSelectElement>('combobox').value).toBe('callback');
     expect(screen.getByLabelText(/your phone number/i)).toBeTruthy();
     expect(screen.getByRole('button', { name: /request call back/i })).toBeTruthy();
   });
