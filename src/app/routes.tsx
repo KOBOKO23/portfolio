@@ -21,7 +21,6 @@ const GreatMenMoves = lazy(() =>
 );
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const Newsletter = lazy(() => import('./pages/Newsletter').then(m => ({ default: m.Newsletter })));
-const WeatherForecast = lazy(() => import('./pages/WeatherForecast'));
 
 function PageLoader() {
   return (
@@ -138,14 +137,6 @@ export const router = createBrowserRouter([
     element: (
       <Layout>
         <Newsletter />
-      </Layout>
-    ),
-  },
-  {
-    path: '/weather-forecast',
-    element: (
-      <Layout>
-        <WeatherForecast />
       </Layout>
     ),
   },

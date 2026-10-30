@@ -62,7 +62,7 @@ const PILLARS = [
     icon: Cloud,
     label: 'Meteorology',
     sub: 'Kenya Met Department',
-    href: '/weather-forecast',
+    href: '/about',
     color: '#0ea5e9',
   },
   {

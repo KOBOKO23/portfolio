@@ -254,20 +254,3 @@ export interface Profile {
 }
 
 // Weather types (for weather forecast feature)
-export interface WeatherData {
-  temperature: number;
-  condition: string;
-  icon: string;
-  timestamp: string;
-  humidity?: number;
-  wind_speed?: number;
-  precipitation?: number;
-}
-
-export interface WeatherForecast {
-  location: string;
-  timezone: string;
-  current: WeatherData;
-  hourly: WeatherData[];
-  daily: WeatherData[];
-}

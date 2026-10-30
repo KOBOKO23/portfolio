@@ -11,7 +11,6 @@ export function Navigation() {
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Projects', path: '/projects' },
-    { name: 'Weather', path: '/weather-forecast' },
     { name: 'Blog', path: '/blog' },
     { name: 'Fashion', path: '/fashion' },
     { name: 'Music', path: '/music' },

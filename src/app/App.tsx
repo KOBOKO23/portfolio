@@ -11,7 +11,6 @@ import { Book } from './pages/Book';
 import { GreatMenMoves } from './pages/GreatMenMoves';
 import { Contact } from './pages/Contact';
 import { Newsletter } from './pages/Newsletter';
-import WeatherForecast from './pages/WeatherForecast';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { FeedbackWidget } from './components/FeedbackWidget';
@@ -46,7 +45,6 @@ export default function App() {
           <Route path="/great-men-moves" element={<GreatMenMoves />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/newsletter" element={<Newsletter />} />
-          <Route path="/weather-forecast" element={<WeatherForecast />} />
           <Route
             path="*"
             element={
