@@ -25,6 +25,15 @@ else
 fi
 
 step "Role $CI_ROLE"
+# The deploy job runs in the GitHub 'production' environment, so its OIDC
+# token's sub is ...:environment:production, not ...:ref:refs/heads/production.
+change "trust: GitHub OIDC from repo:KOBOKO23/portfolio, environment production only"
+run aws iam update-assume-role-policy --role-name "$CI_ROLE" --policy-document "{
+ \"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",
+  \"Principal\":{\"Federated\":\"arn:aws:iam::$ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com\"},
+  \"Action\":\"sts:AssumeRoleWithWebIdentity\",
+  \"Condition\":{\"StringEquals\":{\"token.actions.githubusercontent.com:aud\":\"sts.amazonaws.com\",
+    \"token.actions.githubusercontent.com:sub\":\"repo:KOBOKO23/portfolio:environment:production\"}}}]}"
 change "policy koboko-deploy-permissions: ECR push (unchanged) + send $DOC to $HOST_NAME_TAG; ECS access removed"
 run aws iam put-role-policy --role-name "$CI_ROLE" --policy-name koboko-deploy-permissions --policy-document "{
  \"Version\":\"2012-10-17\",\"Statement\":[
