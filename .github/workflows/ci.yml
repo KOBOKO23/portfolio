@@ -46,15 +46,18 @@ jobs:
         run: ruff format --check .
 
       - name: Security — bandit SAST
-        run: bandit -r apps/ config/ utils/ -c ../pyproject.toml --format json | python -c "
-import json, sys
-data = json.load(sys.stdin)
-highs = [i for i in data.get('results', []) if i['issue_severity'] in ('HIGH', 'CRITICAL')]
-if highs:
-    for i in highs: print(f\"FAIL  {i['filename']}:{i['line_number']}  {i['test_id']} {i['issue_text']}\")
-    sys.exit(1)
-print(f'bandit: 0 HIGH/CRITICAL issues ({len(data[\"results\"])} total checked)')
-"
+        # Block scalar: the inline script starts at column 0 once YAML strips
+        # the indentation; as a plain scalar it made the whole file invalid.
+        run: |
+          bandit -r apps/ config/ utils/ -c ../pyproject.toml --format json | python -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          highs = [i for i in data.get('results', []) if i['issue_severity'] in ('HIGH', 'CRITICAL')]
+          if highs:
+              for i in highs: print(f\"FAIL  {i['filename']}:{i['line_number']}  {i['test_id']} {i['issue_text']}\")
+              sys.exit(1)
+          print(f'bandit: 0 HIGH/CRITICAL issues ({len(data[\"results\"])} total checked)')
+          "
 
       - name: Security — pip-audit (dependency CVEs)
         run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2024-243
