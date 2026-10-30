@@ -25,28 +25,74 @@ import {
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-interface Resp<T> { success: boolean; data?: T }
+interface Resp<T> {
+  success: boolean;
+  data?: T;
+}
 
-interface Skill { id: number; name: string; category: string; proficiency: number; icon: string; }
-interface CareerEvent { id: number; year: string; title: string; organization: string; description: string; is_current: boolean; order: number; }
+interface Skill {
+  id: number;
+  name: string;
+  category: string;
+  proficiency: number;
+  icon: string;
+}
+interface CareerEvent {
+  id: number;
+  year: string;
+  title: string;
+  organization: string;
+  description: string;
+  is_current: boolean;
+  order: number;
+}
 interface Profile {
-  full_name: string; tagline: string; profile_image: string | null; resume_pdf: string | null;
-  email: string; linkedin_url: string; github_url: string; twitter_url: string; instagram_url: string;
-  years_experience: number; projects_completed: number;
+  full_name: string;
+  tagline: string;
+  profile_image: string | null;
+  resume_pdf: string | null;
+  email: string;
+  linkedin_url: string;
+  github_url: string;
+  twitter_url: string;
+  instagram_url: string;
+  years_experience: number;
+  projects_completed: number;
 }
 
 const CATEGORY_META: Record<string, { label: string; Icon: React.ElementType; desc: string }> = {
-  meteorology: { label: 'Meteorology', Icon: Cloud, desc: 'Atmospheric science and weather forecasting expertise' },
-  software:    { label: 'Software Development', Icon: Code, desc: 'Backend engineering with Python and modern databases' },
-  data_science:{ label: 'Data Science', Icon: Database, desc: 'Machine learning and analytical capabilities' },
-  frontend:    { label: 'Frontend', Icon: Globe, desc: 'UI development with modern frameworks' },
-  backend:     { label: 'Backend', Icon: Server, desc: 'Server-side engineering and APIs' },
-  devops:      { label: 'DevOps & Tools', Icon: Wrench, desc: 'Infrastructure, CI/CD, and tooling' },
-  design:      { label: 'Design', Icon: Palette, desc: 'Visual design and prototyping' },
-  other:       { label: 'Other', Icon: Lightbulb, desc: 'Additional skills and expertise' },
+  meteorology: {
+    label: 'Meteorology',
+    Icon: Cloud,
+    desc: 'Atmospheric science and weather forecasting expertise',
+  },
+  software: {
+    label: 'Software Development',
+    Icon: Code,
+    desc: 'Backend engineering with Python and modern databases',
+  },
+  data_science: {
+    label: 'Data Science',
+    Icon: Database,
+    desc: 'Machine learning and analytical capabilities',
+  },
+  frontend: { label: 'Frontend', Icon: Globe, desc: 'UI development with modern frameworks' },
+  backend: { label: 'Backend', Icon: Server, desc: 'Server-side engineering and APIs' },
+  devops: { label: 'DevOps & Tools', Icon: Wrench, desc: 'Infrastructure, CI/CD, and tooling' },
+  design: { label: 'Design', Icon: Palette, desc: 'Visual design and prototyping' },
+  other: { label: 'Other', Icon: Lightbulb, desc: 'Additional skills and expertise' },
 };
 
-const CATEGORY_ORDER = ['meteorology', 'software', 'data_science', 'frontend', 'backend', 'devops', 'design', 'other'];
+const CATEGORY_ORDER = [
+  'meteorology',
+  'software',
+  'data_science',
+  'frontend',
+  'backend',
+  'devops',
+  'design',
+  'other',
+];
 
 function proficiencyLabel(p: number) {
   if (p >= 85) return 'Expert';
@@ -71,26 +117,27 @@ export function About() {
       .catch(() => {});
     fetch(`${API}/profile/`)
       .then(r => r.json() as Promise<Resp<Profile>>)
-      .then(data => { if (data.success && data.data) setProfile(data.data); })
+      .then(data => {
+        if (data.success && data.data) setProfile(data.data);
+      })
       .catch(() => {});
   }, []);
 
-  const socialLinks = profile ? [
-    { Icon: Linkedin, url: profile.linkedin_url },
-    { Icon: Github, url: profile.github_url },
-    { Icon: Twitter, url: profile.twitter_url },
-    { Icon: Instagram, url: profile.instagram_url },
-    { Icon: Mail, url: profile.email ? `mailto:${profile.email}` : '' },
-  ].filter(s => s.url) : [];
+  const socialLinks = profile
+    ? [
+        { Icon: Linkedin, url: profile.linkedin_url },
+        { Icon: Github, url: profile.github_url },
+        { Icon: Twitter, url: profile.twitter_url },
+        { Icon: Instagram, url: profile.instagram_url },
+        { Icon: Mail, url: profile.email ? `mailto:${profile.email}` : '' },
+      ].filter(s => s.url)
+    : [];
 
-  const groupedSkills = CATEGORY_ORDER
-    .map(cat => ({
-      cat,
-      meta: CATEGORY_META[cat] ?? { label: cat, Icon: Lightbulb, desc: '' },
-      skills: skills.filter(s => s.category === cat),
-    }))
-    .filter(g => g.skills.length > 0);
-
+  const groupedSkills = CATEGORY_ORDER.map(cat => ({
+    cat,
+    meta: CATEGORY_META[cat] ?? { label: cat, Icon: Lightbulb, desc: '' },
+    skills: skills.filter(s => s.category === cat),
+  })).filter(g => g.skills.length > 0);
 
   return (
     <div className="min-h-screen">
@@ -128,11 +175,21 @@ export function About() {
         {/* Portrait — real photo once uploaded in the admin, abstract art until then */}
         <div className="absolute right-12 lg:right-24 bottom-0 w-[40vw] max-w-[520px] h-[80vh] hidden lg:block">
           {profile?.profile_image ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 0.3 }}
-              className="absolute inset-x-8 top-8 bottom-0 overflow-hidden">
-              <img src={profile.profile_image} alt={profile.full_name}
-                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, #0a0a0a 0%, transparent 30%)' }} />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.2, delay: 0.3 }}
+              className="absolute inset-x-8 top-8 bottom-0 overflow-hidden"
+            >
+              <img
+                src={profile.profile_image}
+                alt={profile.full_name}
+                className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+              />
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(0deg, #0a0a0a 0%, transparent 30%)' }}
+              />
             </motion.div>
           ) : (
             <div className="pointer-events-none">
@@ -168,7 +225,8 @@ export function About() {
               className="text-[clamp(3.5rem,8vw,7rem)] leading-[0.95] tracking-tight text-white mb-8"
               style={{ fontFamily: 'var(--font-serif)' }}
             >
-              A Life of<br />
+              A Life of
+              <br />
               Purpose &<br />
               Precision
             </h1>
@@ -179,8 +237,12 @@ export function About() {
             {/* Resume, socials, stats — sourced from the Profile record in the admin */}
             <div className="flex flex-wrap items-center gap-8">
               {profile?.resume_pdf && (
-                <a href={profile.resume_pdf} target="_blank" rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-3 px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all duration-500 text-sm font-semibold uppercase tracking-wide">
+                <a
+                  href={profile.resume_pdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all duration-500 text-sm font-semibold uppercase tracking-wide"
+                >
                   <Download className="w-4 h-4" /> Download Resume
                 </a>
               )}
@@ -188,8 +250,13 @@ export function About() {
               {socialLinks.length > 0 && (
                 <div className="flex items-center gap-4">
                   {socialLinks.map(({ Icon, url }, i) => (
-                    <a key={i} href={url} target={url.startsWith('mailto') ? undefined : '_blank'} rel="noopener noreferrer"
-                      className="text-white/50 hover:text-[#d4a574] transition-colors">
+                    <a
+                      key={i}
+                      href={url}
+                      target={url.startsWith('mailto') ? undefined : '_blank'}
+                      rel="noopener noreferrer"
+                      className="text-white/50 hover:text-[#d4a574] transition-colors"
+                    >
                       <Icon className="w-5 h-5" />
                     </a>
                   ))}
@@ -201,14 +268,22 @@ export function About() {
               <div className="flex gap-12 mt-12 pt-8 border-t border-white/10 max-w-md">
                 {!!profile.years_experience && (
                   <div>
-                    <p className="font-serif text-4xl text-[#d4a574]">{profile.years_experience}+</p>
-                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">Years Experience</p>
+                    <p className="font-serif text-4xl text-[#d4a574]">
+                      {profile.years_experience}+
+                    </p>
+                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">
+                      Years Experience
+                    </p>
                   </div>
                 )}
                 {!!profile.projects_completed && (
                   <div>
-                    <p className="font-serif text-4xl text-[#d4a574]">{profile.projects_completed}+</p>
-                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">Projects Completed</p>
+                    <p className="font-serif text-4xl text-[#d4a574]">
+                      {profile.projects_completed}+
+                    </p>
+                    <p className="text-xs uppercase tracking-widest text-white/40 mt-1">
+                      Projects Completed
+                    </p>
                   </div>
                 )}
               </div>
@@ -237,38 +312,44 @@ export function About() {
                   className="text-[clamp(1.5rem,2.5vw,2.25rem)] leading-[1.35]"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
-                  I am Koboko — a modern African polymath whose work exists at the intersection
-                  of science, technology, faith, and creative expression.
+                  I am Koboko — a modern African polymath whose work exists at the intersection of
+                  science, technology, faith, and creative expression.
                 </p>
 
                 <div className="space-y-6 text-lg text-black/70 leading-relaxed">
                   <p>
-                    Based in Nairobi, Kenya, I serve as a Meteorologist at the Kenya Meteorological Department,
-                    where I specialize in Numerical Weather Prediction. Every day, I work with complex atmospheric
-                    models and computational systems to forecast weather patterns that affect agriculture, aviation,
-                    disaster preparedness, and the daily lives of millions across East Africa.
+                    Based in Nairobi, Kenya, I serve as a Meteorologist at the Kenya Meteorological
+                    Department, where I specialize in Numerical Weather Prediction. Every day, I
+                    work with complex atmospheric models and computational systems to forecast
+                    weather patterns that affect agriculture, aviation, disaster preparedness, and
+                    the daily lives of millions across East Africa.
                   </p>
                   <p>
-                    Parallel to my meteorological career, I am a backend software developer with deep expertise in
-                    Python and Django. I architect scalable systems, design robust APIs, and work with both SQL and
-                    NoSQL databases to build applications that solve complex problems.
+                    Parallel to my meteorological career, I am a backend software developer with
+                    deep expertise in Python and Django. I architect scalable systems, design robust
+                    APIs, and work with both SQL and NoSQL databases to build applications that
+                    solve complex problems.
                   </p>
                   <p>
-                    Currently, I am expanding my technical horizons through ALX Africa's Data Science program,
-                    where I'm learning to transform raw data into actionable insights through machine learning,
-                    statistical modeling, and advanced analytics.
+                    Currently, I am expanding my technical horizons through ALX Africa's Data
+                    Science program, where I'm learning to transform raw data into actionable
+                    insights through machine learning, statistical modeling, and advanced analytics.
                   </p>
                   <p>
                     But my identity extends far beyond technical competence. I am the founder of{' '}
-                    <strong>Great Men Moves</strong>, a mentorship initiative where I guide young men toward
-                    purpose, character, and leadership.
+                    <strong>Great Men Moves</strong>, a mentorship initiative where I guide young
+                    men toward purpose, character, and leadership.
                   </p>
                   <p>
-                    Faith is the foundation of everything I do. As a gospel artist, I use music to worship,
-                    inspire, and communicate truths that transcend human understanding. My upcoming book,{' '}
-                    <em>"The Jar You Left Behind,"</em> explores themes of redemption, healing, and divine restoration.
+                    Faith is the foundation of everything I do. As a gospel artist, I use music to
+                    worship, inspire, and communicate truths that transcend human understanding. My
+                    upcoming book, <em>"The Jar You Left Behind,"</em> explores themes of
+                    redemption, healing, and divine restoration.
                   </p>
-                  <p className="text-black text-xl pt-4" style={{ fontFamily: 'var(--font-serif)' }}>
+                  <p
+                    className="text-black text-xl pt-4"
+                    style={{ fontFamily: 'var(--font-serif)' }}
+                  >
                     This is my journey. This is Koboko.
                   </p>
                 </div>
@@ -390,7 +471,9 @@ export function About() {
                         <div key={skill.id} className="bg-white p-4 border-l-2 border-[#d4a574]">
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{skill.name}</span>
-                            <span className="text-sm text-black/60">{proficiencyLabel(skill.proficiency)}</span>
+                            <span className="text-sm text-black/60">
+                              {proficiencyLabel(skill.proficiency)}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -419,26 +502,32 @@ export function About() {
                   className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.05] mb-8"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
-                  Great Men<br />
+                  Great Men
+                  <br />
                   Moves
                 </h2>
-                <p className="text-2xl text-black/80 leading-relaxed mb-8" style={{ fontFamily: 'var(--font-serif)' }}>
+                <p
+                  className="text-2xl text-black/80 leading-relaxed mb-8"
+                  style={{ fontFamily: 'var(--font-serif)' }}
+                >
                   Mentoring the Next Generation of Leaders
                 </p>
                 <div className="space-y-6 text-lg text-black/70 leading-relaxed mb-10">
                   <p>
-                    Great Men Moves is more than a mentorship program — it's a movement dedicated to shaping
-                    young men into leaders of character, purpose, and impact. Founded on the belief that
-                    every young man deserves guidance, accountability, and a vision for his future.
+                    Great Men Moves is more than a mentorship program — it's a movement dedicated to
+                    shaping young men into leaders of character, purpose, and impact. Founded on the
+                    belief that every young man deserves guidance, accountability, and a vision for
+                    his future.
                   </p>
                   <p>
-                    Through intentional relationships, structured teaching, and personal example, I mentor
-                    young men in leadership principles, emotional intelligence, financial literacy, spiritual
-                    grounding, and practical life skills.
+                    Through intentional relationships, structured teaching, and personal example, I
+                    mentor young men in leadership principles, emotional intelligence, financial
+                    literacy, spiritual grounding, and practical life skills.
                   </p>
                   <p>
-                    Great men are not born; they are made through discipline, mentorship, and purpose.
-                    This is my contribution to building a better Africa, one young man at a time.
+                    Great men are not born; they are made through discipline, mentorship, and
+                    purpose. This is my contribution to building a better Africa, one young man at a
+                    time.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
@@ -473,7 +562,9 @@ export function About() {
               <div className="order-1 lg:order-2">
                 <div
                   className="aspect-[4/5] relative overflow-hidden"
-                  style={{ background: 'linear-gradient(145deg, #0d1a0d 0%, #1a2e1a 50%, #0a0a0a 100%)' }}
+                  style={{
+                    background: 'linear-gradient(145deg, #0d1a0d 0%, #1a2e1a 50%, #0a0a0a 100%)',
+                  }}
                 >
                   <div
                     className="absolute inset-0"
@@ -489,7 +580,9 @@ export function About() {
                         className="text-3xl text-[#d4a574]/50 leading-tight"
                         style={{ fontFamily: 'var(--font-serif)' }}
                       >
-                        Shaping<br />the Future
+                        Shaping
+                        <br />
+                        the Future
                       </p>
                     </div>
                   </div>
@@ -516,7 +609,9 @@ export function About() {
               <div>
                 <div
                   className="aspect-[4/5] relative overflow-hidden"
-                  style={{ background: 'linear-gradient(145deg, #0d0a1a 0%, #1a1030 50%, #0a0a0a 100%)' }}
+                  style={{
+                    background: 'linear-gradient(145deg, #0d0a1a 0%, #1a1030 50%, #0a0a0a 100%)',
+                  }}
                 >
                   <div
                     className="absolute inset-0"
@@ -532,7 +627,9 @@ export function About() {
                   />
                   <div
                     className="absolute top-1/3 left-1/4 right-1/4 h-[2px] opacity-20"
-                    style={{ background: 'linear-gradient(90deg, transparent, #d4a574 50%, transparent)' }}
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, #d4a574 50%, transparent)',
+                    }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <p
@@ -552,8 +649,8 @@ export function About() {
                   className="text-[clamp(2.5rem,5vw,5rem)] leading-[1.05] mb-8"
                   style={{ fontFamily: 'var(--font-serif)' }}
                 >
-                  Faith, Purpose<br />
-                  & Leadership
+                  Faith, Purpose
+                  <br />& Leadership
                 </h2>
 
                 <div className="space-y-8">
@@ -587,7 +684,9 @@ export function About() {
                     <div key={title}>
                       <div className="flex items-center gap-4 mb-4">
                         <Icon className="w-8 h-8 text-[#d4a574]" />
-                        <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>{title}</h3>
+                        <h3 className="text-2xl" style={{ fontFamily: 'var(--font-serif)' }}>
+                          {title}
+                        </h3>
                       </div>
                       <p className="text-lg text-white/70 leading-relaxed">{text}</p>
                     </div>
@@ -615,7 +714,8 @@ export function About() {
             >
               "I am not defined by a single skill or title. I am a multidimensional individual
               pursuing excellence across science, technology, creativity, and faith — believing that
-              a life well-lived integrates all of who we are into a cohesive mission of purpose and impact."
+              a life well-lived integrates all of who we are into a cohesive mission of purpose and
+              impact."
             </p>
             <p className="text-xl text-black/60">— Koboko</p>
           </motion.div>

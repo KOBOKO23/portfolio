@@ -23,7 +23,12 @@ export function FeedbackWidget() {
       const res = await fetch(`${API}/feedback/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating: rating || 5, message: feedback, email, page_url: window.location.pathname }),
+        body: JSON.stringify({
+          rating: rating || 5,
+          message: feedback,
+          email,
+          page_url: window.location.pathname,
+        }),
       });
       const data = (await res.json()) as { success: boolean; error?: { message?: string } };
       if (!res.ok || !data.success) throw new Error(data.error?.message ?? 'Failed');
@@ -115,7 +120,7 @@ export function FeedbackWidget() {
                         How would you rate your experience?
                       </p>
                       <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
+                        {[1, 2, 3, 4, 5].map(star => (
                           <button
                             key={star}
                             type="button"
@@ -145,7 +150,7 @@ export function FeedbackWidget() {
                       <textarea
                         id="feedback"
                         value={feedback}
-                        onChange={(e) => setFeedback(e.target.value)}
+                        onChange={e => setFeedback(e.target.value)}
                         placeholder="What can we improve? What do you love?"
                         rows={4}
                         required
@@ -162,7 +167,7 @@ export function FeedbackWidget() {
                         type="email"
                         id="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={e => setEmail(e.target.value)}
                         placeholder="your@email.com"
                         className="w-full px-4 py-3 border border-black/10 focus:border-[#d4a574] outline-none transition-colors"
                       />
@@ -181,7 +186,12 @@ export function FeedbackWidget() {
                       className="w-full px-6 py-4 bg-black text-white hover:bg-[#d4a574] transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                     >
                       <span>{isSubmitting ? 'Sending…' : 'Send Feedback'}</span>
-                      {!isSubmitting && <Send size={18} className="group-hover:translate-x-1 transition-transform" />}
+                      {!isSubmitting && (
+                        <Send
+                          size={18}
+                          className="group-hover:translate-x-1 transition-transform"
+                        />
+                      )}
                     </button>
                   </form>
                 </>
@@ -195,10 +205,7 @@ export function FeedbackWidget() {
                   >
                     <CheckCircle size={64} className="mx-auto mb-6 text-[#d4a574]" />
                   </motion.div>
-                  <h3
-                    className="text-2xl mb-3"
-                    style={{ fontFamily: 'var(--font-serif)' }}
-                  >
+                  <h3 className="text-2xl mb-3" style={{ fontFamily: 'var(--font-serif)' }}>
                     Thank You!
                   </h3>
                   <p className="text-black/70">

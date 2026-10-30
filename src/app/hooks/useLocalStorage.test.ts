@@ -7,11 +7,19 @@ import { useLocalStorage } from './useLocalStorage';
 const mockStore: Record<string, string> = {};
 const mockLocalStorage = {
   getItem: (key: string) => mockStore[key] ?? null,
-  setItem: (key: string, val: string) => { mockStore[key] = val; },
-  removeItem: (key: string) => { delete mockStore[key]; },
-  clear: () => { Object.keys(mockStore).forEach((k) => delete mockStore[k]); },
+  setItem: (key: string, val: string) => {
+    mockStore[key] = val;
+  },
+  removeItem: (key: string) => {
+    delete mockStore[key];
+  },
+  clear: () => {
+    Object.keys(mockStore).forEach(k => delete mockStore[k]);
+  },
   key: (i: number) => Object.keys(mockStore)[i] ?? null,
-  get length() { return Object.keys(mockStore).length; },
+  get length() {
+    return Object.keys(mockStore).length;
+  },
 };
 vi.stubGlobal('localStorage', mockLocalStorage);
 
@@ -30,7 +38,9 @@ describe('useLocalStorage', () => {
   it('persists a value to localStorage', () => {
     const { result } = renderHook(() => useLocalStorage('greeting', ''));
 
-    act(() => { result.current[1]('Hello Nairobi'); });
+    act(() => {
+      result.current[1]('Hello Nairobi');
+    });
 
     expect(result.current[0]).toBe('Hello Nairobi');
     expect(ls().getItem('greeting')).toBe('"Hello Nairobi"');
@@ -45,8 +55,12 @@ describe('useLocalStorage', () => {
   it('supports functional updates', () => {
     const { result } = renderHook(() => useLocalStorage('count', 0));
 
-    act(() => { result.current[1]((prev) => prev + 1); });
-    act(() => { result.current[1]((prev) => prev + 1); });
+    act(() => {
+      result.current[1](prev => prev + 1);
+    });
+    act(() => {
+      result.current[1](prev => prev + 1);
+    });
 
     expect(result.current[0]).toBe(2);
   });
@@ -55,7 +69,9 @@ describe('useLocalStorage', () => {
     ls().setItem('theme', JSON.stringify('dark'));
     const { result } = renderHook(() => useLocalStorage('theme', 'light'));
 
-    act(() => { result.current[2](); });
+    act(() => {
+      result.current[2]();
+    });
 
     expect(result.current[0]).toBe('light');
     expect(ls().getItem('theme')).toBeNull();
@@ -65,7 +81,9 @@ describe('useLocalStorage', () => {
     const initial = { name: '', score: 0 };
     const { result } = renderHook(() => useLocalStorage('profile', initial));
 
-    act(() => { result.current[1]({ name: 'Koboko', score: 100 }); });
+    act(() => {
+      result.current[1]({ name: 'Koboko', score: 100 });
+    });
 
     expect(result.current[0]).toEqual({ name: 'Koboko', score: 100 });
     expect(JSON.parse(ls().getItem('profile'))).toEqual({ name: 'Koboko', score: 100 });

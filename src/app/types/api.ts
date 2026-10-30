@@ -243,7 +243,6 @@ export interface Profile {
   profile_image: string;
   resume_pdf: string | null;
   email: string;
-  phone: string;
   location: string;
   linkedin_url: string;
   github_url: string;
@@ -255,20 +254,3 @@ export interface Profile {
 }
 
 // Weather types (for weather forecast feature)
-export interface WeatherData {
-  temperature: number;
-  condition: string;
-  icon: string;
-  timestamp: string;
-  humidity?: number;
-  wind_speed?: number;
-  precipitation?: number;
-}
-
-export interface WeatherForecast {
-  location: string;
-  timezone: string;
-  current: WeatherData;
-  hourly: WeatherData[];
-  daily: WeatherData[];
-}

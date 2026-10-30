@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -36,9 +35,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "product_name",
-                    models.CharField(
-                        default="Broken Souls — Pre-Order", max_length=300
-                    ),
+                    models.CharField(default="Broken Souls — Pre-Order", max_length=300),
                 ),
                 ("amount", models.DecimalField(decimal_places=2, max_digits=10)),
                 ("currency", models.CharField(default="KES", max_length=3)),

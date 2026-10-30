@@ -12,7 +12,7 @@ class Feedback(models.Model):
     is_approved = models.BooleanField(default=False, db_index=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f'Feedback {self.rating}/5 — {self.created_at.date()}'
+        return f"Feedback {self.rating}/5 — {self.created_at.date()}"

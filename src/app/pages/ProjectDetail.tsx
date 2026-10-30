@@ -6,7 +6,12 @@ import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-interface ProjectImage { id: number; image: string; caption: string; order: number; }
+interface ProjectImage {
+  id: number;
+  image: string;
+  caption: string;
+  order: number;
+}
 
 interface Project {
   id: number;
@@ -48,10 +53,7 @@ function renderDetailedDescription(text: string) {
   };
 
   const isSectionHeading = (line: string) =>
-    line.length > 0 &&
-    line.length < 70 &&
-    !/[.,;]$/.test(line) &&
-    /^[A-Z]/.test(line);
+    line.length > 0 && line.length < 70 && !/[.,;]$/.test(line) && /^[A-Z]/.test(line);
 
   lines.forEach((raw, i) => {
     const line = raw.trim();
@@ -63,7 +65,10 @@ function renderDetailedDescription(text: string) {
     if (i === 0) {
       flushList();
       blocks.push(
-        <p key={key++} className="text-[#d4a574] text-sm uppercase tracking-[0.25em] mb-8 font-medium">
+        <p
+          key={key++}
+          className="text-[#d4a574] text-sm uppercase tracking-[0.25em] mb-8 font-medium"
+        >
           {line}
         </p>
       );
@@ -124,7 +129,9 @@ export default function ProjectDetail() {
         <div className="h-4 bg-black/8 rounded w-24 mb-12" />
         <div className="h-16 bg-black/8 rounded w-3/4 mb-6" />
         <div className="space-y-3">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-4 bg-black/5 rounded" />)}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-4 bg-black/5 rounded" />
+          ))}
         </div>
       </div>
     );
@@ -133,15 +140,22 @@ export default function ProjectDetail() {
   if (notFound || !project) {
     return (
       <div className="min-h-screen pt-32 flex flex-col items-center justify-center gap-6 text-center px-6">
-        <h1 className="text-5xl" style={{ fontFamily: 'var(--font-serif)' }}>Project not found</h1>
-        <Link to="/projects" className="text-[#d4a574] flex items-center gap-2 hover:gap-4 transition-all text-sm font-medium">
+        <h1 className="text-5xl" style={{ fontFamily: 'var(--font-serif)' }}>
+          Project not found
+        </h1>
+        <Link
+          to="/projects"
+          className="text-[#d4a574] flex items-center gap-2 hover:gap-4 transition-all text-sm font-medium"
+        >
           <ArrowLeft size={16} /> Back to Projects
         </Link>
       </div>
     );
   }
 
-  const techs = project.technologies_list?.length ? project.technologies_list : project.technologies;
+  const techs = project.technologies_list?.length
+    ? project.technologies_list
+    : project.technologies;
 
   return (
     <div className="min-h-screen">
@@ -154,9 +168,15 @@ export default function ProjectDetail() {
       {/* Hero */}
       <section className="pt-32 pb-20 px-6 lg:px-16 bg-black text-white">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <Link to="/projects"
-              className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-12 transition-colors">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link
+              to="/projects"
+              className="inline-flex items-center gap-2 text-white/40 hover:text-white text-sm mb-12 transition-colors"
+            >
               <ArrowLeft size={16} /> All Projects
             </Link>
 
@@ -168,8 +188,10 @@ export default function ProjectDetail() {
               </p>
             )}
 
-            <h1 className="text-[clamp(2.5rem,6vw,5rem)] leading-[1.05] mb-8"
-              style={{ fontFamily: 'var(--font-serif)' }}>
+            <h1
+              className="text-[clamp(2.5rem,6vw,5rem)] leading-[1.05] mb-8"
+              style={{ fontFamily: 'var(--font-serif)' }}
+            >
               {project.title}
             </h1>
 
@@ -184,14 +206,22 @@ export default function ProjectDetail() {
                 </span>
               )}
               {project.github_url && (
-                <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-white/70 hover:text-[#d4a574] transition-colors">
+                <a
+                  href={project.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-white/70 hover:text-[#d4a574] transition-colors"
+                >
                   <Github size={16} /> View on GitHub
                 </a>
               )}
               {project.live_url && (
-                <a href={project.live_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-white/70 hover:text-[#d4a574] transition-colors">
+                <a
+                  href={project.live_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-white/70 hover:text-[#d4a574] transition-colors"
+                >
                   <ExternalLink size={16} /> Live Demo
                 </a>
               )}
@@ -214,7 +244,9 @@ export default function ProjectDetail() {
             )}
             {/* Gallery grid */}
             {project.gallery && project.gallery.length > 0 && (
-              <div className={`grid gap-4 ${project.gallery.length === 1 ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'}`}>
+              <div
+                className={`grid gap-4 ${project.gallery.length === 1 ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'}`}
+              >
                 {project.gallery.map(img => (
                   <div key={img.id} className="relative overflow-hidden bg-black/40 group">
                     <img
@@ -240,7 +272,10 @@ export default function ProjectDetail() {
         <div className="max-w-5xl mx-auto flex flex-wrap items-center gap-3">
           <Tag size={14} className="text-black/30" />
           {techs.map(t => (
-            <span key={t} className="px-3 py-1.5 bg-white border border-black/10 text-sm text-black/70">
+            <span
+              key={t}
+              className="px-3 py-1.5 bg-white border border-black/10 text-sm text-black/70"
+            >
               {t}
             </span>
           ))}
@@ -255,10 +290,11 @@ export default function ProjectDetail() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            {project.detailed_description
-              ? renderDetailedDescription(project.detailed_description)
-              : <p className="text-[17px] text-black/70 leading-[1.85]">{project.description}</p>
-            }
+            {project.detailed_description ? (
+              renderDetailedDescription(project.detailed_description)
+            ) : (
+              <p className="text-[17px] text-black/70 leading-[1.85]">{project.description}</p>
+            )}
           </motion.div>
         </div>
       </section>
@@ -272,12 +308,16 @@ export default function ProjectDetail() {
           </h2>
           <p className="text-white/50 mb-8">Let's build something meaningful.</p>
           <div className="flex justify-center gap-4">
-            <Link to="/contact"
-              className="px-8 py-3 bg-[#d4a574] text-white text-sm hover:bg-white hover:text-black transition-all">
+            <Link
+              to="/contact"
+              className="px-8 py-3 bg-[#d4a574] text-white text-sm hover:bg-white hover:text-black transition-all"
+            >
               Get in Touch
             </Link>
-            <Link to="/projects"
-              className="px-8 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all">
+            <Link
+              to="/projects"
+              className="px-8 py-3 border border-white/20 text-white/70 text-sm hover:border-white hover:text-white transition-all"
+            >
               More Projects
             </Link>
           </div>

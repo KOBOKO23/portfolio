@@ -12,9 +12,7 @@ test.describe('Contact form', () => {
   });
 
   test('submit button is present', async ({ page }) => {
-    await expect(
-      page.getByRole('button', { name: /send|submit/i }).first()
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /send|submit/i }).first()).toBeVisible();
   });
 
   test('validation prevents empty submit', async ({ page }) => {

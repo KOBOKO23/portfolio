@@ -58,12 +58,25 @@ export const FALLBACK_LIST_ARTICLES = [
     slug: 'the-lie-weve-all-been-told-about-weather-forecasts',
     excerpt:
       "Ever wondered how forecasters predict rain without a meteorologist standing on every rooftop? From guessing games with clouds to supercomputers running the physics of the atmosphere, here's the real (and surprisingly funny) story behind your daily forecast.",
-    thumbnail: 'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/thumbnails/met.jpeg',
+    thumbnail:
+      'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/thumbnails/met.jpeg',
     category: {
-      id: 1, name: 'Meteorology', slug: 'meteorology', icon: '',
-      color: '#0ea5e9', article_count: 1,
+      id: 1,
+      name: 'Meteorology',
+      slug: 'meteorology',
+      icon: '',
+      color: '#0ea5e9',
+      article_count: 1,
     },
-    tags: ['weather forecasting', 'meteorology', 'science explained', 'climate science', 'AI in weather', 'ensemble forecasting', 'ECMWF'],
+    tags: [
+      'weather forecasting',
+      'meteorology',
+      'science explained',
+      'climate science',
+      'AI in weather',
+      'ensemble forecasting',
+      'ECMWF',
+    ],
     author: 'Philip Koboko',
     language: 'en',
     read_time: 5,
@@ -75,26 +88,56 @@ export const FALLBACK_LIST_ARTICLES = [
   },
 ];
 
-export const FALLBACK_DETAIL_ARTICLES: Record<string, {
-  id: number; title: string; slug: string; excerpt: string;
-  thumbnail: string | null; thumbnail_alt: string; category: { name: string; slug: string; color: string } | null;
-  tags: string[]; author: string; author_bio: string; language: string;
-  read_time: number; views: number; like_count: number; comment_count: number;
-  is_featured: boolean; published_date: string; content: string; content_html: string;
-  allow_comments: boolean; reaction_summary: Record<string, number>;
-  share_counts: Record<string, number>; user_liked: boolean; user_reaction: string | null;
-  updated_at: string; gallery: { id: number; image: string; alt_text: string; caption: string; order: number }[];
-}> = {
+export const FALLBACK_DETAIL_ARTICLES: Record<
+  string,
+  {
+    id: number;
+    title: string;
+    slug: string;
+    excerpt: string;
+    thumbnail: string | null;
+    thumbnail_alt: string;
+    category: { name: string; slug: string; color: string } | null;
+    tags: string[];
+    author: string;
+    author_bio: string;
+    language: string;
+    read_time: number;
+    views: number;
+    like_count: number;
+    comment_count: number;
+    is_featured: boolean;
+    published_date: string;
+    content: string;
+    content_html: string;
+    allow_comments: boolean;
+    reaction_summary: Record<string, number>;
+    share_counts: Record<string, number>;
+    user_liked: boolean;
+    user_reaction: string | null;
+    updated_at: string;
+    gallery: { id: number; image: string; alt_text: string; caption: string; order: number }[];
+  }
+> = {
   'the-lie-weve-all-been-told-about-weather-forecasts': {
     id: 1,
     title: "The Lie We've All Been Told About Weather Forecasts",
     slug: 'the-lie-weve-all-been-told-about-weather-forecasts',
     excerpt:
       "Ever wondered how forecasters predict rain without a meteorologist standing on every rooftop? From guessing games with clouds to supercomputers running the physics of the atmosphere, here's the real (and surprisingly funny) story behind your daily forecast.",
-    thumbnail: 'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/thumbnails/met.jpeg',
+    thumbnail:
+      'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/thumbnails/met.jpeg',
     thumbnail_alt: 'Met Office',
     category: { name: 'Meteorology', slug: 'meteorology', color: '#0ea5e9' },
-    tags: ['weather forecasting', 'meteorology', 'science explained', 'climate science', 'AI in weather', 'ensemble forecasting', 'ECMWF'],
+    tags: [
+      'weather forecasting',
+      'meteorology',
+      'science explained',
+      'climate science',
+      'AI in weather',
+      'ensemble forecasting',
+      'ECMWF',
+    ],
     author: 'Philip Koboko',
     author_bio:
       'Phil is a meteorologist who spends his days untangling model runs, satellite loops, and ensemble spreads so the rest of us just know whether to grab an umbrella. He writes about the science behind the forecast — chaos theory, supercomputers, and all — in plain, occasionally ridiculous English.',
@@ -114,9 +157,30 @@ export const FALLBACK_DETAIL_ARTICLES: Record<string, {
     user_reaction: null,
     updated_at: '2026-07-29T00:30:54.812686+03:00',
     gallery: [
-      { id: 3, image: 'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met_5_O0jTFuL.jpeg', alt_text: '', caption: '', order: 0 },
-      { id: 2, image: 'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met2.jpeg', alt_text: 'Satellite Imagery', caption: 'Atmosphere Current State', order: 1 },
-      { id: 1, image: 'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met_5.jpeg', alt_text: 'SuperComputers', caption: 'High Computations', order: 2 },
+      {
+        id: 3,
+        image:
+          'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met_5_O0jTFuL.jpeg',
+        alt_text: '',
+        caption: '',
+        order: 0,
+      },
+      {
+        id: 2,
+        image:
+          'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met2.jpeg',
+        alt_text: 'Satellite Imagery',
+        caption: 'Atmosphere Current State',
+        order: 1,
+      },
+      {
+        id: 1,
+        image:
+          'https://koboko-portfolio-media-332ac5.s3.eu-west-1.amazonaws.com/media/blog/images/Met_5.jpeg',
+        alt_text: 'SuperComputers',
+        caption: 'High Computations',
+        order: 2,
+      },
     ],
   },
 };

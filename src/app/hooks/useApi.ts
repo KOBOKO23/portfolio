@@ -23,7 +23,7 @@ export function useApi<T>(
   options: UseApiOptions<T> = {}
 ): UseApiReturn<T> {
   const { immediate = false, onSuccess, onError } = options;
-  
+
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

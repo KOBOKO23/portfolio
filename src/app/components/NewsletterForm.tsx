@@ -55,8 +55,11 @@ export function NewsletterForm({
 
   if (status === 'done') {
     return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-        className={successClassName}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={successClassName}
+      >
         <p className="font-serif text-2xl mb-2">You're in. ✓</p>
         <p className="text-white/60">Look out for the next issue in your inbox.</p>
       </motion.div>
@@ -65,23 +68,46 @@ export function NewsletterForm({
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className={layout === 'row' ? 'flex flex-col sm:flex-row gap-3' : 'flex flex-col gap-3'}>
-        <label htmlFor={`${idPrefix}-name`} className="sr-only">Your name</label>
-        <input id={`${idPrefix}-name`} name="name" type="text" required placeholder="Your name"
-          value={name} onChange={e => setName(e.target.value)}
-          className={inputClassName} />
+      <form
+        onSubmit={handleSubmit}
+        className={layout === 'row' ? 'flex flex-col sm:flex-row gap-3' : 'flex flex-col gap-3'}
+      >
+        <label htmlFor={`${idPrefix}-name`} className="sr-only">
+          Your name
+        </label>
+        <input
+          id={`${idPrefix}-name`}
+          name="name"
+          type="text"
+          required
+          placeholder="Your name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className={inputClassName}
+        />
 
-        <label htmlFor={`${idPrefix}-email`} className="sr-only">Your email</label>
-        <input id={`${idPrefix}-email`} name="email" type="email" required placeholder="Your email"
-          value={email} onChange={e => setEmail(e.target.value)}
-          className={inputClassName} />
+        <label htmlFor={`${idPrefix}-email`} className="sr-only">
+          Your email
+        </label>
+        <input
+          id={`${idPrefix}-email`}
+          name="email"
+          type="email"
+          required
+          placeholder="Your email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className={inputClassName}
+        />
 
         <button type="submit" disabled={status === 'sending'} className={buttonClassName}>
           {status === 'sending' ? buttonLabelSending : buttonLabel}
         </button>
       </form>
       {status === 'error' && (
-        <p className="text-red-600 text-sm mt-3" role="alert">Something went wrong. Please try again.</p>
+        <p className="text-red-600 text-sm mt-3" role="alert">
+          Something went wrong. Please try again.
+        </p>
       )}
       {helperText && <p className="text-black/40 text-xs mt-4">{helperText}</p>}
     </div>

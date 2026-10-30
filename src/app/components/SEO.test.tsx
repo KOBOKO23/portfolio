@@ -35,14 +35,10 @@ describe('SEO component', () => {
   });
 
   it('renders profile type without crashing', () => {
-    expect(() =>
-      renderSEO({ type: 'profile', url: '/about' })
-    ).not.toThrow();
+    expect(() => renderSEO({ type: 'profile', url: '/about' })).not.toThrow();
   });
 
   it('renders with noindex flag without crashing', () => {
-    expect(() =>
-      renderSEO({ title: 'Draft', noindex: true })
-    ).not.toThrow();
+    expect(() => renderSEO({ title: 'Draft', noindex: true })).not.toThrow();
   });
 });

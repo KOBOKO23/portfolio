@@ -22,7 +22,7 @@ def media_url(request, field):
         return None
     if not url:
         return None
-    if url.startswith(('http://', 'https://')):
+    if url.startswith(("http://", "https://")):
         return url
     if request:
         return request.build_absolute_uri(url)

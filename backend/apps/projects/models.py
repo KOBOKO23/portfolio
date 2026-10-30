@@ -2,17 +2,19 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
+from utils.images import is_new_upload, shrink_image
+
 
 class ProjectCategory(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, blank=True)
-    color = models.CharField(max_length=20, blank=True, help_text='Hex color e.g. #d4a574')
+    color = models.CharField(max_length=20, blank=True, help_text="Hex color e.g. #d4a574")
 
     class Meta:
-        verbose_name_plural = 'Project Categories'
-        ordering = ['name']
+        verbose_name_plural = "Project Categories"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -33,10 +35,10 @@ class Project(models.Model):
     description = models.TextField()
     detailed_description = models.TextField(blank=True)
     category = models.ForeignKey(
-        ProjectCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='projects'
+        ProjectCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects"
     )
-    image = models.ImageField(upload_to='projects/', blank=True, null=True)
-    technologies = models.JSONField(default=list, blank=True, help_text='List of technology names')
+    image = models.ImageField(upload_to="projects/", blank=True, null=True)
+    technologies = models.JSONField(default=list, blank=True, help_text="List of technology names")
     github_url = models.URLField(blank=True)
     live_url = models.URLField(blank=True)
     year = models.PositiveIntegerField(blank=True, null=True)
@@ -46,7 +48,7 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-is_featured', 'order', '-year']
+        ordering = ["-is_featured", "order", "-year"]
 
     def __str__(self):
         return self.title
@@ -58,17 +60,24 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if is_new_upload(self.image):
+            self.image = shrink_image(self.image.file, max_px=2000)
         super().save(*args, **kwargs)
 
 
 class ProjectImage(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='projects/gallery/')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="projects/gallery/")
     caption = models.CharField(max_length=200, blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
 
     def __str__(self):
-        return f'{self.project.title} — image {self.order}'
+        return f"{self.project.title} — image {self.order}"
+
+    def save(self, *args, **kwargs):
+        if is_new_upload(self.image):
+            self.image = shrink_image(self.image.file, max_px=2000)
+        super().save(*args, **kwargs)
