@@ -243,7 +243,6 @@ export interface Profile {
   profile_image: string;
   resume_pdf: string | null;
   email: string;
-  phone: string;
   location: string;
   linkedin_url: string;
   github_url: string;
