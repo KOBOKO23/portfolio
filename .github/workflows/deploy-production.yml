@@ -16,18 +16,15 @@ permissions:
 env:
   AWS_REGION: eu-west-1
   ECR_REPOSITORY: koboko-backend
-  ECS_CLUSTER: koboko-cluster
-  ECS_SERVICE: koboko-backend-svc
-  ECS_TASK_FAMILY: koboko-backend
-  ECS_SUBNETS: subnet-0ea4fcfd65fc106cf,subnet-000bbaebabc881235,subnet-06135dbb543696392
-  ECS_SECURITY_GROUP: sg-0b87bb21ae845fb71
+  HOST_NAME_TAG: koboko-portfolio-host  # EC2 host from infra/aws/provision.sh
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────────
-  # Backend — build image, push to ECR, migrate, roll out new ECS deployment
+  # Backend — build image, push to ECR, then koboko-deploy on the EC2 host
+  # (pull, migrate, restart) through SSM Run Command
   # ──────────────────────────────────────────────────────────────────────────
   deploy-backend:
-    name: Deploy Backend → AWS ECS
+    name: Deploy Backend → EC2 host
     runs-on: ubuntu-latest
     environment: production
     outputs:
@@ -57,47 +54,20 @@ jobs:
           docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      - name: Register new task definition revision
-        id: register
+      - name: Pull, migrate and restart on the host (SSM)
         run: |
-          aws ecs describe-task-definition --task-definition "$ECS_TASK_FAMILY" --query 'taskDefinition' > task-def.json
-          jq --arg IMAGE "${{ steps.build.outputs.image }}" \
-            '.containerDefinitions[0].image = $IMAGE
-             | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
-            task-def.json > new-task-def.json
-          NEW_REVISION=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json --query 'taskDefinition.revision' --output text)
-          echo "revision=$NEW_REVISION" >> "$GITHUB_OUTPUT"
-
-      - name: Run database migrations
-        run: |
-          TASK_ARN=$(aws ecs run-task \
-            --cluster "$ECS_CLUSTER" \
-            --task-definition "$ECS_TASK_FAMILY:${{ steps.register.outputs.revision }}" \
-            --launch-type FARGATE \
-            --network-configuration "awsvpcConfiguration={subnets=[$ECS_SUBNETS],securityGroups=[$ECS_SECURITY_GROUP],assignPublicIp=ENABLED}" \
-            --overrides "{\"containerOverrides\":[{\"name\":\"koboko-backend\",\"command\":[\"python\",\"manage.py\",\"migrate\",\"--noinput\"]}]}" \
-            --query 'tasks[0].taskArn' --output text)
-
-          aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
-
-          EXIT_CODE=$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN" \
-            --query 'tasks[0].containers[0].exitCode' --output text)
-
-          if [[ "$EXIT_CODE" != "0" ]]; then
-            echo "Migration task failed with exit code $EXIT_CODE"
-            aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$TASK_ARN"
-            exit 1
-          fi
-          echo "Migrations applied successfully"
-
-      - name: Deploy new task definition to the service
-        run: |
-          aws ecs update-service \
-            --cluster "$ECS_CLUSTER" \
-            --service "$ECS_SERVICE" \
-            --task-definition "$ECS_TASK_FAMILY:${{ steps.register.outputs.revision }}" \
-            --force-new-deployment
-          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=$HOST_NAME_TAG" Name=instance-state-name,Values=running \
+            --query 'Reservations[0].Instances[0].InstanceId' --output text)
+          CMD_ID=$(aws ssm send-command --instance-ids "$INSTANCE_ID" --document-name koboko-portfolio-deploy \
+            --comment "deploy ${{ github.sha }}" \
+            --query Command.CommandId --output text)
+          aws ssm wait command-executed --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" || true
+          aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" \
+            --query '[Status,StandardOutputContent,StandardErrorContent]' --output text
+          STATUS=$(aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" \
+            --query Status --output text)
+          [[ "$STATUS" == "Success" ]]
 
       - name: Health check
         run: |
