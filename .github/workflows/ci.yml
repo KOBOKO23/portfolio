@@ -49,9 +49,12 @@ jobs:
         # Block scalar: the inline script starts at column 0 once YAML strips
         # the indentation; as a plain scalar it made the whole file invalid.
         run: |
-          bandit -r apps/ config/ utils/ -c ../pyproject.toml --format json | python -c "
+          # bandit prints a progress bar on stdout, so read the report from a file.
+          # It exits non-zero for any finding; only HIGH/CRITICAL fail the job.
+          bandit -r apps/ config/ utils/ -c ../pyproject.toml -q -f json -o /tmp/bandit.json || true
+          python -c "
           import json, sys
-          data = json.load(sys.stdin)
+          data = json.load(open('/tmp/bandit.json'))
           highs = [i for i in data.get('results', []) if i['issue_severity'] in ('HIGH', 'CRITICAL')]
           if highs:
               for i in highs: print(f\"FAIL  {i['filename']}:{i['line_number']}  {i['test_id']} {i['issue_text']}\")
