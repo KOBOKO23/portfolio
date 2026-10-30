@@ -3,10 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { SEO } from '../components/SEO';
 import { NewsletterForm } from '../components/NewsletterForm';
+import { FALLBACK_DETAIL_ARTICLES } from '../data/blogFallback';
 import {
   ArrowLeft, Clock, Eye, Calendar, Heart, MessageCircle,
   Twitter, Linkedin, Facebook, Link2, Check, ChevronUp, Tag,
-  Send, Globe, Images,
+  Send, Globe, Images, WifiOff,
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -71,6 +72,7 @@ export default function BlogDetail() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
   const [readProgress, setReadProgress] = useState(0);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -90,6 +92,7 @@ export default function BlogDetail() {
     if (!slug) return;
     setLoading(true);
     setError(null);
+    setIsFallback(false);
 
     fetch(`${API}/blog/articles/${slug}/`, { headers: { 'X-Fingerprint': fp } })
       .then(r => {
@@ -110,7 +113,18 @@ export default function BlogDetail() {
       })
       .catch(err => {
         console.error('[BlogDetail] fetch failed:', err);
-        setError('Failed to load article. Please try again.');
+        // The live API is unreachable — if this is an article we have a
+        // snapshot of, show that instead of a dead page for anyone
+        // following a shared link while the backend is down.
+        const fallback = FALLBACK_DETAIL_ARTICLES[slug];
+        if (fallback) {
+          setArticle(fallback);
+          setLikeCount(fallback.like_count);
+          setReactions(fallback.reaction_summary);
+          setIsFallback(true);
+        } else {
+          setError('Failed to load article. Please try again.');
+        }
       })
       .finally(() => setLoading(false));
 
@@ -185,8 +199,11 @@ export default function BlogDetail() {
     } else if (shareUrls[platform]) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
-    void fetch(`${API}/blog/articles/${slug}/share/${platform}/`, { method: 'POST', headers: { 'X-Fingerprint': fp } });
-  }, [article, slug, fp]);
+    if (!isFallback) {
+      fetch(`${API}/blog/articles/${slug}/share/${platform}/`, { method: 'POST', headers: { 'X-Fingerprint': fp } })
+        .catch(() => {});
+    }
+  }, [article, slug, fp, isFallback]);
 
   const submitComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -280,6 +297,15 @@ export default function BlogDetail() {
           transition={{ type: 'spring', stiffness: 400, damping: 40 }}
         />
       </div>
+
+      {/* Offline banner — shown when this page is a cached snapshot because
+          the live API was unreachable */}
+      {isFallback && (
+        <div className="bg-[#d4a574]/15 border-b border-[#d4a574]/30 text-black/70 text-sm px-6 py-3 flex items-center justify-center gap-2 text-center">
+          <WifiOff className="w-4 h-4 flex-shrink-0" />
+          You're viewing a saved copy of this article — comments, likes, and live stats are temporarily unavailable.
+        </div>
+      )}
 
       {/* Hero */}
       <section className="relative min-h-[60vh] flex flex-col justify-end bg-black overflow-hidden">
@@ -408,21 +434,23 @@ export default function BlogDetail() {
           )}
 
           {/* Newsletter CTA */}
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="mt-12 p-8 md:p-10 bg-black text-white rounded-2xl">
-            <p className="text-xs uppercase tracking-widest text-white/40 mb-3">Stay in the loop</p>
-            <h3 className="font-serif text-2xl md:text-3xl mb-3">Enjoyed this? Get more like it.</h3>
-            <p className="text-white/60 text-sm mb-6 max-w-lg leading-relaxed">
-              Insights on technology, meteorology, faith, leadership, and creativity — delivered with intention.
-            </p>
-            <NewsletterForm
-              idPrefix="blog-newsletter"
-              inputClassName="flex-1 px-5 py-3.5 bg-white/10 border border-white/15 text-white placeholder:text-white/35 focus:outline-none focus:border-[#d4a574]/60 rounded-xl text-sm"
-              buttonClassName="px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all rounded-xl text-sm font-semibold whitespace-nowrap disabled:opacity-60"
-              successClassName="bg-white/10 rounded-2xl p-6"
-              helperText="No spam. Unsubscribe anytime."
-            />
-          </motion.div>
+          {!isFallback && (
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              className="mt-12 p-8 md:p-10 bg-black text-white rounded-2xl">
+              <p className="text-xs uppercase tracking-widest text-white/40 mb-3">Stay in the loop</p>
+              <h3 className="font-serif text-2xl md:text-3xl mb-3">Enjoyed this? Get more like it.</h3>
+              <p className="text-white/60 text-sm mb-6 max-w-lg leading-relaxed">
+                Insights on technology, meteorology, faith, leadership, and creativity — delivered with intention.
+              </p>
+              <NewsletterForm
+                idPrefix="blog-newsletter"
+                inputClassName="flex-1 px-5 py-3.5 bg-white/10 border border-white/15 text-white placeholder:text-white/35 focus:outline-none focus:border-[#d4a574]/60 rounded-xl text-sm"
+                buttonClassName="px-6 py-3.5 bg-[#d4a574] text-black hover:bg-white transition-all rounded-xl text-sm font-semibold whitespace-nowrap disabled:opacity-60"
+                successClassName="bg-white/10 rounded-2xl p-6"
+                helperText="No spam. Unsubscribe anytime."
+              />
+            </motion.div>
+          )}
 
           {/* Mobile Share */}
           <div className="mt-10 p-6 border border-black/8 rounded-2xl lg:hidden">
@@ -431,45 +459,49 @@ export default function BlogDetail() {
           </div>
 
           {/* Reactions */}
-          <div className="mt-12 p-6 bg-[#fafafa] rounded-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-black/40 mb-5">React</p>
-            <div className="flex flex-wrap gap-3">
-              {REACTIONS.map(r => (
-                <motion.button key={r.key} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
-                  onClick={() => toggleReaction(r.key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm ${
-                    userReaction === r.key
-                      ? 'border-[#d4a574] bg-[#d4a574]/10 text-black'
-                      : 'border-black/8 bg-white text-black/60 hover:border-black/20'
-                  }`}>
-                  <span className="text-lg">{r.emoji}</span>
-                  <span className="font-medium">{reactions[r.key] || 0}</span>
-                </motion.button>
-              ))}
+          {!isFallback && (
+            <div className="mt-12 p-6 bg-[#fafafa] rounded-2xl">
+              <p className="text-sm font-semibold uppercase tracking-widest text-black/40 mb-5">React</p>
+              <div className="flex flex-wrap gap-3">
+                {REACTIONS.map(r => (
+                  <motion.button key={r.key} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.94 }}
+                    onClick={() => toggleReaction(r.key)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm ${
+                      userReaction === r.key
+                        ? 'border-[#d4a574] bg-[#d4a574]/10 text-black'
+                        : 'border-black/8 bg-white text-black/60 hover:border-black/20'
+                    }`}>
+                    <span className="text-lg">{r.emoji}</span>
+                    <span className="font-medium">{reactions[r.key] || 0}</span>
+                  </motion.button>
+                ))}
+              </div>
+              {totalReactions > 0 && (
+                <p className="text-xs text-black/40 mt-3">{totalReactions} total reactions</p>
+              )}
             </div>
-            {totalReactions > 0 && (
-              <p className="text-xs text-black/40 mt-3">{totalReactions} total reactions</p>
-            )}
-          </div>
+          )}
 
           {/* Like */}
-          <div className="mt-6 flex items-center gap-4">
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              onClick={toggleLike}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-xl border-2 transition-all ${
-                liked ? 'border-red-400 bg-red-50 text-red-500' : 'border-black/10 text-black/60 hover:border-red-300 hover:text-red-400'
-              }`}>
-              <Heart className={`w-5 h-5 ${liked ? 'fill-red-400' : ''}`} />
-              <span className="font-medium">{formatNumber(likeCount)}</span>
-              <span className="text-sm">{liked ? 'Liked' : 'Like'}</span>
-            </motion.button>
-            <span className="flex items-center gap-2 text-black/40 text-sm">
-              <MessageCircle className="w-4 h-4" /> {article.comment_count} comments
-            </span>
-          </div>
+          {!isFallback && (
+            <div className="mt-6 flex items-center gap-4">
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                onClick={toggleLike}
+                className={`flex items-center gap-2.5 px-6 py-3 rounded-xl border-2 transition-all ${
+                  liked ? 'border-red-400 bg-red-50 text-red-500' : 'border-black/10 text-black/60 hover:border-red-300 hover:text-red-400'
+                }`}>
+                <Heart className={`w-5 h-5 ${liked ? 'fill-red-400' : ''}`} />
+                <span className="font-medium">{formatNumber(likeCount)}</span>
+                <span className="text-sm">{liked ? 'Liked' : 'Like'}</span>
+              </motion.button>
+              <span className="flex items-center gap-2 text-black/40 text-sm">
+                <MessageCircle className="w-4 h-4" /> {article.comment_count} comments
+              </span>
+            </div>
+          )}
 
           {/* Comments */}
-          {article.allow_comments && (
+          {article.allow_comments && !isFallback && (
             <div className="mt-16">
               <h3 className="font-serif text-2xl mb-8 flex items-center gap-3">
                 Comments
@@ -520,17 +552,19 @@ export default function BlogDetail() {
         <aside className="hidden lg:block">
           <div className="sticky top-28 space-y-6">
             {/* Like sticky */}
-            <div className="p-5 border border-black/8 rounded-2xl text-center">
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                onClick={toggleLike}
-                className={`w-full flex flex-col items-center gap-2 py-3 rounded-xl transition-all ${
-                  liked ? 'text-red-500' : 'text-black/40 hover:text-red-400'
-                }`}>
-                <Heart className={`w-7 h-7 ${liked ? 'fill-red-400' : ''}`} />
-                <span className="text-xl font-semibold">{formatNumber(likeCount)}</span>
-                <span className="text-xs uppercase tracking-widest">{liked ? 'Liked' : 'Like'}</span>
-              </motion.button>
-            </div>
+            {!isFallback && (
+              <div className="p-5 border border-black/8 rounded-2xl text-center">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                  onClick={toggleLike}
+                  className={`w-full flex flex-col items-center gap-2 py-3 rounded-xl transition-all ${
+                    liked ? 'text-red-500' : 'text-black/40 hover:text-red-400'
+                  }`}>
+                  <Heart className={`w-7 h-7 ${liked ? 'fill-red-400' : ''}`} />
+                  <span className="text-xl font-semibold">{formatNumber(likeCount)}</span>
+                  <span className="text-xs uppercase tracking-widest">{liked ? 'Liked' : 'Like'}</span>
+                </motion.button>
+              </div>
+            )}
 
             {/* Share */}
             <div className="p-5 border border-black/8 rounded-2xl">
@@ -539,7 +573,7 @@ export default function BlogDetail() {
             </div>
 
             {/* Reactions mini */}
-            {totalReactions > 0 && (
+            {!isFallback && totalReactions > 0 && (
               <div className="p-5 border border-black/8 rounded-2xl">
                 <p className="text-xs font-semibold uppercase tracking-widest text-black/40 mb-3">Reactions</p>
                 <div className="flex flex-wrap gap-2">

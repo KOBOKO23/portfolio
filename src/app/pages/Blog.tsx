@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Clock, Eye, Heart, MessageCircle, ArrowRight, Globe, X } from 'lucide-react';
+import { Search, Clock, Eye, Heart, MessageCircle, ArrowRight, Globe, X, WifiOff } from 'lucide-react';
 import { SEO } from '../components/SEO';
+import { FALLBACK_LIST_ARTICLES } from '../data/blogFallback';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -147,6 +148,7 @@ export function Blog() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
+  const [isFallback, setIsFallback] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -169,6 +171,7 @@ export function Blog() {
   useEffect(() => {
     setLoading(true);
     setFetchError(false);
+    setIsFallback(false);
     const params = new URLSearchParams({ page: String(page), page_size: '9', ordering: '-published_date' });
     if (selectedCategory) params.set('category__slug', selectedCategory);
     if (debouncedSearch) params.set('search', debouncedSearch);
@@ -184,7 +187,18 @@ export function Blog() {
           setHasMore(!Array.isArray(d) && !!((d as { next?: string | null }).next));
         }
       })
-      .catch(() => setFetchError(true))
+      .catch(() => {
+        // Live API unreachable — fall back to a snapshot rather than a
+        // dead end, since people follow shared links here directly.
+        if (page === 1 && !selectedCategory && !debouncedSearch) {
+          setArticles(FALLBACK_LIST_ARTICLES);
+          setTotalCount(FALLBACK_LIST_ARTICLES.length);
+          setHasMore(false);
+          setIsFallback(true);
+        } else {
+          setFetchError(true);
+        }
+      })
       .finally(() => setLoading(false));
   }, [selectedCategory, debouncedSearch, page]);
 
@@ -228,7 +242,7 @@ export function Blog() {
       {/* ── Filter Bar ───────────────────────────────────────────────────── */}
       <div className="sticky top-[79px] z-30 bg-white/98 backdrop-blur-md border-b border-black/6">
         <div className="max-w-7xl mx-auto px-6 lg:px-16 py-3 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto w-full sm:w-auto min-w-0 pb-0.5">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button onClick={() => setSelectedCategory('')}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-all ${
                 !selectedCategory ? 'bg-black text-white' : 'text-black/50 hover:text-black hover:bg-black/5'
@@ -264,6 +278,15 @@ export function Blog() {
 
       {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 lg:px-16 py-16">
+        {/* Offline banner — shown when the live API was unreachable and
+            this is a cached snapshot instead */}
+        {isFallback && !loading && (
+          <div className="flex items-center gap-2 justify-center text-center bg-[#d4a574]/15 border border-[#d4a574]/30 text-black/70 text-sm rounded-xl px-6 py-3 mb-10">
+            <WifiOff className="w-4 h-4 flex-shrink-0" />
+            Showing a saved snapshot — search and filtering are temporarily limited while we perform maintenance.
+          </div>
+        )}
+
         {/* Result label */}
         {isFiltered && !loading && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-black/35 mb-10 uppercase tracking-widest">
