@@ -25,7 +25,10 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   deploy-backend:
     name: Deploy Backend → EC2 host
-    runs-on: ubuntu-latest
+    # Native arm64 runner (free for public repos): the host is Graviton, and
+    # building linux/arm64 on an x86 runner without QEMU fails with
+    # "exec format error".
+    runs-on: ubuntu-24.04-arm
     environment: production
     outputs:
       backend_url: ${{ secrets.BACKEND_URL }}
