@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
@@ -229,7 +230,20 @@ if USE_S3:
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 else:
     STATIC_URL = "/static/"
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    # Django 5.1 removed STATICFILES_STORAGE; STORAGES is the only setting read.
+    # Tests render admin pages without running collectstatic, so they skip the
+    # manifest (which would otherwise fail on every {% static %} lookup).
+    _running_tests = len(sys.argv) > 1 and sys.argv[1] == "test"
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {
+            "BACKEND": (
+                "django.contrib.staticfiles.storage.StaticFilesStorage"
+                if _running_tests
+                else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            )
+        },
+    }
     MEDIA_URL = "/media/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
