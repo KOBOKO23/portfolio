@@ -211,7 +211,7 @@ ExecStartPre=-/usr/bin/docker rm -f koboko-backend
 ExecStart=/usr/bin/docker run --rm --name koboko-backend --network host --memory 600m \\
     --env-file $ETC/backend.env $IMAGE \\
     gunicorn config.wsgi:application --bind 127.0.0.1:$APP_PORT --workers $GUNICORN_WORKERS \\
-    --timeout 120 --access-logfile - --error-logfile -
+    --timeout 300 --access-logfile - --error-logfile -
 ExecStop=/usr/bin/docker stop koboko-backend
 
 [Install]
@@ -264,6 +264,17 @@ server {
     server_name $API_DOMAIN;
     server_tokens off;
     client_max_body_size 20M;
+
+    # Admin bulk photo uploads: up to 25 phone photos in one request.
+    location /admin/ {
+        client_max_body_size 200M;
+        proxy_pass http://127.0.0.1:$APP_PORT;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_read_timeout 300s;
+    }
 
     location / {
         proxy_pass http://127.0.0.1:$APP_PORT;

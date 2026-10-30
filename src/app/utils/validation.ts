@@ -75,11 +75,7 @@ export function sanitizeInput(input: string): string {
 /**
  * Validate string length
  */
-export function isValidLength(
-  str: string,
-  min: number,
-  max: number
-): boolean {
+export function isValidLength(str: string, min: number, max: number): boolean {
   const length = str.trim().length;
   return length >= min && length <= max;
 }
@@ -147,10 +143,7 @@ export function validateContactForm(data: {
 /**
  * Newsletter subscription validation
  */
-export function validateNewsletterForm(data: {
-  name: string;
-  email: string;
-}): ValidationErrors {
+export function validateNewsletterForm(data: { name: string; email: string }): ValidationErrors {
   const errors: ValidationErrors = {};
 
   if (!validateRequired(data.name)) {

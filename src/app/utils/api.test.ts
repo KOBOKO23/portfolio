@@ -71,7 +71,9 @@ describe('post()', () => {
   });
 
   it('returns validation errors on 400', async () => {
-    mockFetch.mockReturnValueOnce(mockError(400, { message: 'Invalid data', details: { email: ['Required'] } }));
+    mockFetch.mockReturnValueOnce(
+      mockError(400, { message: 'Invalid data', details: { email: ['Required'] } })
+    );
 
     const result = await post('/contact/', {});
     expect(result.success).toBe(false);
@@ -95,7 +97,7 @@ describe('getCached()', () => {
     mockFetch.mockReturnValue(mockOk({ success: true, data: [] }));
 
     await getCached('/projects/', {}, 1000); // 1 second cache
-    vi.advanceTimersByTime(1500);            // expire the cache
+    vi.advanceTimersByTime(1500); // expire the cache
     await getCached('/projects/', {}, 1000);
 
     expect(mockFetch).toHaveBeenCalledTimes(2);

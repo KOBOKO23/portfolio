@@ -12,7 +12,8 @@ plain HTTP CI environment:
 Everything else — CORS enforcement, real WSGI workers, error handling,
 middleware order, response headers — runs exactly as in production.
 """
-from .settings import *  # noqa: F401,F403
+
+from .settings import *  # noqa: F403
 
 # ── Core ──────────────────────────────────────────────────────────────────────
 DEBUG = False
@@ -43,8 +44,8 @@ CSRF_TRUSTED_ORIGINS = [
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # ── Logging — WARNING only; suppress the INFO noise from gunicorn workers ─────
-LOGGING["handlers"]["console"]["level"] = "WARNING"   # noqa: F405
-LOGGING["root"]["level"] = "WARNING"                  # noqa: F405
+LOGGING["handlers"]["console"]["level"] = "WARNING"  # noqa: F405
+LOGGING["root"]["level"] = "WARNING"  # noqa: F405
 
 # ── Deploy-check silences — suppress warnings that are intentionally disabled
 #    in CI (no TLS, throwaway key).  Any other warning still fails the build. ──

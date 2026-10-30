@@ -1,6 +1,7 @@
 """
 apps/fashion/serializers.py — Fashion photography categories and image gallery entries.
 """
+
 from rest_framework import serializers
 
 from utils.media import media_url
@@ -13,7 +14,7 @@ class FashionCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FashionCategory
-        fields = ['id', 'name', 'slug', 'image_count']
+        fields = ["id", "name", "slug", "image_count"]
 
     def get_image_count(self, obj):
         return obj.image_count
@@ -22,10 +23,25 @@ class FashionCategorySerializer(serializers.ModelSerializer):
 class FashionImageSerializer(serializers.ModelSerializer):
     category = FashionCategorySerializer(read_only=True)
     image = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = FashionImage
-        fields = ['id', 'title', 'image', 'category', 'description', 'location', 'photographer', 'date_taken']
+        fields = [
+            "id",
+            "title",
+            "image",
+            "thumbnail",
+            "category",
+            "description",
+            "location",
+            "photographer",
+            "date_taken",
+        ]
 
     def get_image(self, obj):
-        return media_url(self.context.get('request'), obj.image)
+        return media_url(self.context.get("request"), obj.image)
+
+    def get_thumbnail(self, obj):
+        # Images uploaded before thumbnails existed fall back to the full image.
+        return media_url(self.context.get("request"), obj.thumbnail or obj.image)

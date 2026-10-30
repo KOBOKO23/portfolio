@@ -11,23 +11,20 @@ export class LazyImageLoader {
 
   constructor(options?: IntersectionObserverInit) {
     if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
-      this.observer = new IntersectionObserver(
-        this.handleIntersection.bind(this),
-        {
-          rootMargin: '50px 0px',
-          threshold: 0.01,
-          ...options,
-        }
-      );
+      this.observer = new IntersectionObserver(this.handleIntersection.bind(this), {
+        rootMargin: '50px 0px',
+        threshold: 0.01,
+        ...options,
+      });
     }
   }
 
   private handleIntersection(entries: IntersectionObserverEntry[]) {
-    entries.forEach((entry) => {
+    entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target as HTMLImageElement;
         const src = img.dataset.src;
-        
+
         if (src) {
           img.src = src;
           img.removeAttribute('data-src');
@@ -95,7 +92,7 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
  */
 export function preloadImages(urls: string[]): Promise<void[]> {
   return Promise.all(
-    urls.map((url) => {
+    urls.map(url => {
       return new Promise<void>((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve();
@@ -123,10 +120,7 @@ export function getOptimalImageSize(
 /**
  * Measure component render performance
  */
-export function measurePerformance(
-  componentName: string,
-  callback: () => void
-): void {
+export function measurePerformance(componentName: string, callback: () => void): void {
   if (typeof window !== 'undefined' && 'performance' in window) {
     const startMark = `${componentName}-start`;
     const endMark = `${componentName}-end`;
@@ -140,7 +134,7 @@ export function measurePerformance(
       performance.measure(measureName, startMark, endMark);
       const measure = performance.getEntriesByName(measureName)[0];
       console.log(`${componentName} rendered in ${measure.duration.toFixed(2)}ms`);
-      
+
       // Clean up
       performance.clearMarks(startMark);
       performance.clearMarks(endMark);
@@ -158,10 +152,8 @@ export function measurePerformance(
  */
 export function isMobileDevice(): boolean {
   if (typeof window === 'undefined') return false;
-  
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
+
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 /**
@@ -173,14 +165,8 @@ export function getViewportDimensions() {
   }
 
   return {
-    width: Math.max(
-      document.documentElement.clientWidth || 0,
-      window.innerWidth || 0
-    ),
-    height: Math.max(
-      document.documentElement.clientHeight || 0,
-      window.innerHeight || 0
-    ),
+    width: Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0),
+    height: Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0),
   };
 }
 

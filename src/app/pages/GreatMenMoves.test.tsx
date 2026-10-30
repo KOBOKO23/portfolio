@@ -49,14 +49,12 @@ describe('GreatMenMoves page', () => {
   });
 
   it('renders impact goals returned by the API', async () => {
-    mockFetch
-      .mockResolvedValueOnce(ok({ success: true, data: [] }))
-      .mockResolvedValueOnce(ok({
+    mockFetch.mockResolvedValueOnce(ok({ success: true, data: [] })).mockResolvedValueOnce(
+      ok({
         success: true,
-        data: [
-          { id: 1, number: '500+', label: 'Men Mentored', progress: 85, icon: 'users' },
-        ],
-      }));
+        data: [{ id: 1, number: '500+', label: 'Men Mentored', progress: 85, icon: 'users' }],
+      })
+    );
 
     renderGMM();
     await waitFor(() => {
@@ -69,10 +67,12 @@ describe('GreatMenMoves page', () => {
     mockFetch
       .mockResolvedValueOnce(ok({ success: true, data: [] }))
       .mockResolvedValueOnce(ok({ success: true, data: [] }))
-      .mockResolvedValueOnce(ok({
-        success: true,
-        data: { message: 'Your volunteer application has been received.' },
-      }));
+      .mockResolvedValueOnce(
+        ok({
+          success: true,
+          data: { message: 'Your volunteer application has been received.' },
+        })
+      );
 
     const user = userEvent.setup();
     renderGMM();

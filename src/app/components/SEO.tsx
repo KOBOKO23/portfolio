@@ -17,9 +17,9 @@ interface SEOProps {
 }
 
 const SITE_NAME = 'Koboko';
-const BASE_URL = (import.meta.env.VITE_SITE_URL) || 'https://koboko.dev';
-const GITHUB_URL = (import.meta.env.VITE_GITHUB_URL) || 'https://github.com/KOBOKO23';
-const TWITTER_HANDLE = (import.meta.env.VITE_TWITTER_HANDLE) || '';
+const BASE_URL = import.meta.env.VITE_SITE_URL || 'https://koboko.dev';
+const GITHUB_URL = import.meta.env.VITE_GITHUB_URL || 'https://github.com/KOBOKO23';
+const TWITTER_HANDLE = import.meta.env.VITE_TWITTER_HANDLE || '';
 
 const DEFAULT_DESCRIPTION =
   'Kenyan meteorologist, backend developer, data scientist, gospel artist, and author. Building things that matter from Nairobi.';
@@ -52,21 +52,24 @@ export function SEO({
   article,
   noindex = false,
 }: SEOProps) {
-  const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Meteorologist · Developer · Author`;
+  const fullTitle = title
+    ? `${title} — ${SITE_NAME}`
+    : `${SITE_NAME} — Meteorologist · Developer · Author`;
   const desc = description ?? DEFAULT_DESCRIPTION;
   const img = image ?? DEFAULT_IMAGE;
   const canonicalUrl = url ? `${BASE_URL}${url}` : BASE_URL;
 
-  const breadcrumbLd = url && url !== '/'
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
-          { '@type': 'ListItem', position: 2, name: title ?? SITE_NAME, item: canonicalUrl },
-        ],
-      }
-    : null;
+  const breadcrumbLd =
+    url && url !== '/'
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+            { '@type': 'ListItem', position: 2, name: title ?? SITE_NAME, item: canonicalUrl },
+          ],
+        }
+      : null;
 
   const jsonLd =
     type === 'article'
@@ -91,25 +94,28 @@ export function SEO({
           isAccessibleForFree: true,
         }
       : type === 'profile'
-      ? {
-          '@context': 'https://schema.org',
-          '@type': 'ProfilePage',
-          url: canonicalUrl,
-          mainEntity: PERSON_LD,
-        }
-      : {
-          '@context': 'https://schema.org',
-          '@type': 'WebSite',
-          name: SITE_NAME,
-          url: BASE_URL,
-          description: DEFAULT_DESCRIPTION,
-          author: PERSON_LD,
-          potentialAction: {
-            '@type': 'SearchAction',
-            target: { '@type': 'EntryPoint', urlTemplate: `${BASE_URL}/blog?q={search_term_string}` },
-            'query-input': 'required name=search_term_string',
-          },
-        };
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            url: canonicalUrl,
+            mainEntity: PERSON_LD,
+          }
+        : {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: SITE_NAME,
+            url: BASE_URL,
+            description: DEFAULT_DESCRIPTION,
+            author: PERSON_LD,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: `${BASE_URL}/blog?q={search_term_string}`,
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          };
 
   return (
     <Helmet>
@@ -147,15 +153,13 @@ export function SEO({
       )}
       {article?.author && <meta property="article:author" content={article.author} />}
       {article?.section && <meta property="article:section" content={article.section} />}
-      {article?.tags?.map((tag) => (
+      {article?.tags?.map(tag => (
         <meta key={tag} property="article:tag" content={tag} />
       ))}
 
       {/* JSON-LD structured data */}
       <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      {breadcrumbLd && (
-        <script type="application/ld+json">{JSON.stringify(breadcrumbLd)}</script>
-      )}
+      {breadcrumbLd && <script type="application/ld+json">{JSON.stringify(breadcrumbLd)}</script>}
     </Helmet>
   );
 }

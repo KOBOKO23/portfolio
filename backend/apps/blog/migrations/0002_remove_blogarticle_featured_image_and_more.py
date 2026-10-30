@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("blog", "0001_initial"),
     ]
@@ -44,16 +43,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="blogarticle",
             name="tags",
-            field=models.JSONField(
-                blank=True, default=list, help_text='["tag1", "tag2"]'
-            ),
+            field=models.JSONField(blank=True, default=list, help_text='["tag1", "tag2"]'),
         ),
         migrations.AddField(
             model_name="blogarticle",
             name="thumbnail",
-            field=models.ImageField(
-                blank=True, null=True, upload_to="blog/thumbnails/"
-            ),
+            field=models.ImageField(blank=True, null=True, upload_to="blog/thumbnails/"),
         ),
         migrations.AddField(
             model_name="blogarticle",

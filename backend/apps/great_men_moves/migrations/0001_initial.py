@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -53,16 +52,12 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "number",
-                    models.CharField(
-                        help_text='Display value e.g. "500+" or "12"', max_length=20
-                    ),
+                    models.CharField(help_text='Display value e.g. "500+" or "12"', max_length=20),
                 ),
                 ("label", models.CharField(max_length=200)),
                 (
                     "progress",
-                    models.PositiveSmallIntegerField(
-                        default=0, help_text="0-100 percentage"
-                    ),
+                    models.PositiveSmallIntegerField(default=0, help_text="0-100 percentage"),
                 ),
                 ("icon", models.CharField(blank=True, max_length=50)),
                 ("order", models.PositiveIntegerField(default=0)),

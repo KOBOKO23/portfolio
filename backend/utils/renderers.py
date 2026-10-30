@@ -12,6 +12,7 @@ Failure (4xx / 5xx):
 
 Registered as the sole DEFAULT_RENDERER_CLASSES in settings.REST_FRAMEWORK.
 """
+
 from rest_framework.renderers import JSONRenderer
 
 
@@ -22,12 +23,12 @@ class StandardRenderer(JSONRenderer):
         if renderer_context is None:
             return super().render(data, accepted_media_type, renderer_context)
 
-        response = renderer_context.get('response')
+        response = renderer_context.get("response")
         status_code = response.status_code if response else 200
 
         if status_code >= 400:
             if isinstance(data, dict):
-                msg = data.get('detail') or data.get('message')
+                msg = data.get("detail") or data.get("message")
                 if not msg:
                     # DRF field-level validation errors — pull first readable message
                     for v in data.values():
@@ -39,19 +40,19 @@ class StandardRenderer(JSONRenderer):
             else:
                 msg = str(data)
             wrapped = {
-                'success': False,
-                'data': None,
-                'error': {
-                    'message': msg,
-                    'status': status_code,
-                    'details': data if isinstance(data, dict) else {},
+                "success": False,
+                "data": None,
+                "error": {
+                    "message": msg,
+                    "status": status_code,
+                    "details": data if isinstance(data, dict) else {},
                 },
             }
         else:
             wrapped = {
-                'success': True,
-                'data': data,
-                'error': None,
+                "success": True,
+                "data": data,
+                "error": None,
             }
 
         return super().render(wrapped, accepted_media_type, renderer_context)

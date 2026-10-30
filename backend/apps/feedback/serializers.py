@@ -1,6 +1,7 @@
 """
 apps/feedback/serializers.py — Full feedback (write) and public-safe feedback (read) representations.
 """
+
 from rest_framework import serializers
 
 from .models import Feedback
@@ -9,11 +10,11 @@ from .models import Feedback
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = ['id', 'rating', 'message', 'email', 'page_url', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = ["id", "rating", "message", "email", "page_url", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 class FeedbackPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = ['id', 'rating', 'message', 'created_at']
+        fields = ["id", "rating", "message", "created_at"]

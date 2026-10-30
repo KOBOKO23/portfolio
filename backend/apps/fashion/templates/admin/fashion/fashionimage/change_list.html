@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools-items %}
+  {{ block.super }}
+  {% if has_add_permission %}
+    <li>
+      <a href="{% url 'admin:fashion_fashionimage_bulk_upload' %}" class="btn btn-block btn-outline-primary btn-sm addlink">
+        Bulk upload photos
+      </a>
+    </li>
+  {% endif %}
+{% endblock %}

@@ -9,6 +9,8 @@ vi.mock('../components/SEO', () => ({ SEO: () => null }));
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
+// jsdom has no layout engine, so scrollIntoView is missing.
+Element.prototype.scrollIntoView = vi.fn();
 
 function ok(body: unknown) {
   return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) } as Response);
@@ -49,16 +51,20 @@ describe('Contact page', () => {
   });
 
   it('shows profile email when API returns one', async () => {
-    mockFetch.mockResolvedValueOnce(ok({
-      success: true,
-      data: {
-        full_name: 'Koboko Philip',
-        email: 'kobokophilip@gmail.com',
-        phone: '+254700000000',
-        location: 'Nairobi',
-        linkedin_url: '', github_url: '', twitter_url: '', instagram_url: '',
-      },
-    }));
+    mockFetch.mockResolvedValueOnce(
+      ok({
+        success: true,
+        data: {
+          full_name: 'Koboko Philip',
+          email: 'kobokophilip@gmail.com',
+          location: 'Nairobi',
+          linkedin_url: '',
+          github_url: '',
+          twitter_url: '',
+          instagram_url: '',
+        },
+      })
+    );
     renderContact();
     await waitFor(() => {
       expect(screen.getByText('kobokophilip@gmail.com')).toBeTruthy();
@@ -84,10 +90,20 @@ describe('Contact page', () => {
     });
   });
 
+  it('never shows a phone number, and offers a call back instead', async () => {
+    const user = userEvent.setup();
+    renderContact();
+
+    expect(screen.queryByText(/\+254/)).toBeNull();
+    await user.click(screen.getByRole('button', { name: /request a call back/i }));
+
+    expect(screen.getByRole<HTMLSelectElement>('combobox').value).toBe('callback');
+    expect(screen.getByLabelText(/your phone number/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /request call back/i })).toBeTruthy();
+  });
+
   it('shows error state on API failure', async () => {
-    mockFetch
-      .mockResolvedValueOnce(ok({ success: false }))
-      .mockResolvedValueOnce(fail(500));
+    mockFetch.mockResolvedValueOnce(ok({ success: false })).mockResolvedValueOnce(fail(500));
 
     const user = userEvent.setup();
     renderContact();

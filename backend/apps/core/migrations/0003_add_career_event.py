@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0002_add_skill_categories"),
     ]
@@ -35,9 +34,7 @@ class Migration(migrations.Migration):
                 ("is_current", models.BooleanField(default=False)),
                 (
                     "order",
-                    models.PositiveIntegerField(
-                        default=0, help_text="Lower = appears first"
-                    ),
+                    models.PositiveIntegerField(default=0, help_text="Lower = appears first"),
                 ),
             ],
             options={

@@ -16,6 +16,7 @@ reactivated (name updated if changed) and a 200 OK is returned instead of 201.
 A truly new email receives 201 Created.
 Duplicate active emails are rejected with 400 (unique constraint on EmailField).
 """
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -30,7 +31,7 @@ from .serializers import NewsletterIssueSerializer, NewsletterSubscribeSerialize
 
 
 class NewsletterRateThrottle(AnonRateThrottle):
-    scope = 'newsletter'
+    scope = "newsletter"
 
 
 class NewsletterSubscribeView(generics.CreateAPIView):
@@ -44,24 +45,24 @@ class NewsletterSubscribeView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
-        name = serializer.validated_data.get('name', '')
+        email = serializer.validated_data["email"]
+        name = serializer.validated_data.get("name", "")
 
         existing = NewsletterSubscriber.objects.filter(email=email, is_active=False).first()
         if existing:
             existing.is_active = True
             if name:
                 existing.name = name
-            existing.save(update_fields=['is_active', 'name'])
+            existing.save(update_fields=["is_active", "name"])
             # Unified success message — callers cannot distinguish new from resubscribed
             return Response(
-                {'message': 'Thank you for subscribing!'},
+                {"message": "Thank you for subscribing!"},
                 status=status.HTTP_200_OK,
             )
 
         serializer.save()
         return Response(
-            {'message': 'Thank you for subscribing!'},
+            {"message": "Thank you for subscribing!"},
             status=status.HTTP_201_CREATED,
         )
 
@@ -71,7 +72,7 @@ class NewsletterIssueListView(generics.ListAPIView):
     serializer_class = NewsletterIssueSerializer
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(csrf_exempt, name="dispatch")
 class NewsletterUnsubscribeView(View):
     """
     One-click unsubscribe, keyed by the per-subscriber unsubscribe_token.
@@ -88,20 +89,20 @@ class NewsletterUnsubscribeView(View):
         subscriber = get_object_or_404(NewsletterSubscriber, unsubscribe_token=token)
         if subscriber.is_active:
             subscriber.is_active = False
-            subscriber.save(update_fields=['is_active'])
+            subscriber.save(update_fields=["is_active"])
         return HttpResponse(
             '<!DOCTYPE html><html><head><meta charset="UTF-8">'
-            '<title>Unsubscribed</title></head>'
+            "<title>Unsubscribed</title></head>"
             '<body style="font-family:sans-serif;max-width:480px;margin:80px auto;text-align:center;">'
-            f'<h1>You’re unsubscribed</h1>'
-            f'<p>{subscriber.email} will no longer receive the newsletter.</p>'
-            '</body></html>',
-            content_type='text/html; charset=utf-8',
+            f"<h1>You’re unsubscribed</h1>"
+            f"<p>{subscriber.email} will no longer receive the newsletter.</p>"
+            "</body></html>",
+            content_type="text/html; charset=utf-8",
         )
 
     def post(self, request, token):
         subscriber = get_object_or_404(NewsletterSubscriber, unsubscribe_token=token)
         if subscriber.is_active:
             subscriber.is_active = False
-            subscriber.save(update_fields=['is_active'])
+            subscriber.save(update_fields=["is_active"])
         return HttpResponse(status=200)

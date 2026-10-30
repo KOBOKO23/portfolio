@@ -11,10 +11,10 @@ class NewsletterSubscriber(models.Model):
     unsubscribe_token = models.CharField(max_length=64, unique=True, blank=True)
 
     class Meta:
-        ordering = ['-subscribed_at']
+        ordering = ["-subscribed_at"]
 
     def __str__(self):
-        return f'{self.name} <{self.email}>'
+        return f"{self.name} <{self.email}>"
 
     def save(self, *args, **kwargs):
         if not self.unsubscribe_token:
@@ -28,13 +28,13 @@ class NewsletterIssue(models.Model):
     excerpt = models.TextField()
     content = models.TextField(blank=True)
     published_date = models.DateField()
-    topics = models.JSONField(default=list, help_text='List of topic strings')
+    topics = models.JSONField(default=list, help_text="List of topic strings")
 
     class Meta:
-        ordering = ['-number']
+        ordering = ["-number"]
 
     def __str__(self):
-        return f'#{self.number}: {self.title}'
+        return f"#{self.number}: {self.title}"
 
     @property
     def topics_list(self):

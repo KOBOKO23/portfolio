@@ -6,6 +6,7 @@ transactional mail (contact form, admin notifications). SPF/DKIM/DMARC are
 only configured for the newsletter's sending domain (koboko.co.ke), so
 transactional mail is deliberately left untouched.
 """
+
 import logging
 
 from django.conf import settings
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 
 def _unsubscribe_url(subscriber: NewsletterSubscriber) -> str:
-    path = reverse('newsletter-unsubscribe', args=[subscriber.unsubscribe_token])
-    return f'{settings.BACKEND_URL}{path}'
+    path = reverse("newsletter-unsubscribe", args=[subscriber.unsubscribe_token])
+    return f"{settings.BACKEND_URL}{path}"
 
 
 def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
@@ -31,9 +32,9 @@ def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
     sent = 0
     failed = 0
 
-    subject = f'📬 Issue #{issue.number}: {issue.title}'
+    subject = f"📬 Issue #{issue.number}: {issue.title}"
     from_email = settings.NEWSLETTER_FROM_EMAIL
-    connection = get_connection(backend='django_ses.SESBackend')
+    connection = get_connection(backend="django_ses.SESBackend")
 
     for subscriber in subscribers:
         unsubscribe_url = _unsubscribe_url(subscriber)
@@ -48,25 +49,25 @@ def send_newsletter_issue(issue: NewsletterIssue) -> tuple[int, int]:
                 connection=connection,
                 headers={
                     # RFC 2369 + RFC 8058 one-click unsubscribe.
-                    'List-Unsubscribe': f'<{unsubscribe_url}>',
-                    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                    "List-Unsubscribe": f"<{unsubscribe_url}>",
+                    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
                 },
             )
-            msg.attach_alternative(html_body, 'text/html')
+            msg.attach_alternative(html_body, "text/html")
             msg.send()
             sent += 1
         except Exception as exc:
-            logger.error('Failed to email %s: %s', subscriber.email, exc)
+            logger.error("Failed to email %s: %s", subscriber.email, exc)
             failed += 1
 
     return sent, failed
 
 
 def _build_text_body(issue: NewsletterIssue, unsubscribe_url: str) -> str:
-    topics = ', '.join(issue.topics_list) if issue.topics_list else ''
+    topics = ", ".join(issue.topics_list) if issue.topics_list else ""
     return f"""
 Issue #{issue.number} — {issue.title}
-{'Topics: ' + topics if topics else ''}
+{"Topics: " + topics if topics else ""}
 Published: {issue.published_date}
 
 {issue.excerpt}
@@ -80,16 +81,16 @@ Unsubscribe: {unsubscribe_url}
 
 
 def _build_html_body(issue: NewsletterIssue, unsubscribe_url: str) -> str:
-    topics_html = ''
+    topics_html = ""
     if issue.topics_list:
-        pills = ''.join(
+        pills = "".join(
             f'<span style="display:inline-block;padding:4px 12px;margin:0 4px 4px 0;'
             f'background:#f5f5f0;border:1px solid #e0e0d8;font-size:12px;">{t}</span>'
             for t in issue.topics_list
         )
         topics_html = f'<p style="margin:16px 0;">{pills}</p>'
 
-    content_html = issue.content.replace('\n', '<br>') if issue.content else ''
+    content_html = issue.content.replace("\n", "<br>") if issue.content else ""
 
     return f"""
 <!DOCTYPE html>
