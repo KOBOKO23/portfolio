@@ -513,7 +513,9 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "darkly",
-    "dark_mode_theme": "darkly",
+    # Jazzmin 3.0.5 dropped dark_mode_theme and otherwise follows the browser's
+    # light/dark setting, which put darkly's light text on a light page.
+    "default_theme_mode": "dark",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
