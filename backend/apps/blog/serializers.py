@@ -74,6 +74,7 @@ class BlogArticleDetailSerializer(BlogArticleListSerializer):
     user_liked = serializers.SerializerMethodField()
     user_reaction = serializers.SerializerMethodField()
     gallery = BlogImageSerializer(many=True, read_only=True, source="images")
+    share_image = serializers.SerializerMethodField()
 
     class Meta(BlogArticleListSerializer.Meta):
         fields = BlogArticleListSerializer.Meta.fields + [
@@ -87,7 +88,11 @@ class BlogArticleDetailSerializer(BlogArticleListSerializer):
             "user_reaction",
             "updated_at",
             "gallery",
+            "share_image",
         ]
+
+    def get_share_image(self, obj):
+        return media_url(self.context.get("request"), obj.share_image) or self.get_thumbnail(obj)
 
     def get_content_html(self, obj):
         return obj.get_content_html()
@@ -121,15 +126,26 @@ class BlogArticleDetailSerializer(BlogArticleListSerializer):
 class CommentReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogComment
-        fields = ["id", "author_name", "content", "likes", "created_at"]
+        fields = ["id", "author_name", "content", "is_author", "likes", "created_at"]
 
 
 class BlogCommentSerializer(serializers.ModelSerializer):
-    replies = CommentReplySerializer(many=True, read_only=True)
+    # The view prefetches only approved replies into `approved_replies`, so
+    # unmoderated replies never reach the public page.
+    replies = CommentReplySerializer(many=True, read_only=True, source="approved_replies")
 
     class Meta:
         model = BlogComment
-        fields = ["id", "author_name", "author_email", "content", "likes", "created_at", "replies"]
+        fields = [
+            "id",
+            "author_name",
+            "author_email",
+            "content",
+            "is_author",
+            "likes",
+            "created_at",
+            "replies",
+        ]
         extra_kwargs = {
             "author_email": {"write_only": True},
         }

@@ -37,6 +37,18 @@ PERSON_LD = {
 }
 
 
+# Open Graph locale per BlogArticle.language, so previews and search engines
+# label the article in the right language.
+OG_LOCALES = {
+    "en": "en_KE",
+    "sw": "sw_KE",
+    "fr": "fr_FR",
+    "pt": "pt_PT",
+    "ar": "ar_AR",
+    "zh": "zh_CN",
+}
+
+
 def _safe_json_ld(data: dict) -> str:
     """Serialize for embedding in <script type="application/ld+json">.
 
@@ -57,6 +69,8 @@ def _render_meta(
     json_ld,
     twitter_handle=TWITTER_HANDLE,
     extra_og_properties=None,
+    locale="en_KE",
+    lang="en",
 ):
     return render(
         request,
@@ -70,6 +84,8 @@ def _render_meta(
             "twitter_handle": twitter_handle,
             "extra_og_properties": extra_og_properties or [],
             "json_ld": _safe_json_ld(json_ld),
+            "locale": locale,
+            "lang": lang,
         },
     )
 
@@ -78,7 +94,12 @@ def blog_article_meta(request, slug):
     from apps.blog.models import BlogArticle
 
     article = get_object_or_404(BlogArticle, slug=slug, is_published=True)
-    image = media_url(request, article.thumbnail) or DEFAULT_IMAGE
+    article.ensure_share_image()
+    image = (
+        media_url(request, article.share_image)
+        or media_url(request, article.thumbnail)
+        or DEFAULT_IMAGE
+    )
     url = f"{FRONTEND_URL}/blog/{article.slug}"
 
     json_ld = {
@@ -96,7 +117,7 @@ def blog_article_meta(request, slug):
             "@type": "Organization",
             "logo": {"@type": "ImageObject", "url": f"{FRONTEND_URL}/logo.png"},
         },
-        "inLanguage": "en-KE",
+        "inLanguage": article.language,
         "isAccessibleForFree": True,
     }
     if article.tags:
@@ -112,6 +133,8 @@ def blog_article_meta(request, slug):
         url=url,
         og_type="article",
         json_ld=json_ld,
+        locale=OG_LOCALES.get(article.language, "en_KE"),
+        lang=article.language,
         extra_og_properties=[
             ("article:published_time", article.published_date.isoformat()),
             ("article:modified_time", article.updated_at.isoformat()),
