@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.urls import include, path
 
 from apps.core import views_meta
+from config.admin_auth import ThrottledPasswordResetView
 
 SITE_URL = getattr(settings, "SITE_URL", "https://koboko.dev")
 
@@ -133,7 +134,7 @@ urlpatterns = [
     # admin.site.urls, whose catch-all would otherwise 404 them.
     path(
         f"{_admin_url}password_reset/",
-        auth_views.PasswordResetView.as_view(),
+        ThrottledPasswordResetView.as_view(),
         name="admin_password_reset",
     ),
     path(

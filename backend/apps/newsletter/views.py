@@ -20,6 +20,7 @@ Duplicate active emails are rejected with 400 (unique constraint on EmailField).
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from django.utils.html import escape
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
@@ -95,7 +96,7 @@ class NewsletterUnsubscribeView(View):
             "<title>Unsubscribed</title></head>"
             '<body style="font-family:sans-serif;max-width:480px;margin:80px auto;text-align:center;">'
             f"<h1>You’re unsubscribed</h1>"
-            f"<p>{subscriber.email} will no longer receive the newsletter.</p>"
+            f"<p>{escape(subscriber.email)} will no longer receive the newsletter.</p>"
             "</body></html>",
             content_type="text/html; charset=utf-8",
         )

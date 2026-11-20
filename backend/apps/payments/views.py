@@ -10,7 +10,9 @@ POST mpesa/callback/        — Daraja server-to-server callback; updates PreOrd
 POST stripe/create-intent/  — create Stripe PaymentIntent; returns client_secret for frontend
 POST stripe/webhook/        — Stripe server-to-server event (payment_intent.succeeded/failed)
 GET  orders/<uuid>/         — poll PreOrder status (used by frontend after payment)
-PATCH orders/<uuid>/        — frontend confirms Stripe success (sets status=paid)
+PATCH orders/<uuid>/        — frontend confirms Stripe success (verified with Stripe)
+
+Prices come from the published Book, never from the request body.
 
 M-Pesa flow
 -----------
@@ -27,6 +29,7 @@ Stripe flow
 
 import logging
 import os
+from decimal import Decimal
 
 import stripe
 from rest_framework import status
@@ -34,9 +37,11 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from utils.request import client_ip
+
 from .daraja import stk_push
 from .models import PreOrder
-from .serializers import MpesaSTKPushSerializer, PreOrderSerializer, StripeIntentSerializer
+from .serializers import MpesaSTKPushSerializer, OrderStatusSerializer, StripeIntentSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +50,26 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
 
 class PaymentRateThrottle(AnonRateThrottle):
     scope = "payment"
+
+
+PAYMENT_FAILED = "Payment could not be started. Please try again in a moment."
+
+
+def _preorder_book():
+    """The book currently open for pre-order, or None.
+
+    Prices always come from here, never from the request: a browser can send
+    any amount it likes, and trusting it let anyone pre-order for KES 1.
+    """
+    from apps.books.models import Book
+
+    return Book.objects.filter(is_published=True).order_by("order", "-release_date").first()
+
+
+def _closed():
+    return Response(
+        {"detail": "Pre-orders are not open right now."}, status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 class MpesaSTKPushView(APIView):
@@ -57,14 +82,19 @@ class MpesaSTKPushView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
 
+        book = _preorder_book()
+        if book is None:
+            return _closed()
+
         data = serializer.validated_data
-        amount = data["amount"]
+        amount = int(book.price_kes)
         phone = data["phone"]
 
         order = PreOrder.objects.create(
             name=data["name"],
             email=data["email"],
             phone=phone,
+            product_name=f"{book.title} — Pre-Order",
             amount=amount,
             currency="KES",
             payment_method="mpesa",
@@ -101,10 +131,7 @@ class MpesaSTKPushView(APIView):
             logger.exception("Daraja STK Push failed: %s", exc)
             order.status = "failed"
             order.save(update_fields=["status"])
-            return Response(
-                {"detail": str(exc)},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
+            return Response({"detail": PAYMENT_FAILED}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 class MpesaCallbackView(APIView):
@@ -118,13 +145,8 @@ class MpesaCallbackView(APIView):
         if not raw:
             return True
         allowed = {ip.strip() for ip in raw.split(",") if ip.strip()}
-        x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        caller_ip = (
-            x_forwarded.split(",")[0].strip()
-            if x_forwarded
-            else request.META.get("REMOTE_ADDR", "")
-        )
-        return caller_ip in allowed
+        # Not X-Forwarded-For: its first entry is whatever the caller claims.
+        return client_ip(request) in allowed
 
     def post(self, request):
         if not self._verify_caller_ip(request):
@@ -160,10 +182,22 @@ class MpesaCallbackView(APIView):
 
             if result_code == 0:
                 items = stk_callback.get("CallbackMetadata", {}).get("Item", [])
-                receipt = next(
-                    (i["Value"] for i in items if i.get("Name") == "MpesaReceiptNumber"), ""
-                )
-                order.status = "paid"
+                values = {i.get("Name"): i.get("Value") for i in items if isinstance(i, dict)}
+                receipt = str(values.get("MpesaReceiptNumber", ""))[:100]
+                try:
+                    paid = Decimal(str(values.get("Amount")))
+                except Exception:
+                    paid = None
+                if paid is None or paid < order.amount:
+                    logger.warning(
+                        "Daraja callback for order %s paid %s, expected %s: marking failed",
+                        order.id,
+                        values.get("Amount"),
+                        order.amount,
+                    )
+                    order.status = "failed"
+                else:
+                    order.status = "paid"
                 order.mpesa_receipt_number = receipt
             else:
                 order.status = "failed"
@@ -185,21 +219,27 @@ class StripeCreateIntentView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
 
+        book = _preorder_book()
+        if book is None:
+            return _closed()
+
         data = serializer.validated_data
+        amount_cents = int((Decimal(book.price_usd) * 100).quantize(Decimal("1")))
 
         order = PreOrder.objects.create(
             name=data["name"],
             email=data["email"],
-            amount=data["amount"] / 100,  # store in base currency unit
-            currency=data["currency"].upper(),
+            product_name=f"{book.title} — Pre-Order",
+            amount=Decimal(amount_cents) / 100,
+            currency="USD",
             payment_method="card",
             status="processing",
         )
 
         try:
             intent = stripe.PaymentIntent.create(
-                amount=data["amount"],
-                currency=data["currency"],
+                amount=amount_cents,
+                currency="usd",
                 metadata={
                     "order_id": str(order.id),
                     "customer_name": data["name"],
@@ -222,10 +262,7 @@ class StripeCreateIntentView(APIView):
             logger.exception("Stripe error: %s", exc)
             order.status = "failed"
             order.save(update_fields=["status"])
-            return Response(
-                {"detail": str(exc)},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
+            return Response({"detail": PAYMENT_FAILED}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 class StripeWebhookView(APIView):
@@ -237,8 +274,8 @@ class StripeWebhookView(APIView):
 
         try:
             event = stripe.Webhook.construct_event(request.body, sig_header, webhook_secret)
-        except (ValueError, stripe.error.SignatureVerificationError) as exc:
-            return Response({"error": str(exc)}, status=400)
+        except (ValueError, stripe.error.SignatureVerificationError):
+            return Response({"error": "Invalid webhook signature"}, status=400)
 
         if event["type"] == "payment_intent.succeeded":
             intent = event["data"]["object"]
@@ -264,7 +301,7 @@ class OrderStatusView(APIView):
     def get(self, request, order_id):
         try:
             order = PreOrder.objects.get(id=order_id)
-            return Response(PreOrderSerializer(order).data)
+            return Response(OrderStatusSerializer(order).data)
         except PreOrder.DoesNotExist:
             return Response({"detail": "Order not found"}, status=404)
 
@@ -276,7 +313,7 @@ class OrderStatusView(APIView):
             return Response({"detail": "Order not found"}, status=404)
 
         if order.status != "processing":
-            return Response(PreOrderSerializer(order).data)
+            return Response(OrderStatusSerializer(order).data)
 
         if not order.stripe_payment_intent_id:
             return Response({"detail": "No payment intent on record"}, status=400)
@@ -290,6 +327,11 @@ class OrderStatusView(APIView):
                 status=status.HTTP_502_BAD_GATEWAY,
             )
 
+        expected_cents = int((order.amount * 100).quantize(Decimal("1")))
+        if intent.status == "succeeded" and intent.amount < expected_cents:
+            logger.warning("Stripe intent for order %s under-paid: %s", order.id, intent.amount)
+            return Response({"detail": "Payment amount does not match"}, status=400)
+
         if intent.status != "succeeded":
             return Response(
                 {"detail": f"Payment not confirmed (status: {intent.status})"},
@@ -299,4 +341,4 @@ class OrderStatusView(APIView):
         order.status = "paid"
         order.stripe_client_secret = ""
         order.save(update_fields=["status", "stripe_client_secret"])
-        return Response(PreOrderSerializer(order).data)
+        return Response(OrderStatusSerializer(order).data)
