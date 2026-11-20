@@ -1,0 +1,131 @@
+/*
+ * Admin overrides for Jazzmin's "darkly" theme.
+ *
+ * Several pop-up surfaces (navbar/user menus, select boxes, select2 and
+ * autocomplete lists, date pickers, related-object popups) render with a
+ * transparent background in dark mode, so the page shows through and the
+ * options are hard to read. Give every one of them a solid background.
+ */
+
+:root {
+  --cms-surface: #2b2b2b;
+  --cms-surface-hover: #3a3a3a;
+  --cms-border: #4a4a4a;
+  --cms-text: #f1f1f1;
+  --cms-accent: #f39c12; /* matches accent-warning */
+}
+
+/* Bootstrap dropdowns: navbar, user menu, actions, filters */
+.dropdown-menu,
+.navbar .dropdown-menu,
+.main-header .dropdown-menu {
+  background-color: var(--cms-surface) !important;
+  border: 1px solid var(--cms-border) !important;
+  color: var(--cms-text) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+.dropdown-menu .dropdown-item,
+.dropdown-menu a {
+  color: var(--cms-text) !important;
+  background-color: transparent;
+}
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus,
+.dropdown-menu a:hover {
+  background-color: var(--cms-surface-hover) !important;
+}
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+  background-color: var(--cms-accent) !important;
+  color: #1a1a1a !important;
+}
+.dropdown-divider { border-top-color: var(--cms-border) !important; }
+
+/* Native <select> boxes and their option lists */
+select,
+select.form-control,
+.custom-select {
+  background-color: var(--cms-surface) !important;
+  color: var(--cms-text) !important;
+  border-color: var(--cms-border) !important;
+  color-scheme: dark;
+}
+select option,
+select optgroup {
+  background-color: var(--cms-surface) !important;
+  color: var(--cms-text) !important;
+}
+select[multiple] option:checked {
+  background-color: var(--cms-accent) !important;
+  color: #1a1a1a !important;
+}
+
+/* select2 (autocomplete_fields, list filters) */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple,
+.select2-dropdown,
+.select2-container--default .select2-search--dropdown .select2-search__field,
+.select2-results,
+.select2-results__options {
+  background-color: var(--cms-surface) !important;
+  color: var(--cms-text) !important;
+  border-color: var(--cms-border) !important;
+}
+.select2-container--default .select2-selection__rendered,
+.select2-container--default .select2-results__option {
+  color: var(--cms-text) !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted {
+  background-color: var(--cms-accent) !important;
+  color: #1a1a1a !important;
+}
+.select2-container--default .select2-results__option[aria-selected="true"] {
+  background-color: var(--cms-surface-hover) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--cms-surface-hover) !important;
+  border-color: var(--cms-border) !important;
+  color: var(--cms-text) !important;
+}
+
+/* Django's filter_horizontal / date & time pickers / calendar */
+.selector select,
+.calendarbox,
+.clockbox,
+.calendar,
+.calendar table,
+.calendar td,
+.calendar caption,
+.module.calendarbox {
+  background-color: var(--cms-surface) !important;
+  color: var(--cms-text) !important;
+  border-color: var(--cms-border) !important;
+}
+.calendar td a,
+.clockbox a { color: var(--cms-text) !important; }
+.calendar td a:hover,
+.clockbox a:hover { background-color: var(--cms-accent) !important; color: #1a1a1a !important; }
+
+/* Related-object modals, popovers, tooltips */
+.modal-content,
+.popover,
+.popover-body {
+  background-color: var(--cms-surface) !important;
+  color: var(--cms-text) !important;
+  border-color: var(--cms-border) !important;
+}
+.tooltip-inner {
+  background-color: #111 !important;
+  color: var(--cms-text) !important;
+}
+
+/* Sticky actions bar and change-list filter sidebar */
+.actions,
+#changelist-filter,
+.card,
+.card-header {
+  background-color: var(--cms-surface);
+}
