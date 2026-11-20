@@ -1,14 +1,17 @@
 from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.db.models import Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import path
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.text import Truncator
 
 from utils.media import media_url
 
 from .models import BlogArticle, BlogCategory, BlogComment, BlogImage, BlogLike, BlogReaction
+from .notifications import notify_commenter_of_reply
 
 
 @admin.register(BlogCategory)
@@ -66,7 +69,7 @@ class BlogImageInline(admin.StackedInline):
 class CommentInline(admin.TabularInline):
     model = BlogComment
     extra = 0
-    fields = ["author_name", "content", "is_approved", "created_at"]
+    fields = ["author_name", "content", "is_approved", "is_author", "created_at"]
     readonly_fields = ["created_at"]
     show_change_link = True
 
@@ -209,24 +212,141 @@ class BlogArticleAdmin(admin.ModelAdmin):
         return JsonResponse({"url": media_url(request, image.image)})
 
 
+class BlogCommentAdminForm(forms.ModelForm):
+    owner_reply = forms.CharField(
+        label="Your reply",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5, "placeholder": "Write a reply as the author…"}),
+        help_text=(
+            "Posted on the article straight away with an Author badge, and the reader is "
+            "emailed a link to it. Replying also approves this comment."
+        ),
+    )
+
+    class Meta:
+        model = BlogComment
+        fields = [
+            "article",
+            "parent",
+            "author_name",
+            "author_email",
+            "content",
+            "is_approved",
+            "is_author",
+            "likes",
+        ]
+
+
 @admin.register(BlogComment)
 class BlogCommentAdmin(admin.ModelAdmin):
-    list_display = ["author_name", "article", "parent", "is_approved", "created_at"]
-    list_filter = ["is_approved", "article"]
+    form = BlogCommentAdminForm
+    list_display = [
+        "author_name",
+        "excerpt",
+        "article",
+        "is_approved",
+        "answered",
+        "created_at",
+    ]
+    list_display_links = ["author_name", "excerpt"]
+    list_filter = ["is_approved", "is_author", "article"]
     list_editable = ["is_approved"]
-    readonly_fields = ["ip_address", "created_at"]
+    readonly_fields = ["thread", "ip_address", "created_at"]
     search_fields = ["author_name", "author_email", "content"]
     actions = ["approve_comments", "reject_comments"]
+    fieldsets = (
+        ("Reply", {"fields": ("owner_reply", "thread")}),
+        (
+            "Comment",
+            {
+                "fields": (
+                    "article",
+                    "parent",
+                    "author_name",
+                    "author_email",
+                    "content",
+                    "is_approved",
+                    "is_author",
+                )
+            },
+        ),
+        ("Details", {"fields": ("likes", "ip_address", "created_at"), "classes": ("collapse",)}),
+    )
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("article", "parent")
+
+    @admin.display(description="Comment")
+    def excerpt(self, obj):
+        prefix = "↳ " if obj.parent_id else ""
+        return prefix + Truncator(obj.content).chars(80)
+
+    @admin.display(description="Answered", boolean=True)
+    def answered(self, obj):
+        if obj.is_author:
+            return None
+        top = obj.parent or obj
+        return top.replies.filter(is_author=True, created_at__gt=obj.created_at).exists()
+
+    @admin.display(description="Conversation so far")
+    def thread(self, obj):
+        if not obj.pk:
+            return "—"
+        top = obj.parent or obj
+        items = [top, *top.replies.order_by("created_at")]
+        return format_html(
+            '<div style="max-width:720px">{}</div>',
+            format_html_join(
+                "",
+                '<div style="margin:0 0 10px {};padding:10px 12px;border-left:3px solid {};'
+                'background:rgba(255,255,255,.04);border-radius:4px">'
+                "<strong>{}</strong>{} <span style='opacity:.6;font-size:11px'>{}</span>"
+                '<div style="margin-top:4px;white-space:pre-wrap">{}</div></div>',
+                (
+                    (
+                        "0" if c.pk == top.pk else "24px",
+                        "#f39c12" if c.is_author else ("#6c757d" if c.is_approved else "#dc3545"),
+                        c.author_name,
+                        " · Author"
+                        if c.is_author
+                        else ("" if c.is_approved else " · not approved"),
+                        c.created_at.strftime("%d %b %Y, %H:%M"),
+                        c.content,
+                    )
+                    for c in items
+                ),
+            ),
+        )
+
+    def save_model(self, request, obj, form, change):
+        reply_text = (form.cleaned_data.get("owner_reply") or "").strip()
+        if reply_text:
+            obj.is_approved = True
+        super().save_model(request, obj, form, change)
+        if not reply_text:
+            return
+        reply = BlogComment.objects.create(
+            article=obj.article,
+            parent=obj.parent or obj,  # threads are one level deep
+            author_name=obj.article.author or request.user.get_full_name() or "Author",
+            author_email=settings.ADMIN_EMAIL or request.user.email or "noreply@koboko.co.ke",
+            content=reply_text,
+            is_approved=True,
+            is_author=True,
+        )
+        # Email the person being answered (this comment's author), even if it is
+        # itself a reply further down the thread.
+        reply.parent = obj
+        notify_commenter_of_reply(reply)
+        self.message_user(request, f"Reply posted and {obj.author_name} has been emailed.")
+
+    @admin.action(description="Approve selected comments")
     def approve_comments(self, request, queryset):
         queryset.update(is_approved=True)
 
-    approve_comments.short_description = "Approve selected comments"
-
+    @admin.action(description="Reject selected comments")
     def reject_comments(self, request, queryset):
         queryset.update(is_approved=False)
-
-    reject_comments.short_description = "Reject selected comments"
 
 
 @admin.register(BlogLike)

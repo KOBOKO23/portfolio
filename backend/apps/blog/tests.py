@@ -306,3 +306,171 @@ class BlogShareAPITest(BlogAPITestBase):
     def test_invalid_platform_returns_400(self):
         resp = self.client.post(f"/api/blog/articles/{self.article.slug}/share/tiktok/")
         self.assertEqual(resp.status_code, 400)
+
+
+# ── Replies, author replies, notifications, share images ─────────────────────
+
+import io  # noqa: E402
+
+from django.conf import settings  # noqa: E402
+from django.contrib.auth import get_user_model  # noqa: E402
+from django.core import mail  # noqa: E402
+from django.core.files.uploadedfile import SimpleUploadedFile  # noqa: E402
+from django.test import override_settings  # noqa: E402
+from PIL import Image  # noqa: E402
+
+
+def _items(resp):
+    data = resp.json()["data"]
+    return data.get("results", data) if isinstance(data, dict) else data
+
+
+@override_settings(ADMIN_EMAIL="owner@example.com")
+class BlogReplyTest(BlogAPITestBase):
+    def setUp(self):
+        super().setUp()
+        self.top = BlogComment.objects.create(
+            article=self.article,
+            author_name="Alice",
+            author_email="alice@t.com",
+            content="Great piece.",
+            is_approved=True,
+        )
+        self.url = f"/api/blog/articles/{self.article.slug}/comments/"
+
+    def test_reply_is_attached_to_parent_and_owner_is_emailed(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "author_name": "Bob",
+                "author_email": "bob@t.com",
+                "content": "Agree",
+                "parent": self.top.pk,
+            },
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        reply = BlogComment.objects.get(author_name="Bob")
+        self.assertEqual(reply.parent_id, self.top.pk)
+        self.assertFalse(reply.is_approved)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["owner@example.com"])
+
+    def test_reply_to_a_reply_joins_the_same_thread(self):
+        r1 = BlogComment.objects.create(
+            article=self.article,
+            parent=self.top,
+            author_name="B",
+            author_email="b@t.com",
+            content="r1",
+            is_approved=True,
+        )
+        self.client.post(
+            self.url,
+            {"author_name": "C", "author_email": "c@t.com", "content": "r2", "parent": r1.pk},
+            format="json",
+        )
+        self.assertEqual(BlogComment.objects.get(author_name="C").parent_id, self.top.pk)
+
+    def test_unapproved_replies_are_hidden(self):
+        BlogComment.objects.create(
+            article=self.article,
+            parent=self.top,
+            author_name="Spam",
+            author_email="s@t.com",
+            content="buy now",
+            is_approved=False,
+        )
+        BlogComment.objects.create(
+            article=self.article,
+            parent=self.top,
+            author_name="Ok",
+            author_email="o@t.com",
+            content="fine",
+            is_approved=True,
+        )
+        replies = _items(self.client.get(self.url))[0]["replies"]
+        self.assertEqual([r["content"] for r in replies], ["fine"])
+
+    def test_public_cannot_post_as_author(self):
+        self.client.post(
+            self.url,
+            {"author_name": "Fake", "author_email": "f@t.com", "content": "hi", "is_author": True},
+            format="json",
+        )
+        self.assertFalse(BlogComment.objects.get(author_name="Fake").is_author)
+
+    def test_honeypot_stores_nothing(self):
+        resp = self.client.post(
+            self.url,
+            {"author_name": "Bot", "author_email": "b@t.com", "content": "x", "website": "spam.io"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertFalse(BlogComment.objects.filter(author_name="Bot").exists())
+
+
+@override_settings(ADMIN_EMAIL="owner@example.com")
+class BlogAdminReplyTest(BlogAPITestBase):
+    def test_admin_reply_posts_approved_author_reply_and_emails_reader(self):
+        comment = BlogComment.objects.create(
+            article=self.article,
+            author_name="Alice",
+            author_email="alice@t.com",
+            content="Question?",
+            is_approved=False,
+        )
+        admin_user = get_user_model().objects.create_superuser("boss", "boss@t.com", "pw-12345!")
+        self.client.force_login(admin_user)
+        url = f"/{settings.ADMIN_URL}blog/blogcomment/{comment.pk}/change/"
+        resp = self.client.post(
+            url,
+            {
+                "owner_reply": "Thanks Alice, here's the answer.",
+                "article": self.article.pk,
+                "parent": "",
+                "author_name": "Alice",
+                "author_email": "alice@t.com",
+                "content": "Question?",
+                "likes": 0,
+            },
+        )
+        self.assertEqual(resp.status_code, 302, resp.content[:2000])
+        comment.refresh_from_db()
+        self.assertTrue(comment.is_approved)
+        reply = comment.replies.get()
+        self.assertTrue(reply.is_author and reply.is_approved)
+        self.assertEqual(mail.outbox[-1].to, ["alice@t.com"])
+        self.assertIn(f"#comment-{comment.pk}", mail.outbox[-1].body)
+
+        public = _items(self.client.get(f"/api/blog/articles/{self.article.slug}/comments/"))
+        self.assertTrue(public[0]["replies"][0]["is_author"])
+
+
+def _png(size=(3000, 2000)):
+    buf = io.BytesIO()
+    Image.new("RGB", size, (200, 120, 40)).save(buf, "PNG")
+    return SimpleUploadedFile("photo.png", buf.getvalue(), content_type="image/png")
+
+
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class BlogShareImageTest(TestCase):
+    def test_thumbnail_upload_creates_1200x630_share_image(self):
+        article = make_article(thumbnail=_png())
+        with article.share_image.open("rb") as f:
+            self.assertEqual(Image.open(f).size, (1200, 630))
+        with article.thumbnail.open("rb") as f:
+            self.assertLessEqual(max(Image.open(f).size), 2000)
+
+    def test_meta_page_backfills_share_image_for_old_articles(self):
+        article = make_article(thumbnail=_png((800, 800)))
+        BlogArticle.objects.filter(pk=article.pk).update(share_image="")
+        html = self.client.get(f"/meta/blog/{article.slug}/").content.decode()
+        article.refresh_from_db()
+        self.assertTrue(article.share_image)
+        self.assertIn(article.share_image.name, html)

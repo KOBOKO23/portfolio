@@ -12,13 +12,13 @@ GET  articles/<slug>/comments/     — top-level approved comments with nested r
 POST articles/<slug>/comments/     — create a new comment (blocked if article.allow_comments=False)
 POST articles/<slug>/like/         — toggle like (X-Fingerprint header identifies the user)
 POST articles/<slug>/react/        — add/swap/remove emoji reaction (body: {"reaction": "fire"})
-POST articles/<slug>/share/<platform>/ — increment share counter for twitter|facebook|linkedin|whatsapp|copy_link
+POST articles/<slug>/share/<platform>/ — increment share counter (see BlogShareCount.PLATFORMS)
 
 Authentication: none — all endpoints are public.
 Rate limiting: inherits project-wide DRF throttle (200 req/hr anon).
 """
 
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, serializers, status
@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import BlogArticle, BlogCategory, BlogComment, BlogLike, BlogReaction, BlogShareCount
+from .notifications import notify_owner_new_comment
 from .serializers import (
     BlogArticleDetailSerializer,
     BlogArticleListSerializer,
@@ -86,19 +87,29 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         article = get_object_or_404(BlogArticle, slug=self.kwargs["slug"], is_published=True)
+        approved_replies = Prefetch(
+            "replies",
+            queryset=BlogComment.objects.filter(is_approved=True).order_by("created_at"),
+            to_attr="approved_replies",
+        )
         return BlogComment.objects.filter(
             article=article, is_approved=True, parent=None
-        ).prefetch_related("replies")
+        ).prefetch_related(approved_replies)
 
     def perform_create(self, serializer):
         article = get_object_or_404(BlogArticle, slug=self.kwargs["slug"], is_published=True)
         parent = serializer.validated_data.get("parent")
-        if parent is not None and parent.article_id != article.pk:
-            raise serializers.ValidationError(
-                {"parent": "Parent comment does not belong to this article."}
-            )
+        if parent is not None:
+            if parent.article_id != article.pk:
+                raise serializers.ValidationError(
+                    {"parent": "Parent comment does not belong to this article."}
+                )
+            # Threads are one level deep: a reply to a reply joins the same thread.
+            if parent.parent_id:
+                parent = parent.parent
         ip = _get_ip(self.request)
-        serializer.save(article=article, ip_address=ip)
+        comment = serializer.save(article=article, parent=parent, ip_address=ip)
+        notify_owner_new_comment(comment)
 
     def create(self, request, *args, **kwargs):
         article = get_object_or_404(BlogArticle, slug=kwargs["slug"], is_published=True)
@@ -107,7 +118,13 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
                 {"detail": "Comments are disabled for this article."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        return super().create(request, *args, **kwargs)
+        # Honeypot: the hidden "website" field is only ever filled in by bots.
+        # Pretend success so they don't retry, but store nothing.
+        if request.data.get("website"):
+            return Response({"pending_approval": True}, status=status.HTTP_201_CREATED)
+        response = super().create(request, *args, **kwargs)
+        response.data = {**response.data, "pending_approval": True}
+        return response
 
 
 class BlogLikeToggleView(APIView):

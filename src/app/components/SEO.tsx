@@ -14,7 +14,19 @@ interface SEOProps {
     section?: string;
   };
   noindex?: boolean;
+  /** BCP-47 language of the page content, e.g. "en", "sw", "ar". */
+  lang?: string;
 }
+
+// Open Graph locale for each article language the CMS offers.
+const OG_LOCALES: Record<string, string> = {
+  en: 'en_KE',
+  sw: 'sw_KE',
+  fr: 'fr_FR',
+  pt: 'pt_PT',
+  ar: 'ar_AR',
+  zh: 'zh_CN',
+};
 
 const SITE_NAME = 'Koboko';
 const BASE_URL = import.meta.env.VITE_SITE_URL || 'https://koboko.dev';
@@ -51,7 +63,9 @@ export function SEO({
   type = 'website',
   article,
   noindex = false,
+  lang = 'en',
 }: SEOProps) {
+  const ogLocale = OG_LOCALES[lang] ?? 'en_KE';
   const fullTitle = title
     ? `${title} — ${SITE_NAME}`
     : `${SITE_NAME} — Meteorologist · Developer · Author`;
@@ -90,7 +104,7 @@ export function SEO({
           },
           keywords: article?.tags?.join(', '),
           articleSection: article?.section,
-          inLanguage: 'en-KE',
+          inLanguage: lang,
           isAccessibleForFree: true,
         }
       : type === 'profile'
@@ -118,7 +132,7 @@ export function SEO({
           };
 
   return (
-    <Helmet>
+    <Helmet htmlAttributes={{ lang }}>
       <title>{fullTitle}</title>
       <meta name="description" content={desc} />
       <link rel="canonical" href={canonicalUrl} />
@@ -132,9 +146,10 @@ export function SEO({
       <meta property="og:image:width" content={OG_IMAGE_WIDTH} />
       <meta property="og:image:height" content={OG_IMAGE_HEIGHT} />
       <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:image:alt" content={fullTitle} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:type" content={type === 'profile' ? 'profile' : type} />
-      <meta property="og:locale" content="en_KE" />
+      <meta property="og:locale" content={ogLocale} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />

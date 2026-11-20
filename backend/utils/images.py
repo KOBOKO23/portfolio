@@ -33,6 +33,22 @@ def shrink_image(upload, max_px: int = 2000, quality: int = 82) -> ContentFile:
     return ContentFile(buf.getvalue(), name=f"{base}{ext}")
 
 
+def make_share_image(upload, size=(1200, 630), quality=80) -> ContentFile:
+    """Return a 1200x630 JPEG crop of ``upload`` for social link previews (Open Graph size)."""
+    upload.seek(0)
+    img = ImageOps.exif_transpose(Image.open(upload))
+    if img.mode in ("RGBA", "LA", "P"):
+        img = img.convert("RGBA")
+        bg = Image.new("RGB", img.size, (10, 10, 10))
+        bg.paste(img, mask=img.getchannel("A"))
+        img = bg
+    img = ImageOps.fit(img.convert("RGB"), size, Image.Resampling.LANCZOS, centering=(0.5, 0.4))
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=quality, optimize=True, progressive=True)
+    base = os.path.splitext(os.path.basename(getattr(upload, "name", "") or ""))[0][:80] or "share"
+    return ContentFile(buf.getvalue(), name=f"{base}-share.jpg")
+
+
 def is_new_upload(field_file) -> bool:
     """True when an ImageField holds a file chosen in this request, not one already stored."""
     return bool(field_file) and not getattr(field_file, "_committed", True)
