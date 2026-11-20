@@ -131,7 +131,7 @@ AWS_S3_REGION_NAME=$REGION
 AWS_STORAGE_BUCKET_NAME=koboko-portfolio-media-332ac5
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 DEFAULT_FROM_EMAIL=Koboko Newsletter <kobokophilip@gmail.com>
-ADMIN_EMAIL=kobokophilip@gmail.com
+ADMIN_EMAIL=info@koboko.co.ke
 DARAJA_ENV=sandbox
 EOF
     chmod 600 "$ETC/app.env"
