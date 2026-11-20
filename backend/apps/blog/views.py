@@ -15,7 +15,8 @@ POST articles/<slug>/react/        — add/swap/remove emoji reaction (body: {"r
 POST articles/<slug>/share/<platform>/ — increment share counter (see BlogShareCount.PLATFORMS)
 
 Authentication: none — all endpoints are public.
-Rate limiting: inherits project-wide DRF throttle (200 req/hr anon).
+Rate limiting: comment POSTs use the "comment" scope, likes/reactions/shares the
+"interaction" scope, everything else the project-wide anon throttle.
 """
 
 from django.db.models import F, Prefetch
@@ -23,7 +24,10 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, serializers, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
+
+from utils.request import client_ip
 
 from .models import BlogArticle, BlogCategory, BlogComment, BlogLike, BlogReaction, BlogShareCount
 from .notifications import notify_owner_new_comment
@@ -37,16 +41,28 @@ from .serializers import (
 
 
 def _get_fingerprint(request):
-    return (
-        request.META.get("HTTP_X_FINGERPRINT", "")
-        or request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-        or request.META.get("REMOTE_ADDR", "")
-    )
+    return request.META.get("HTTP_X_FINGERPRINT", "")[:64] or client_ip(request)
 
 
 def _get_ip(request):
-    x_forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    return x_forwarded.split(",")[0].strip() if x_forwarded else request.META.get("REMOTE_ADDR", "")
+    return client_ip(request)
+
+
+class CommentRateThrottle(AnonRateThrottle):
+    """Each comment emails the owner, so cap how fast one visitor can post."""
+
+    scope = "comment"
+
+    def allow_request(self, request, view):
+        if request.method != "POST":
+            return True
+        return super().allow_request(request, view)
+
+
+class InteractionRateThrottle(AnonRateThrottle):
+    """Likes, reactions and share counts: generous for people, a wall for scripts."""
+
+    scope = "interaction"
 
 
 class BlogCategoryListView(generics.ListAPIView):
@@ -80,6 +96,8 @@ class BlogArticleDetailView(generics.RetrieveAPIView):
 
 
 class BlogCommentListCreateView(generics.ListCreateAPIView):
+    throttle_classes = [CommentRateThrottle]
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return BlogCommentCreateSerializer
@@ -128,6 +146,8 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
 
 
 class BlogLikeToggleView(APIView):
+    throttle_classes = [InteractionRateThrottle]
+
     def post(self, request, slug):
         article = get_object_or_404(BlogArticle, slug=slug, is_published=True)
         fp = _get_fingerprint(request)
@@ -143,6 +163,8 @@ class BlogLikeToggleView(APIView):
 
 
 class BlogReactionToggleView(APIView):
+    throttle_classes = [InteractionRateThrottle]
+
     def post(self, request, slug):
         article = get_object_or_404(BlogArticle, slug=slug, is_published=True)
         fp = _get_fingerprint(request)
@@ -178,12 +200,14 @@ class BlogReactionToggleView(APIView):
 
 
 class BlogShareRecordView(APIView):
+    throttle_classes = [InteractionRateThrottle]
+
     def post(self, request, slug, platform):
         article = get_object_or_404(BlogArticle, slug=slug, is_published=True)
         valid_platforms = [p[0] for p in BlogShareCount.PLATFORMS]
         if platform not in valid_platforms:
             return Response({"detail": "Invalid platform."}, status=status.HTTP_400_BAD_REQUEST)
         sc, _ = BlogShareCount.objects.get_or_create(article=article, platform=platform)
-        sc.count += 1
-        sc.save()
+        BlogShareCount.objects.filter(pk=sc.pk).update(count=F("count") + 1)
+        sc.refresh_from_db(fields=["count"])
         return Response({"platform": platform, "count": sc.count})

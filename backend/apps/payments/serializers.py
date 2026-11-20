@@ -26,11 +26,21 @@ class PreOrderSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "status", "mpesa_receipt_number", "created_at"]
 
 
+class OrderStatusSerializer(serializers.ModelSerializer):
+    """Public order lookup: payment progress only, none of the buyer's details."""
+
+    class Meta:
+        model = PreOrder
+        fields = ["id", "product_name", "amount", "currency", "payment_method", "status"]
+        read_only_fields = fields
+
+
 class MpesaSTKPushSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
     email = serializers.EmailField()
     phone = serializers.CharField(max_length=20, help_text="254XXXXXXXXX — no +, no spaces")
-    amount = serializers.IntegerField(min_value=1)
+    # Accepted for backwards compatibility but ignored: the price comes from the Book.
+    amount = serializers.IntegerField(required=False)
 
     def validate_phone(self, value):
         value = value.strip().replace(" ", "").replace("+", "")
@@ -46,7 +56,6 @@ class MpesaSTKPushSerializer(serializers.Serializer):
 class StripeIntentSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
     email = serializers.EmailField()
-    amount = serializers.IntegerField(
-        min_value=1, help_text="Amount in smallest currency unit (cents/pence)"
-    )
-    currency = serializers.CharField(max_length=3, default="usd")
+    # Accepted for backwards compatibility but ignored: the price comes from the Book.
+    amount = serializers.IntegerField(required=False)
+    currency = serializers.CharField(max_length=3, required=False)
