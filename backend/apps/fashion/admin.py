@@ -7,7 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Max
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import path
+from django.urls import path, reverse
 from django.utils.html import format_html
 
 from .models import FashionCategory, FashionImage
@@ -30,7 +30,10 @@ class MultipleImageField(forms.ImageField):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(
-            "widget", MultipleImageInput(attrs={"accept": "image/jpeg,image/png,image/webp"})
+            "widget",
+            MultipleImageInput(
+                attrs={"accept": "image/jpeg,image/png,image/webp", "class": "form-control"}
+            ),
         )
         super().__init__(*args, **kwargs)
 
@@ -40,13 +43,21 @@ class MultipleImageField(forms.ImageField):
 
 
 class BulkUploadForm(forms.Form):
-    category = forms.ModelChoiceField(queryset=FashionCategory.objects.all())
+    category = forms.ModelChoiceField(
+        queryset=FashionCategory.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
     images = MultipleImageField(
         help_text=f"Up to {MAX_BULK_FILES} JPEG, PNG or WebP photos. "
         "They are resized to 2000 px and stripped of location data automatically."
     )
-    location = forms.CharField(max_length=200, required=False)
-    photographer = forms.CharField(max_length=200, required=False)
+    location = forms.CharField(
+        max_length=200, required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    photographer = forms.CharField(
+        max_length=200, required=False, widget=forms.TextInput(attrs={"class": "form-control"})
+    )
     date_taken = forms.DateField(required=False, widget=AdminDateWidget)
 
     def clean_images(self):
@@ -65,13 +76,37 @@ def title_from_filename(name: str) -> str:
 
 @admin.register(FashionImage)
 class FashionImageAdmin(admin.ModelAdmin):
-    list_display = ["preview", "title", "category", "location", "date_taken", "order"]
-    list_display_links = ["preview", "title"]
-    list_filter = ["category"]
-    list_editable = ["order"]
+    list_display = [
+        "preview",
+        "title",
+        "description",
+        "category",
+        "featured",
+        "location",
+        "order",
+    ]
+    list_display_links = ["preview"]
+    list_filter = ["category", "featured"]
+    # Titles and captions are editable right in the list, so a fresh batch from
+    # the bulk upload can be captioned in one pass and saved with one click.
+    list_editable = ["title", "description", "featured", "order"]
     search_fields = ["title", "description", "location"]
     readonly_fields = ["preview_large"]
     change_list_template = "admin/fashion/fashionimage/change_list.html"
+    fieldsets = (
+        (None, {"fields": ("image", "preview_large", "title", "description")}),
+        ("Credits", {"fields": ("category", "photographer", "location", "date_taken")}),
+        ("Placement", {"fields": ("featured", "order")}),
+    )
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        field = super().formfield_for_dbfield(db_field, request, **kwargs)
+        # Compact caption box in the list view; the full form keeps a big one.
+        if db_field.name == "description" and request.resolver_match.url_name.endswith(
+            "changelist"
+        ):
+            field.widget = forms.Textarea(attrs={"rows": 3, "cols": 48})
+        return field
 
     @admin.display(description="")
     def preview(self, obj):
@@ -79,7 +114,8 @@ class FashionImageAdmin(admin.ModelAdmin):
         if not thumb:
             return ""
         return format_html(
-            '<img src="{}" style="height:48px;width:48px;object-fit:cover">', thumb.url
+            '<img src="{}" style="height:72px;width:56px;object-fit:cover;border-radius:3px">',
+            thumb.url,
         )
 
     @admin.display(description="Current image")
@@ -87,6 +123,13 @@ class FashionImageAdmin(admin.ModelAdmin):
         if not obj.image:
             return "—"
         return format_html('<img src="{}" style="max-height:320px;max-width:100%">', obj.image.url)
+
+    def add_view(self, request, form_url="", extra_context=None):
+        extra_context = {
+            **(extra_context or {}),
+            "bulk_upload_url": reverse("admin:fashion_fashionimage_bulk_upload"),
+        }
+        return super().add_view(request, form_url, extra_context)
 
     def get_urls(self):
         urls = [
@@ -105,20 +148,27 @@ class FashionImageAdmin(admin.ModelAdmin):
         if request.method == "POST" and form.is_valid():
             data = form.cleaned_data
             next_order = (FashionImage.objects.aggregate(m=Max("order"))["m"] or 0) + 1
+            created = []
             for offset, upload in enumerate(data["images"]):
-                FashionImage.objects.create(
-                    title=title_from_filename(upload.name),
-                    image=upload,
-                    category=data["category"],
-                    location=data["location"],
-                    photographer=data["photographer"],
-                    date_taken=data["date_taken"],
-                    order=next_order + offset,
+                created.append(
+                    FashionImage.objects.create(
+                        title=title_from_filename(upload.name),
+                        image=upload,
+                        category=data["category"],
+                        location=data["location"],
+                        photographer=data["photographer"],
+                        date_taken=data["date_taken"],
+                        order=next_order + offset,
+                    )
                 )
             self.message_user(
-                request, f"Uploaded {len(data['images'])} photo(s) to {data['category']}."
+                request,
+                f"Uploaded {len(created)} photo(s). Add a title and description to each below, "
+                "then press Save at the bottom.",
             )
-            return redirect("admin:fashion_fashionimage_changelist")
+            # Show just this batch so it can be captioned in one pass.
+            ids = ",".join(str(img.pk) for img in created)
+            return redirect(f"{reverse('admin:fashion_fashionimage_changelist')}?id__in={ids}")
 
         context = {
             **self.admin_site.each_context(request),

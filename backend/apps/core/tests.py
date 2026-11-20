@@ -170,3 +170,24 @@ class CareerEventAPITest(TestCase):
         event = res.data[0]
         for field in ["id", "year", "title", "organization", "description", "is_current"]:
             self.assertIn(field, event)
+
+
+class FashionMetaTest(TestCase):
+    def test_lookbook_and_single_look_previews(self):
+        from apps.fashion.models import FashionImage
+
+        look = FashionImage.objects.create(
+            title="SUITS", image="fashion/suit.jpg", description="Maroon suit, white sneakers."
+        )
+        page = self.client.get("/meta/fashion/").content.decode()
+        self.assertIn("Fashion — Koboko Lookbook", page)
+        self.assertIn("fashion/suit.jpg", page)
+        self.assertNotIn("og:image:width", page)
+
+        one = self.client.get(f"/meta/fashion/?look={look.pk}").content.decode()
+        self.assertIn("Suits — Koboko Lookbook", one)
+        self.assertIn("Maroon suit, white sneakers.", one)
+        self.assertIn(f"/fashion?look={look.pk}", one)
+
+        bogus = self.client.get("/meta/fashion/?look=abc")
+        self.assertEqual(bogus.status_code, 200)

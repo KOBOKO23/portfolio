@@ -13,6 +13,7 @@ Endpoints (mounted at /meta/ in config/urls.py)
   GET  meta/blog/<slug>/       — BlogArticle
   GET  meta/projects/<slug>/   — Project
   GET  meta/book/              — the (single) Book record
+  GET  meta/fashion/           — the lookbook; ?look=<id> previews that one look
 """
 
 import json
@@ -71,6 +72,7 @@ def _render_meta(
     extra_og_properties=None,
     locale="en_KE",
     lang="en",
+    image_is_og_size=True,
 ):
     return render(
         request,
@@ -86,6 +88,8 @@ def _render_meta(
             "json_ld": _safe_json_ld(json_ld),
             "locale": locale,
             "lang": lang,
+            # Only claim 1200x630 when the image really is that size.
+            "image_is_og_size": image_is_og_size,
         },
     )
 
@@ -214,4 +218,51 @@ def book_meta(request):
         og_type="book",
         json_ld=json_ld,
         extra_og_properties=extra_og_properties,
+    )
+
+
+def fashion_meta(request):
+    from apps.fashion.models import FashionImage
+
+    looks = FashionImage.objects.select_related("category")
+    look = None
+    look_id = request.GET.get("look", "")
+    if look_id.isdigit():
+        look = looks.filter(pk=int(look_id)).first()
+    cover = look or looks.order_by("-featured", "order").first()
+    image = (cover and media_url(request, cover.image)) or DEFAULT_IMAGE
+
+    if look:
+        title = f"{look.title.title() if look.title.isupper() else look.title} — Koboko Lookbook"
+        description = look.description or "A look from Koboko's lookbook."
+        url = f"{FRONTEND_URL}/fashion?look={look.pk}"
+    else:
+        title = "Fashion — Koboko Lookbook"
+        description = (
+            "Men's style through the lens of intention, African heritage and refined craft. "
+            "Open to collaborations with fashion houses and brands worldwide."
+        )
+        url = f"{FRONTEND_URL}/fashion"
+
+    json_ld = {
+        "@context": "https://schema.org",
+        "@type": "ImageObject" if look else "ImageGallery",
+        "name": title,
+        "description": description,
+        "url": url,
+        "image": image,
+        "author": PERSON_LD,
+    }
+    if look and look.photographer:
+        json_ld["creditText"] = look.photographer
+
+    return _render_meta(
+        request,
+        title=title,
+        description=description[:300],
+        image=image,
+        url=url,
+        og_type="website",
+        json_ld=json_ld,
+        image_is_og_size=False,
     )

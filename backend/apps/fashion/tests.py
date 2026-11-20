@@ -252,3 +252,43 @@ class BulkUploadAdminTest(UploadProcessingTest):
         res = self.client.post(self.url, {"category": self.category.pk, "images": [bad]})
         self.assertEqual(res.status_code, 200)
         self.assertFalse(FashionImage.objects.exists())
+
+
+class FashionAdminWorkflowTest(UploadProcessingTest):
+    def setUp(self):
+        super().setUp()
+        from django.conf import settings
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_superuser("admin2", "b@example.com", "pw-12345!")
+        self.client.force_login(user)
+        self.base = f"/{settings.ADMIN_URL}fashion/fashionimage/"
+
+    def test_bulk_upload_without_category_shows_just_that_batch(self):
+        old = make_image(title="Old look")
+        res = self.client.post(
+            self.base + "bulk-upload/",
+            {"images": [jpeg_upload("a.jpg"), jpeg_upload("b.jpg")]},
+        )
+        self.assertEqual(res.status_code, 302)
+        self.assertIn("?id__in=", res["Location"])
+        page = self.client.get(res["Location"])
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page.context["cl"].result_count, 2)
+        self.assertNotIn(old, list(page.context["cl"].result_list))
+
+    def test_changelist_has_bulk_button_and_inline_caption_fields(self):
+        make_image()
+        res = self.client.get(self.base)
+        self.assertContains(res, "Bulk upload photos")
+        self.assertContains(res, 'name="form-0-description"')
+
+    def test_add_page_points_to_bulk_upload(self):
+        res = self.client.get(self.base + "add/")
+        self.assertContains(res, "Use bulk upload")
+
+    def test_api_exposes_featured(self):
+        make_image(featured=True)
+        item = self.client.get("/api/fashion/images/").json()["data"]
+        item = item[0] if isinstance(item, list) else item["results"][0]
+        self.assertTrue(item["featured"])

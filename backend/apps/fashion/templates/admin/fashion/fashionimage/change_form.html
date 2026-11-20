@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% block form_top %}
+  {% if add and bulk_upload_url %}
+    <div class="alert alert-info">
+      Uploading several photos? <a href="{{ bulk_upload_url }}" class="alert-link">Use bulk upload</a>
+      to add up to 25 at once, then caption them all on one page.
+    </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

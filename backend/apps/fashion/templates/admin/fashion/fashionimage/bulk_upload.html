@@ -15,8 +15,11 @@
 {% block content %}
 <div class="card">
   <div class="card-body">
-    <p>Select up to {{ max_files }} photos and the category they belong to. Each photo becomes its own
-      gallery entry, titled from its file name. You can edit titles, descriptions and order afterwards.</p>
+    <p>Select up to {{ max_files }} photos at once: in the file picker hold <kbd>Ctrl</kbd> (Windows) or
+      <kbd>⌘</kbd> (Mac) to pick several, or drag them from a folder onto the Images field.
+      Each photo becomes its own look, titled from its file name.</p>
+    <p class="text-muted">Next you'll see just this batch, where you can type each look's title and
+      description on one page and save them all together.</p>
     <form method="post" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
       {{ form.non_field_errors }}
