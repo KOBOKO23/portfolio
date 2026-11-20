@@ -12,6 +12,13 @@ BlogLike          — one like per (article, fingerprint); toggled via API
 BlogReaction      — one emoji reaction per (article, fingerprint); 5 types; swap-or-remove
 BlogShareCount    — per-platform share counter; incremented client-side on share action
 
+Share image
+-----------
+Every thumbnail also gets a 1200x630 JPEG (``share_image``) for link previews:
+WhatsApp, LinkedIn and others drop preview images that are too large, and
+phone photos often are. Generated on upload, or lazily for older articles the
+first time a link-unfurler asks for the article (see ensure_share_image).
+
 Fingerprint
 -----------
 A UUID stored in the browser's localStorage (key "_fp") and sent as the
@@ -26,6 +33,8 @@ import markdown
 from django.db import models
 from django.db.models import Count
 from django.utils.text import slugify
+
+from utils.images import is_new_upload, make_share_image, shrink_image
 
 ALLOWED_TAGS = [
     "p",
@@ -151,6 +160,7 @@ class BlogArticle(models.Model):
     )
     thumbnail = models.ImageField(upload_to="blog/thumbnails/", blank=True, null=True)
     thumbnail_alt = models.CharField(max_length=200, blank=True)
+    share_image = models.ImageField(upload_to="blog/share/", blank=True, editable=False)
     category = models.ForeignKey(
         BlogCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="articles"
     )
@@ -194,7 +204,23 @@ class BlogArticle(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if is_new_upload(self.thumbnail):
+            original = self.thumbnail.file
+            self.share_image = make_share_image(original)
+            self.thumbnail = shrink_image(original, max_px=2000)
         super().save(*args, **kwargs)
+
+    def ensure_share_image(self):
+        """Create the link-preview image for an article uploaded before share images existed."""
+        if self.share_image or not self.thumbnail:
+            return
+        try:
+            with self.thumbnail.open("rb") as f:
+                content = make_share_image(f)
+            self.share_image.save(content.name, content, save=False)  # uploads the file
+        except Exception:  # unreadable/missing file: previews fall back to the thumbnail
+            return
+        BlogArticle.objects.filter(pk=self.pk).update(share_image=self.share_image.name)
 
 
 class BlogImage(models.Model):
@@ -226,6 +252,9 @@ class BlogComment(models.Model):
     author_email = models.EmailField()
     content = models.TextField()
     is_approved = models.BooleanField(default=False)
+    is_author = models.BooleanField(
+        default=False, help_text="Written by the site owner; shown with an Author badge."
+    )
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     likes = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -271,6 +300,9 @@ class BlogShareCount(models.Model):
         ("facebook", "Facebook"),
         ("linkedin", "LinkedIn"),
         ("whatsapp", "WhatsApp"),
+        ("telegram", "Telegram"),
+        ("email", "Email"),
+        ("native", "Device share sheet"),
         ("copy_link", "Copy Link"),
     ]
     article = models.ForeignKey(BlogArticle, on_delete=models.CASCADE, related_name="share_counts")

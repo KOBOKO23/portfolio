@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -210,8 +210,11 @@ export function Blog() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  // ?q= pre-fills the search (tag links on articles, Google sitelinks search).
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') ?? '';
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [isFallback, setIsFallback] = useState(false);
