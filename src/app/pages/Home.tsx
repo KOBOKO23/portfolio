@@ -65,21 +65,18 @@ const PILLARS = [
     label: 'Meteorology',
     sub: 'Kenya Met Department',
     href: '/about',
-    color: '#0ea5e9',
   },
   {
     icon: Code,
     label: 'Software',
     sub: 'Django · React · APIs',
     href: '/projects',
-    color: '#d4a574',
   },
   {
     icon: Users,
     label: 'Great Men Moves',
     sub: DEFAULT_GMM_STAT,
     href: '/great-men-moves',
-    color: '#10b981',
     dynamic: true,
   },
   {
@@ -87,10 +84,9 @@ const PILLARS = [
     label: 'The Jar You Left Behind',
     sub: 'Book — coming soon',
     href: '/book',
-    color: '#8b5cf6',
   },
-  { icon: Music, label: 'Gospel Music', sub: 'Worship ministry', href: '/music', color: '#ec4899' },
-  { icon: Shirt, label: 'Fashion', sub: 'Intentional style', href: '/fashion', color: '#f59e0b' },
+  { icon: Music, label: 'Gospel Music', sub: 'Worship ministry', href: '/music' },
+  { icon: Shirt, label: 'Fashion', sub: 'Intentional style', href: '/fashion' },
 ];
 
 export function Home() {
@@ -259,63 +255,65 @@ export function Home() {
         </motion.div>
       </section>
 
-      {/* ── Pillars / Disciplines ─────────────────────────────────────────── */}
-      <section className="py-28 px-6 lg:px-16 bg-white border-b border-black/6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div {...fadeUp} className="mb-12">
-            <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
-            <h2 className="text-xs uppercase tracking-[0.3em] text-black/40">
-              Six Disciplines, One Calling
+      {/* ── Disciplines ─────────────────────────────────────────────────── */}
+      <section className="py-28 lg:py-40 px-6 lg:px-16 bg-white">
+        <div className="max-w-[1320px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-20">
+          <motion.div {...fadeUp} className="lg:col-span-4 lg:sticky lg:top-32 self-start">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-[#b8875a] mb-6">
+              Disciplines
+            </p>
+            <h2 className="font-serif text-[clamp(2.5rem,4.5vw,4rem)] leading-[1.02] tracking-tight text-black mb-8">
+              Six disciplines.
+              <br />
+              <span className="italic text-black/55">One calling.</span>
             </h2>
+            <p className="text-[15px] text-black/55 leading-[1.8] max-w-sm">
+              Science, technology, mentorship, writing, worship and style — different rooms, the
+              same intent: to build things that outlast me.
+            </p>
           </motion.div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+
+          <ul className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 border-t border-black/10">
             {PILLARS.map((p, i) => (
-              <motion.div
+              <motion.li
                 key={p.label}
-                initial={{ opacity: 0, y: 16, boxShadow: `0 0 0 0 ${p.color}00` }}
+                initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.6 }}
-                whileHover={{
-                  y: -6,
-                  boxShadow: `0 16px 32px -8px ${p.color}55`,
-                  transition: { duration: 0.4 },
-                }}
-                className="rounded-2xl"
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ delay: (i % 2) * 0.08, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className={`border-b border-black/10 ${i % 2 === 0 ? 'sm:border-r' : ''}`}
               >
                 <Link
                   to={p.href}
-                  className="group relative flex flex-col items-center text-center p-7 rounded-2xl bg-black overflow-hidden h-full border border-white/5"
+                  className="group relative flex h-full flex-col gap-5 py-7 sm:gap-10 sm:p-8 lg:p-10 transition-colors duration-500 hover:bg-[#faf8f4]"
                 >
-                  {/* live color fill — sweeps in from the center on hover */}
-                  <div
-                    className="absolute inset-0 scale-0 group-hover:scale-100 transition-transform duration-500 ease-out rounded-2xl"
-                    style={{
-                      background: `radial-gradient(circle at 50% 30%, ${p.color}35 0%, transparent 70%)`,
-                    }}
-                  />
-                  {/* constant top accent so each card pops even before hover */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[3px]"
-                    style={{ background: p.color }}
-                  />
-
-                  <div
-                    className="relative w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110"
-                    style={{ background: p.color, boxShadow: `0 8px 24px -6px ${p.color}80` }}
-                  >
-                    <p.icon className="w-6 h-6 text-white" strokeWidth={2} />
+                  {/* gold rule that draws across the top on hover */}
+                  <span className="absolute left-0 top-[-1px] h-px w-0 bg-[#d4a574] transition-all duration-700 ease-out group-hover:w-full" />
+                  <div className="flex items-start justify-between">
+                    <span className="text-[11px] tracking-[0.3em] text-black/35">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <p.icon
+                      className="w-5 h-5 text-black/25 transition-colors duration-500 group-hover:text-[#b8875a]"
+                      strokeWidth={1.25}
+                    />
                   </div>
-                  <span className="relative font-semibold text-sm text-white mb-1.5">
-                    {p.label}
-                  </span>
-                  <span className="relative text-[11px] text-white/45 group-hover:text-white/70 transition-colors duration-500">
-                    {p.dynamic ? gmmStat : p.sub}
-                  </span>
+                  <div className="mt-auto">
+                    <h3 className="font-serif text-[1.65rem] leading-tight text-black mb-2">
+                      {p.label}
+                    </h3>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm text-black/50">{p.dynamic ? gmmStat : p.sub}</span>
+                      <ArrowRight
+                        className="w-4 h-4 flex-shrink-0 text-black/40 sm:-translate-x-2 sm:opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-black"
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                  </div>
                 </Link>
-              </motion.div>
+              </motion.li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
