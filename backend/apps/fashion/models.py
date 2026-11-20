@@ -26,18 +26,27 @@ class FashionCategory(models.Model):
 
 
 class FashionImage(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, help_text="Shown as the look's name on the site.")
     image = models.ImageField(upload_to="fashion/")
     # Generated from ``image`` on upload; the gallery grid loads this instead.
     thumbnail = models.ImageField(upload_to="fashion/thumbs/", blank=True, editable=False)
     category = models.ForeignKey(
         FashionCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="images"
     )
-    description = models.TextField(blank=True)
+    description = models.TextField(
+        blank=True,
+        help_text="The story behind the look. Shown in full beside featured looks, under the "
+        "photo in the gallery, and in the full-screen viewer.",
+    )
     location = models.CharField(max_length=200, blank=True)
-    photographer = models.CharField(max_length=200, blank=True)
+    photographer = models.CharField(max_length=200, blank=True, help_text="Credited on the site.")
     date_taken = models.DateField(blank=True, null=True)
-    order = models.PositiveIntegerField(default=0)
+    featured = models.BooleanField(
+        default=False,
+        help_text="Featured looks lead the Fashion page as large editorial spreads. The first "
+        "featured look (by order) is the cover photo.",
+    )
+    order = models.PositiveIntegerField(default=0, help_text="Lower numbers come first.")
 
     class Meta:
         ordering = ["order", "-date_taken"]

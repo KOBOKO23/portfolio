@@ -158,6 +158,7 @@ urlpatterns = [
     path("meta/blog/<slug:slug>/", views_meta.blog_article_meta),
     path("meta/projects/<slug:slug>/", views_meta.project_meta),
     path("meta/book/", views_meta.book_meta),
+    path("meta/fashion/", views_meta.fashion_meta),
     path("api/blog/", include("apps.blog.urls")),
     path("api/projects/", include("apps.projects.urls")),
     path("api/fashion/", include("apps.fashion.urls")),

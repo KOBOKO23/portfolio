@@ -2,10 +2,8 @@
 {% block object-tools-items %}
   {{ block.super }}
   {% if has_add_permission %}
-    <li>
-      <a href="{% url 'admin:fashion_fashionimage_bulk_upload' %}" class="btn btn-block btn-outline-primary btn-sm addlink">
-        Bulk upload photos
-      </a>
-    </li>
+    <a href="{% url 'admin:fashion_fashionimage_bulk_upload' %}" class="btn btn-warning float-end me-2">
+      <i class="fas fa-images"></i> &nbsp; Bulk upload photos
+    </a>
   {% endif %}
 {% endblock %}
