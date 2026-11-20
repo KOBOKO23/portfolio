@@ -92,7 +92,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   deploy-frontend:
     name: Deploy Frontend → Vercel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
 
     defaults:
