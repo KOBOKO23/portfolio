@@ -6,8 +6,8 @@
 // crawlers — only ever sees the generic static tags in index.html, never the
 // real per-page title/description/image.
 //
-// For the three content routes that matter most for sharing (article, project,
-// and the book page), known bot User-Agents are transparently proxied to a
+// For the content routes that matter most for sharing (article, project, the
+// book page and the fashion lookbook), known bot User-Agents are transparently proxied to a
 // small Django-rendered HTML endpoint with correct OG/Twitter/JSON-LD tags
 // (see backend/apps/core/views_meta.py). Everyone else — i.e. every real
 // visitor — gets the exact same SPA as before; this file changes nothing for
@@ -20,7 +20,7 @@
 export const config = {
   // Broad path match; exact shape is validated inside the function so this
   // doesn't depend on how the Vercel matcher handles dynamic segments.
-  matcher: ['/blog/:path*', '/projects/:path*', '/book'],
+  matcher: ['/blog/:path*', '/projects/:path*', '/book', '/fashion'],
 };
 
 const BOT_UA_PATTERN =
@@ -31,7 +31,7 @@ const BACKEND_ORIGIN = 'https://api.koboko.co.ke';
 const BLOG_SLUG_PATTERN = /^\/blog\/([^/]+)\/?$/;
 const PROJECT_SLUG_PATTERN = /^\/projects\/([^/]+)\/?$/;
 
-function resolveMetaPath(pathname: string): string | null {
+function resolveMetaPath(pathname: string, search: string): string | null {
   const blogMatch = BLOG_SLUG_PATTERN.exec(pathname);
   if (blogMatch) return `/meta/blog/${blogMatch[1]}/`;
 
@@ -40,6 +40,12 @@ function resolveMetaPath(pathname: string): string | null {
 
   if (pathname === '/book' || pathname === '/book/') return '/meta/book/';
 
+  // The lookbook, or one look when shared as /fashion?look=<id>.
+  if (pathname === '/fashion' || pathname === '/fashion/') {
+    const look = new URLSearchParams(search).get('look');
+    return look && /^\d+$/.test(look) ? `/meta/fashion/?look=${look}` : '/meta/fashion/';
+  }
+
   return null;
 }
 
@@ -47,8 +53,8 @@ export default async function middleware(request: Request): Promise<Response | u
   const userAgent = request.headers.get('user-agent') ?? '';
   if (!BOT_UA_PATTERN.test(userAgent)) return undefined;
 
-  const { pathname } = new URL(request.url);
-  const metaPath = resolveMetaPath(pathname);
+  const { pathname, search } = new URL(request.url);
+  const metaPath = resolveMetaPath(pathname, search);
   if (!metaPath) return undefined;
 
   try {

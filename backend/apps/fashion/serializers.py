@@ -37,6 +37,7 @@ class FashionImageSerializer(serializers.ModelSerializer):
             "location",
             "photographer",
             "date_taken",
+            "featured",
         ]
 
     def get_image(self, obj):
