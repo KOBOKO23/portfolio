@@ -191,3 +191,33 @@ class FashionMetaTest(TestCase):
 
         bogus = self.client.get("/meta/fashion/?look=abc")
         self.assertEqual(bogus.status_code, 200)
+
+
+class ProfileHeroImageTest(TestCase):
+    def test_hero_upload_is_resized_and_exposed(self):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from PIL import Image
+
+        buf = io.BytesIO()
+        Image.new("RGB", (4000, 3000), (120, 30, 50)).save(buf, "JPEG")
+        storages = {
+            "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        }
+        with override_settings(STORAGES=storages):
+            Profile.objects.create(
+                full_name="P",
+                tagline="t",
+                bio="b",
+                hero_image=SimpleUploadedFile("cover.jpg", buf.getvalue()),
+                hero_image_alt="Philip in a maroon suit",
+            )
+            profile = Profile.objects.get()
+            with profile.hero_image.open("rb") as f:
+                self.assertEqual(max(Image.open(f).size), 2400)
+            data = APIClient().get("/api/profile/").json()["data"]
+        self.assertIn("profile/hero/", data["hero_image"])
+        self.assertEqual(data["hero_image_alt"], "Philip in a maroon suit")
