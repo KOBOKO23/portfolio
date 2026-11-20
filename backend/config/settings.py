@@ -10,7 +10,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key-change-in-production")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+# Fail safe: debug mode only when explicitly asked for (local .env sets DEBUG=True).
+# If production config ever goes missing, the site must not start in debug mode.
+DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # ─── Security ─────────────────────────────────────────────────────────────────
@@ -66,6 +68,7 @@ if not DEBUG and SECRET_KEY.startswith("django-insecure"):
 INSTALLED_APPS = [
     # Jazzmin must come BEFORE django.contrib.admin
     "jazzmin",
+    "axes",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -101,7 +104,23 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Last, per django-axes docs: turns locked-out login attempts into a 429 page.
+    "axes.middleware.AxesMiddleware",
 ]
+
+# ─── Admin login brute-force protection (django-axes) ────────────────────────
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",  # must be first
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = 5  # wrong passwords before a lockout
+AXES_COOLOFF_TIME = 1  # hours
+AXES_RESET_ON_SUCCESS = True
+# Lock the attacking address, not the username: locking by username alone would
+# let anyone lock the owner out just by typing their username wrong 5 times.
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]
+AXES_CLIENT_IP_CALLABLE = "utils.request.client_ip"
+AXES_LOCKOUT_TEMPLATE = None
 
 ROOT_URLCONF = "config.urls"
 
@@ -252,8 +271,31 @@ MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", str(BASE_DIR / "media")))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ─── REST Framework ───────────────────────────────────────────────────────────
+# ─── Cache ────────────────────────────────────────────────────────────────────
+# Rate limits keep their counters in the cache. Django's default in-memory
+# cache is per process, so with several gunicorn workers every limit was
+# effectively multiplied by the worker count. A file cache is shared by all
+# workers in the container.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        # The Docker image sets CACHE_DIR to a folder only the app user can write.
+        "LOCATION": os.getenv("CACHE_DIR", str(BASE_DIR / ".cache")),
+        "OPTIONS": {"MAX_ENTRIES": 20000},
+    }
+}
+# The test suite makes many requests from one "client"; a real cache would
+# trip rate limits across unrelated tests. Tests that check limits enable a
+# cache explicitly with override_settings.
+if sys.argv[1:2] == ["test"]:
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+    # One trusted proxy (nginx) appends the real client address as the LAST
+    # X-Forwarded-For entry; earlier entries come from the client and can be
+    # forged to dodge rate limits.
+    "NUM_PROXIES": 1,
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
@@ -274,6 +316,9 @@ REST_FRAMEWORK = {
         "feedback": "10/hour",
         "book_testimonial": "10/hour",
         "payment": "10/hour",  # tighter: prevent STK push harassment / Stripe abuse
+        "comment": "10/hour",  # each comment emails the owner
+        "volunteer": "5/hour",  # each application emails the owner
+        "interaction": "120/hour",  # likes, reactions, share counts
     },
 }
 

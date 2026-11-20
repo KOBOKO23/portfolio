@@ -15,9 +15,23 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 
+from apps.books.models import Book
+
 from .models import PreOrder
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def make_book(**kwargs) -> Book:
+    defaults = {
+        "title": "The Jar You Left Behind",
+        "description": "A story of redemption.",
+        "price_kes": 1500,
+        "price_usd": "9.99",
+        "is_published": True,
+    }
+    defaults.update(kwargs)
+    return Book.objects.create(**defaults)
 
 
 def make_order(**kwargs) -> PreOrder:
@@ -89,7 +103,7 @@ class OrderStatusAPITest(TestCase):
     @patch("apps.payments.views.stripe.PaymentIntent.retrieve")
     def test_patch_confirms_stripe_payment(self, mock_retrieve):
         """PATCH should succeed when Stripe confirms the intent is succeeded."""
-        mock_retrieve.return_value = MagicMock(status="succeeded")
+        mock_retrieve.return_value = MagicMock(status="succeeded", amount=10**9)
         stripe_order = make_order(
             payment_method="card",
             status="processing",
@@ -108,6 +122,7 @@ class OrderStatusAPITest(TestCase):
 class MpesaSTKPushAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.book = make_book()
         self.url = "/api/payments/mpesa/stk-push/"
         self.valid_payload = {
             "name": "Philip Koboko",
@@ -160,6 +175,7 @@ class MpesaSTKPushAPITest(TestCase):
 class StripeCreateIntentAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.book = make_book()
         self.url = "/api/payments/stripe/create-intent/"
         # amount is in smallest unit (cents): 999 = $9.99
         self.valid_payload = {
@@ -220,7 +236,7 @@ class OrderStatusPatchSecurityTest(TestCase):
     @patch("apps.payments.views.stripe.PaymentIntent.retrieve")
     def test_patch_accepted_only_when_stripe_succeeded(self, mock_retrieve):
         """PATCH must succeed only when Stripe confirms the intent succeeded."""
-        mock_retrieve.return_value = MagicMock(status="succeeded")
+        mock_retrieve.return_value = MagicMock(status="succeeded", amount=10**9)
         resp = self.client.patch(self.url, {}, format="json")
         self.assertEqual(resp.status_code, 200)
         self.order.refresh_from_db()
@@ -231,7 +247,7 @@ class OrderStatusPatchSecurityTest(TestCase):
         """stripe_client_secret must be cleared after payment is confirmed."""
         self.order.stripe_client_secret = "pi_test_sec_123_secret_xyz"
         self.order.save(update_fields=["stripe_client_secret"])
-        mock_retrieve.return_value = MagicMock(status="succeeded")
+        mock_retrieve.return_value = MagicMock(status="succeeded", amount=10**9)
         self.client.patch(self.url, {}, format="json")
         self.order.refresh_from_db()
         self.assertEqual(self.order.stripe_client_secret, "")
@@ -264,7 +280,9 @@ class MpesaCallbackSecurityTest(TestCase):
         )
         self.url = "/api/payments/mpesa/callback/"
 
-    def _callback(self, merchant_id="MR-real-001", checkout_id="CO-real-001", result_code=0):
+    def _callback(
+        self, merchant_id="MR-real-001", checkout_id="CO-real-001", result_code=0, amount=1500
+    ):
         return self.client.post(
             self.url,
             {
@@ -276,6 +294,7 @@ class MpesaCallbackSecurityTest(TestCase):
                         "CallbackMetadata": {
                             "Item": [
                                 {"Name": "MpesaReceiptNumber", "Value": "RCP001"},
+                                {"Name": "Amount", "Value": amount},
                             ]
                         },
                     }
@@ -318,3 +337,121 @@ class MpesaCallbackSecurityTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, "failed")
+
+
+# ── Hardening: prices, amounts, privacy ──────────────────────────────────────
+
+
+class PaymentHardeningTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.book = make_book(price_kes=1500, price_usd="9.99")
+
+    @patch("apps.payments.views.stk_push")
+    def test_mpesa_ignores_client_amount(self, mock_stk):
+        mock_stk.return_value = {"CheckoutRequestID": "c", "MerchantRequestID": "m"}
+        resp = self.client.post(
+            "/api/payments/mpesa/stk-push/",
+            {"name": "A", "email": "a@x.com", "phone": "0712345678", "amount": 1},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(mock_stk.call_args.kwargs["amount"], 1500)
+        self.assertEqual(PreOrder.objects.get().amount, 1500)
+
+    @patch("apps.payments.views.stripe.PaymentIntent.create")
+    def test_stripe_ignores_client_amount_and_currency(self, mock_pi):
+        mock_pi.return_value = MagicMock(id="pi_1", client_secret="s")
+        self.client.post(
+            "/api/payments/stripe/create-intent/",
+            {"name": "A", "email": "a@x.com", "amount": 1, "currency": "jpy"},
+            format="json",
+        )
+        self.assertEqual(mock_pi.call_args.kwargs["amount"], 999)
+        self.assertEqual(mock_pi.call_args.kwargs["currency"], "usd")
+
+    def test_no_published_book_means_preorders_closed(self):
+        self.book.is_published = False
+        self.book.save()
+        resp = self.client.post(
+            "/api/payments/mpesa/stk-push/",
+            {"name": "A", "email": "a@x.com", "phone": "0712345678"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(PreOrder.objects.exists())
+
+    def test_mpesa_underpayment_is_not_marked_paid(self):
+        order = make_order(mpesa_merchant_request_id="M1", mpesa_checkout_request_id="C1")
+        self.client.post(
+            "/api/payments/mpesa/callback/",
+            {
+                "Body": {
+                    "stkCallback": {
+                        "MerchantRequestID": "M1",
+                        "CheckoutRequestID": "C1",
+                        "ResultCode": 0,
+                        "CallbackMetadata": {
+                            "Item": [
+                                {"Name": "MpesaReceiptNumber", "Value": "R1"},
+                                {"Name": "Amount", "Value": 1},
+                            ]
+                        },
+                    }
+                }
+            },
+            format="json",
+        )
+        order.refresh_from_db()
+        self.assertEqual(order.status, "failed")
+
+    @patch("apps.payments.views.stripe.PaymentIntent.retrieve")
+    def test_stripe_underpayment_is_not_marked_paid(self, mock_retrieve):
+        order = make_order(
+            payment_method="card", currency="USD", amount="9.99", stripe_payment_intent_id="pi_x"
+        )
+        mock_retrieve.return_value = MagicMock(status="succeeded", amount=1)
+        resp = self.client.patch(f"/api/payments/orders/{order.id}/", {}, format="json")
+        self.assertEqual(resp.status_code, 400)
+        order.refresh_from_db()
+        self.assertEqual(order.status, "processing")
+
+    def test_order_lookup_hides_buyer_details(self):
+        order = make_order()
+        data = self.client.get(f"/api/payments/orders/{order.id}/").json()["data"]
+        for field in ("name", "email", "phone"):
+            self.assertNotIn(field, data)
+        self.assertEqual(data["status"], "processing")
+
+    def test_callback_ip_allowlist_ignores_forged_forwarded_for(self):
+        order = make_order(mpesa_merchant_request_id="M2", mpesa_checkout_request_id="C2")
+        payload = {
+            "Body": {
+                "stkCallback": {
+                    "MerchantRequestID": "M2",
+                    "CheckoutRequestID": "C2",
+                    "ResultCode": 0,
+                    "CallbackMetadata": {"Item": [{"Name": "Amount", "Value": 1500}]},
+                }
+            }
+        }
+        with patch.dict("os.environ", {"DARAJA_CALLBACK_IPS": "196.201.214.200"}):
+            self.client.post(
+                "/api/payments/mpesa/callback/",
+                payload,
+                format="json",
+                HTTP_X_FORWARDED_FOR="196.201.214.200",
+                REMOTE_ADDR="203.0.113.5",
+            )
+        order.refresh_from_db()
+        self.assertEqual(order.status, "processing")
+
+    @patch("apps.payments.views.stk_push", side_effect=RuntimeError("secret internal detail"))
+    def test_errors_do_not_leak_internals(self, _):
+        resp = self.client.post(
+            "/api/payments/mpesa/stk-push/",
+            {"name": "A", "email": "a@x.com", "phone": "0712345678"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 502)
+        self.assertNotIn("secret internal detail", resp.content.decode())

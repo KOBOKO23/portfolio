@@ -63,7 +63,7 @@ jobs:
           "
 
       - name: Security — pip-audit (dependency CVEs)
-        run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2024-243
+        run: pip-audit -r requirements.txt
 
       - name: Django checks
         env:

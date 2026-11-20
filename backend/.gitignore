@@ -9,3 +9,4 @@ media/
 staticfiles/
 .pytest_cache/
 *.egg-info/
+.cache/

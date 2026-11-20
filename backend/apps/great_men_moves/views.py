@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from .models import GreatMenProgram, ImpactGoal, VolunteerApplication
 from .serializers import (
@@ -38,8 +39,14 @@ class ImpactGoalListView(generics.ListAPIView):
     pagination_class = None
 
 
+class VolunteerRateThrottle(AnonRateThrottle):
+    # Each application emails the owner; stop a script from flooding the inbox.
+    scope = "volunteer"
+
+
 class VolunteerApplicationCreateView(generics.CreateAPIView):
     serializer_class = VolunteerApplicationSerializer
+    throttle_classes = [VolunteerRateThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

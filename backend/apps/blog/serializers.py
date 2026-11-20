@@ -5,6 +5,7 @@ apps/blog/serializers.py — Blog categories, article list/detail, comments, and
 from rest_framework import serializers
 
 from utils.media import media_url
+from utils.request import client_ip
 
 from .models import (
     BlogArticle,
@@ -106,7 +107,7 @@ class BlogArticleDetailSerializer(BlogArticleListSerializer):
     def _get_fingerprint(self):
         request = self.context.get("request")
         if request:
-            return request.META.get("HTTP_X_FINGERPRINT", "") or request.META.get("REMOTE_ADDR", "")
+            return request.META.get("HTTP_X_FINGERPRINT", "")[:64] or client_ip(request)
         return ""
 
     def get_user_liked(self, obj):
@@ -153,9 +154,7 @@ class BlogCommentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get("request")
         if request:
-            ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
-                0
-            ].strip() or request.META.get("REMOTE_ADDR")
+            ip = client_ip(request)
             validated_data["ip_address"] = ip
         return super().create(validated_data)
 
