@@ -13,7 +13,6 @@ import {
   ArrowRight,
   ArrowDown,
 } from 'lucide-react';
-import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry';
 import { SEO } from '../components/SEO';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -111,111 +110,56 @@ function FadeImage({
   );
 }
 
-/** A featured look laid out as a magazine spread: image one side, story the other. */
-function Spread({ img, index, onOpen }: { img: FashionImage; index: number; onOpen: () => void }) {
-  const flip = index % 2 === 1;
+/** One look in the curated grid: an even 3:4 portrait with a quiet caption. */
+function LookCard({
+  img,
+  index,
+  onOpen,
+}: {
+  img: FashionImage;
+  index: number;
+  onOpen: () => void;
+}) {
   return (
-    <article className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-      <motion.button
-        type="button"
-        onClick={onOpen}
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        className={`group relative lg:col-span-7 overflow-hidden bg-[#e9e6df] cursor-zoom-in ${
-          flip ? 'lg:order-2' : ''
-        }`}
-        aria-label={`View ${img.title} full screen`}
-      >
-        <FadeImage
-          src={img.image}
-          alt={img.title}
-          className="w-full max-h-[88vh] object-cover group-hover:scale-[1.025] !duration-[1400ms] ease-out"
-        />
-        <span className="absolute bottom-5 right-5 flex items-center gap-2 bg-white/90 text-black text-[10px] uppercase tracking-[0.25em] px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Maximize2 size={12} /> View
-        </span>
-      </motion.button>
-
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.9, delay: 0.15 }}
-        className={`lg:col-span-5 ${flip ? 'lg:order-1 lg:pr-4' : 'lg:pl-4'}`}
-      >
-        <p className="flex items-center gap-4 text-[11px] uppercase tracking-[0.35em] text-black/45 mb-8">
-          <span style={{ color: GOLD }}>Look {pad(index + 1)}</span>
-          <span className="h-px w-12 bg-black/20" />
-          {img.category?.name}
-        </p>
-        <h3
-          className="text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.95] tracking-tight mb-8"
-          style={SERIF}
-        >
-          {titleCase(img.title)}
-        </h3>
-        {img.description && (
-          <p
-            dir="auto"
-            className="text-lg md:text-xl leading-[1.75] text-black/70 mb-12 whitespace-pre-line max-w-xl"
-          >
-            {img.description}
-          </p>
-        )}
-        <div className="border-t border-black/10 pt-8">
-          <Credits img={img} />
-        </div>
-      </motion.div>
-    </article>
-  );
-}
-
-function ArchiveTile({ img, onClick }: { img: FashionImage; onClick: () => void }) {
-  return (
-    <motion.figure
-      initial={{ opacity: 0, y: 20 }}
+    <motion.li
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.7 }}
-      className="group"
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.8, delay: (index % 4) * 0.08, ease: [0.22, 1, 0.36, 1] }}
     >
       <button
         type="button"
-        onClick={onClick}
-        className="block w-full overflow-hidden bg-[#e9e6df] cursor-zoom-in"
+        onClick={onOpen}
+        className="group block w-full text-left"
         aria-label={`View ${img.title}`}
       >
-        <FadeImage
-          src={img.thumbnail ?? img.image}
-          alt={img.title}
-          className="w-full object-cover group-hover:scale-[1.04] !duration-[1200ms] ease-out"
-        />
-      </button>
-      <figcaption className="pt-4 pb-2">
-        <div className="flex items-baseline justify-between gap-4">
-          <p className="text-lg leading-snug" style={SERIF}>
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#e9e6df]">
+          <FadeImage
+            src={img.thumbnail ?? img.image}
+            alt={img.title}
+            className="absolute inset-0 w-full h-full object-cover object-[50%_25%] group-hover:scale-[1.04] !duration-[1400ms] ease-out"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+          <span className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/90 text-black text-[9px] uppercase tracking-[0.25em] px-2.5 py-1.5 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+            <Maximize2 size={10} /> View
+          </span>
+        </div>
+        <div className="pt-4 flex items-baseline justify-between gap-3">
+          <p className="text-[17px] leading-snug truncate" style={SERIF}>
             {titleCase(img.title)}
           </p>
-          {img.location && (
-            <p className="text-[10px] uppercase tracking-[0.2em] text-black/40 flex-shrink-0 flex items-center gap-1">
-              <MapPin size={10} /> {titleCase(img.location)}
-            </p>
-          )}
+          <span className="text-[10px] tracking-[0.2em] text-black/30 flex-shrink-0">
+            {pad(index + 1)}
+          </span>
         </div>
-        {img.description && (
-          <p dir="auto" className="mt-2 text-sm text-black/55 leading-relaxed line-clamp-2">
-            {img.description}
+        {img.location && (
+          <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-black/40 flex items-center gap-1">
+            <MapPin size={9} /> {titleCase(img.location)}
           </p>
         )}
-      </figcaption>
-    </motion.figure>
+      </button>
+    </motion.li>
   );
-}
-
-function SkeletonTile({ h }: { h: number }) {
-  return <div className="bg-black/[0.06] animate-pulse" style={{ height: h }} />;
 }
 
 export function FashionGallery() {
@@ -263,19 +207,20 @@ export function FashionGallery() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Featured looks lead the page; without any, the first three (by admin order) do.
-  const spreads = useMemo(() => {
-    const featured = images.filter(i => i.featured);
-    return (featured.length ? featured : images).slice(0, 4);
-  }, [images]);
-  const cover = spreads[0] ?? null;
-  const showArchive = images.length > spreads.length;
+  // Featured looks come first; the first featured look (or first look) is the cover.
+  const ordered = useMemo(
+    () => [...images.filter(i => i.featured), ...images.filter(i => !i.featured)],
+    [images]
+  );
+  const cover = ordered[0] ?? null;
 
   const filtered =
-    activeCategory === 'all' ? images : images.filter(img => img.category?.slug === activeCategory);
+    activeCategory === 'all'
+      ? ordered
+      : ordered.filter(img => img.category?.slug === activeCategory);
 
   // The viewer steps through the archive's current filter, or all looks.
-  const sequence = filtered.some(i => i.id === selectedId) ? filtered : images;
+  const sequence = filtered.some(i => i.id === selectedId) ? filtered : ordered;
   const selectedIdx = sequence.findIndex(img => img.id === selectedId);
   const selectedImage = selectedIdx >= 0 ? sequence[selectedIdx] : null;
 
@@ -443,45 +388,78 @@ export function FashionGallery() {
         </div>
       </section>
 
-      {/* Featured looks */}
+      {/* The Looks — curated grid */}
       <section className="py-24 lg:py-36 px-4 sm:px-6 lg:px-12">
-        <div className="max-w-[1600px] mx-auto">
-          <div className="flex items-end justify-between gap-6 mb-16 lg:mb-24 border-b border-black/10 pb-8">
-            <h2
-              className="text-[clamp(2.5rem,6vw,5.5rem)] leading-none tracking-tight"
-              style={SERIF}
-            >
-              The Looks
-            </h2>
-            {!loading && images.length > 0 && (
-              <p className="text-[11px] uppercase tracking-[0.3em] text-black/40 pb-2">
-                {pad(images.length)} {images.length === 1 ? 'look' : 'looks'}
+        <div className="max-w-[1320px] mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14 lg:mb-20 border-b border-black/10 pb-8">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.35em] mb-5" style={{ color: GOLD }}>
+                Collection
               </p>
-            )}
+              <h2
+                className="text-[clamp(2.5rem,5.5vw,4.75rem)] leading-none tracking-tight"
+                style={SERIF}
+              >
+                The Looks
+              </h2>
+            </div>
+            <div className="flex flex-col md:items-end gap-5">
+              {categories.filter(c => c.image_count > 0).length > 1 && (
+                <div className="flex flex-wrap gap-x-7 gap-y-3" role="tablist">
+                  {[{ slug: 'all', name: 'All', image_count: images.length }, ...categories]
+                    .filter(c => c.image_count > 0)
+                    .map(cat => (
+                      <button
+                        key={cat.slug}
+                        role="tab"
+                        aria-selected={activeCategory === cat.slug}
+                        onClick={() => setActiveCategory(cat.slug)}
+                        className={`relative text-[11px] uppercase tracking-[0.3em] pb-2 transition-colors ${
+                          activeCategory === cat.slug
+                            ? 'text-black'
+                            : 'text-black/40 hover:text-black'
+                        }`}
+                      >
+                        {cat.name}
+                        <sup className="ml-1 text-[9px]">{cat.image_count}</sup>
+                        {activeCategory === cat.slug && (
+                          <motion.span
+                            layoutId="looks-tab"
+                            className="absolute left-0 right-0 -bottom-px h-px bg-black"
+                          />
+                        )}
+                      </button>
+                    ))}
+                </div>
+              )}
+              {!loading && images.length > 0 && (
+                <p className="text-[11px] uppercase tracking-[0.3em] text-black/40">
+                  {pad(filtered.length)} {filtered.length === 1 ? 'look' : 'looks'}
+                </p>
+              )}
+            </div>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-              <div className="lg:col-span-7">
-                <SkeletonTile h={640} />
-              </div>
-              <div className="lg:col-span-5 space-y-6 pt-20">
-                <SkeletonTile h={20} />
-                <SkeletonTile h={80} />
-                <SkeletonTile h={160} />
-              </div>
-            </div>
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-12 lg:gap-x-8 lg:gap-y-16">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li key={i}>
+                  <div className="aspect-[3/4] bg-black/[0.06] animate-pulse" />
+                  <div className="mt-4 h-4 w-2/3 bg-black/[0.06] animate-pulse" />
+                </li>
+              ))}
+            </ul>
           ) : noImages ? (
             <div className="text-center py-32">
               <Camera className="w-12 h-12 mx-auto mb-4 text-black/20" />
               <p className="text-black/40 text-lg">The first looks are on their way.</p>
             </div>
           ) : (
-            <div className="space-y-28 lg:space-y-44">
-              {spreads.map((img, i) => (
-                <Spread key={img.id} img={img} index={i} onOpen={() => setSelectedId(img.id)} />
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-12 lg:gap-x-8 lg:gap-y-16">
+              {filtered.map((img, i) => (
+                <LookCard key={img.id} img={img} index={i} onOpen={() => setSelectedId(img.id)} />
               ))}
-            </div>
+            </ul>
           )}
         </div>
       </section>
@@ -504,57 +482,6 @@ export function FashionGallery() {
           </footer>
         </motion.blockquote>
       </section>
-
-      {/* Archive */}
-      {showArchive && (
-        <section className="py-24 lg:py-32 px-4 sm:px-6 lg:px-12">
-          <div className="max-w-[1800px] mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14">
-              <h2
-                className="text-[clamp(2.5rem,5vw,4.5rem)] leading-none tracking-tight"
-                style={SERIF}
-              >
-                Archive
-              </h2>
-              {categories.filter(c => c.image_count > 0).length > 1 && (
-                <div className="flex flex-wrap gap-x-8 gap-y-3" role="tablist">
-                  {[{ slug: 'all', name: 'All', image_count: images.length }, ...categories]
-                    .filter(c => c.image_count > 0)
-                    .map(cat => (
-                      <button
-                        key={cat.slug}
-                        role="tab"
-                        aria-selected={activeCategory === cat.slug}
-                        onClick={() => setActiveCategory(cat.slug)}
-                        className={`relative text-[11px] uppercase tracking-[0.3em] pb-2 transition-colors ${
-                          activeCategory === cat.slug
-                            ? 'text-black'
-                            : 'text-black/40 hover:text-black'
-                        }`}
-                      >
-                        {cat.name}
-                        <sup className="ml-1 text-[9px]">{cat.image_count}</sup>
-                        {activeCategory === cat.slug && (
-                          <motion.span
-                            layoutId="archive-tab"
-                            className="absolute left-0 right-0 -bottom-px h-px bg-black"
-                          />
-                        )}
-                      </button>
-                    ))}
-                </div>
-              )}
-            </div>
-            <ResponsiveMasonry columnsCountBreakPoints={{ 0: 1, 640: 2, 1100: 3, 1500: 4 }}>
-              <Masonry gutter="28px">
-                {filtered.map(img => (
-                  <ArchiveTile key={img.id} img={img} onClick={() => setSelectedId(img.id)} />
-                ))}
-              </Masonry>
-            </ResponsiveMasonry>
-          </div>
-        </section>
-      )}
 
       {/* Principles */}
       <section className="py-28 lg:py-36 px-4 sm:px-6 lg:px-12 bg-white border-t border-black/5">
