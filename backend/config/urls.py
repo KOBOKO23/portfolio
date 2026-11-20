@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.contrib.syndication.views import Feed
 from django.http import HttpResponse
 from django.urls import include, path
@@ -127,6 +128,29 @@ class LatestArticlesFeed(Feed):
 _admin_url = getattr(settings, "ADMIN_URL", "admin/")
 
 urlpatterns = [
+    # "Forgot password?" on the admin login page. The admin template shows the
+    # link as soon as `admin_password_reset` resolves. These must come before
+    # admin.site.urls, whose catch-all would otherwise 404 them.
+    path(
+        f"{_admin_url}password_reset/",
+        auth_views.PasswordResetView.as_view(),
+        name="admin_password_reset",
+    ),
+    path(
+        f"{_admin_url}password_reset/done/",
+        auth_views.PasswordResetDoneView.as_view(),
+        name="password_reset_done",
+    ),
+    path(
+        f"{_admin_url}reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
+    path(
+        f"{_admin_url}reset/done/",
+        auth_views.PasswordResetCompleteView.as_view(),
+        name="password_reset_complete",
+    ),
     path(_admin_url, admin.site.urls),
     path("robots.txt", robots_txt),
     path("sitemap.xml", sitemap_xml),

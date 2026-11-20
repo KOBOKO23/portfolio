@@ -480,7 +480,7 @@ JAZZMIN_SETTINGS = {
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
     "related_modal_active": True,
-    "custom_css": None,
+    "custom_css": "core/admin_overrides.css",
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": True,
