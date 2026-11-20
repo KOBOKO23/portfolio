@@ -23,6 +23,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
+    hero_image = serializers.SerializerMethodField()
     resume_pdf = serializers.SerializerMethodField()
     skills = serializers.SerializerMethodField()
 
@@ -34,6 +35,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "tagline",
             "bio",
             "profile_image",
+            "hero_image",
+            "hero_image_alt",
             "resume_pdf",
             "email",
             # "phone" is deliberately not exposed: the owner's number stays in the
@@ -50,6 +53,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_profile_image(self, obj):
         return media_url(self.context.get("request"), obj.profile_image)
+
+    def get_hero_image(self, obj):
+        return media_url(self.context.get("request"), obj.hero_image)
 
     def get_resume_pdf(self, obj):
         return media_url(self.context.get("request"), obj.resume_pdf)
