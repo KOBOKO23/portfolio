@@ -40,6 +40,8 @@ interface ImpactGoal {
 interface Profile {
   full_name: string;
   profile_image: string | null;
+  hero_image?: string | null;
+  hero_image_alt?: string;
 }
 
 interface Resp<T> {
@@ -97,6 +99,9 @@ export function Home() {
   const [approvedFeedback, setApprovedFeedback] = useState<ApprovedFeedback[]>([]);
   const [gmmStat, setGmmStat] = useState(DEFAULT_GMM_STAT);
   const [profile, setProfile] = useState<Profile | null>(null);
+  // Until the profile arrives we don't know whether there's a cover photo, so
+  // the hero stays plain black rather than flashing the fallback design.
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     void fetch(`${API}/blog/articles/?is_featured=true&page_size=3&ordering=-published_date`)
@@ -149,36 +154,57 @@ export function Home() {
       .then(res => {
         if (res.success && res.data) setProfile(res.data);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setProfileLoaded(true));
   }, []);
 
   return (
     <div className="min-h-screen">
       <SEO type="profile" />
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden bg-black">
-        {/* Radial atmospheric glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] h-[70vh] rounded-full opacity-20"
-            style={{ background: 'radial-gradient(ellipse, #d4a574 0%, transparent 70%)' }}
-          />
-          <div
-            className="absolute bottom-0 right-0 w-[40vw] h-[40vw] rounded-full opacity-8"
-            style={{ background: 'radial-gradient(circle, #0ea5e9 0%, transparent 70%)' }}
-          />
-        </div>
-        {/* Grid lines */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              'linear-gradient(0deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%), linear-gradient(90deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%)',
-            backgroundSize: '80px 80px',
-          }}
-        />
+      <section className="relative min-h-[100svh] flex items-end lg:items-center overflow-hidden bg-black">
+        {profile?.hero_image ? (
+          // Cover photo (uploaded in the admin under Profile → Home page cover),
+          // laid out like the Fashion page: photo on the right, type on black.
+          <motion.div
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 lg:left-[38%]"
+          >
+            <img
+              src={profile.hero_image}
+              alt={profile.hero_image_alt?.length ? profile.hero_image_alt : profile.full_name}
+              className="w-full h-full object-cover object-[50%_25%]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-black/10 lg:bg-gradient-to-r lg:from-black lg:via-black/25 lg:to-transparent" />
+          </motion.div>
+        ) : !profileLoaded ? null : (
+          <>
+            {/* Radial atmospheric glow */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] h-[70vh] rounded-full opacity-20"
+                style={{ background: 'radial-gradient(ellipse, #d4a574 0%, transparent 70%)' }}
+              />
+              <div
+                className="absolute bottom-0 right-0 w-[40vw] h-[40vw] rounded-full opacity-8"
+                style={{ background: 'radial-gradient(circle, #0ea5e9 0%, transparent 70%)' }}
+              />
+            </div>
+            {/* Grid lines */}
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(0deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%), linear-gradient(90deg, transparent 49.5%, white 49.5%, white 50.5%, transparent 50.5%)',
+                backgroundSize: '80px 80px',
+              }}
+            />
+          </>
+        )}
 
-        <div className="relative z-10 px-6 lg:px-16 max-w-[1600px] mx-auto w-full">
+        <div className="relative z-10 px-6 lg:px-16 max-w-[1600px] mx-auto w-full pt-36 pb-28 lg:py-0">
           <motion.div
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
@@ -187,7 +213,11 @@ export function Home() {
             <div className="w-16 h-[2px] bg-[#d4a574] mb-10" />
             <h1
               className="font-serif leading-[0.92] tracking-tight text-white mb-8"
-              style={{ fontSize: 'clamp(3.5rem,11vw,10rem)' }}
+              style={{
+                fontSize: profile?.hero_image
+                  ? 'clamp(3.25rem,8.5vw,8.5rem)'
+                  : 'clamp(3.5rem,11vw,10rem)',
+              }}
             >
               Where Science
               <br />
@@ -222,7 +252,7 @@ export function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.8 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/30"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 hidden md:flex flex-col items-center gap-2 text-white/30"
         >
           <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
           <div className="w-px h-14 bg-gradient-to-b from-white/30 to-transparent" />
@@ -292,28 +322,9 @@ export function Home() {
       {/* ── Introduction ─────────────────────────────────────────────────── */}
       <section className="py-36 lg:py-48 px-6 lg:px-16 bg-[#fafafa]">
         <div className="max-w-6xl mx-auto">
-          <motion.div {...fadeUp} className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-16">
-            <div>
-              {/* Profile photo — falls back to a monogram until one is uploaded in the admin */}
-              <div className="relative w-full max-w-[220px] mb-8">
-                <div className="aspect-[4/5] overflow-hidden bg-black">
-                  {profile?.profile_image ? (
-                    <img
-                      src={profile.profile_image}
-                      alt={profile.full_name}
-                      className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="font-serif text-white/15 text-7xl">
-                        {(profile?.full_name || 'K')[0]}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="absolute -right-3 -bottom-3 w-full h-full border border-[#d4a574]/40 -z-10" />
-              </div>
-              <div className="w-10 h-[2px] bg-[#d4a574] mb-5" />
+          <motion.div {...fadeUp}>
+            <div className="flex items-center gap-5 mb-10">
+              <div className="w-10 h-[2px] bg-[#d4a574]" />
               <p className="text-xs uppercase tracking-[0.3em] text-black/40">Introduction</p>
             </div>
             <div>

@@ -1,11 +1,29 @@
 from django.db import models
 
+from utils.images import is_new_upload, shrink_image
+
 
 class Profile(models.Model):
     full_name = models.CharField(max_length=200)
     tagline = models.CharField(max_length=300)
     bio = models.TextField()
     profile_image = models.ImageField(upload_to="profile/", blank=True, null=True)
+    hero_image = models.ImageField(
+        "Home cover photo",
+        upload_to="profile/hero/",
+        blank=True,
+        null=True,
+        help_text='Large photo at the top of the home page, beside "Where Science Meets '
+        'Purpose". A portrait or landscape photo of you works best; it is resized '
+        "automatically. Without one, the home page shows the plain dark design.",
+    )
+    hero_image_alt = models.CharField(
+        "Cover photo description",
+        max_length=200,
+        blank=True,
+        help_text="Short description for screen readers and search engines, e.g. "
+        '"Philip in a maroon suit in Nairobi".',
+    )
     resume_pdf = models.FileField(upload_to="profile/", blank=True, null=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=30, blank=True)
@@ -28,6 +46,10 @@ class Profile(models.Model):
         # Enforce singleton: only one profile
         if not self.pk and Profile.objects.exists():
             Profile.objects.all().delete()
+        for field in ("profile_image", "hero_image"):
+            upload = getattr(self, field)
+            if is_new_upload(upload):
+                setattr(self, field, shrink_image(upload.file, max_px=2400, quality=84))
         super().save(*args, **kwargs)
 
 
