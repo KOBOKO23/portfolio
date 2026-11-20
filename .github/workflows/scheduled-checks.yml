@@ -11,7 +11,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   backend-audit:
     name: Backend Dependency Audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   frontend-audit:
     name: Frontend Dependency Audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     defaults:
       run:
@@ -65,7 +65,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   stale-branches:
     name: Stale Branch Report
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     permissions:
       contents: read
